@@ -92,7 +92,7 @@
     </p>
   <p class="article-time">
     <time datetime="2015-12-18T13:03:00.000Z" itemprop="datePublished">2015-12-18</time>
-    更新日期:<time datetime="2015-12-20T08:02:37.853Z" itemprop="dateModified">2015-12-20</time>
+    更新日期:<time datetime="2015-12-26T07:51:59.011Z" itemprop="dateModified">2015-12-26</time>
     
   </p>
 </header>
@@ -417,6 +417,8 @@
 <p>docker create表示新增一个容器，但是并不启动；docker run表示新增一个容器，并启动运行，直到运行结束。参照容器的生命周期<a href="#fn6" class="footnoteRef" id="fnref6"><sup>6</sup></a>，如下图，</p>
 <p><img src="http://7xpbnt.com1.z0.glb.clouddn.com/docker-architecture-v12-15-638.jpg"></p>
 <p>详细来说，docker create只是新增一个容器，并进入容器生命周期中的created状态；而docker run不但新增一个容器，还立刻start并进入running状态，如运行过程中没有被pause或者kill，会一直运行到程序结束，容器进入stopped状态。因此，docker create命令没有-d参数，而docker run有。在docker run中，-d参数表示后台运行容器，而对于docker create来讲，仅仅只创建了容器，容器并未开始运行，因此也不存在所谓后台运行的概念，因此，docker create没有-d参数。</p>
+<h2>镜像与容器存放的路径</h2>
+<p>镜像的存放路径可以看我的另一篇文章《Docker入门介绍》中有提到，在<code>/var/lib/docker</code>下。具体细节来说，一些镜像本身信息相关的文件放在<code>./graph</code>下，容器相关的设置，如一些网络（eg，ip、hostname、hosts等）、unix mq、unix共享内存等信息放在<code>./containers</code>下，镜像本身的文件和容器相关的文件都放在该目录下的<code>./aufs/diff</code>目录下。该目录下有很多以镜像id和容器id命名的目录，每个目录下都是镜像与容器本身的文件。</p>
 <h2>常用docker命令实践</h2>
 <p>由于docker需要使用root权限，以下命令如无特别说明，均使用root用户执行，运行环境是Ubuntu 14.04 LTS。</p>
 <h3>搭建docker registry</h3>
@@ -614,6 +616,14 @@
 	
 <nav class="article-nav clearfix">
  
+ <div class="prev" >
+ <a href="/post/201512-docker-build-image/" title="Docker创建镜像">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  Docker创建镜像</span>
+</a>
+</div>
+
 
 <div class="next">
 <a href="/post/201512-docker-starter/"  title="Docker入门介绍">
@@ -660,7 +670,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -675,7 +685,7 @@
 		
 			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
 		
-			<li><a href="/categories/Docker/" title="Docker">Docker<sup>2</sup></a></li>
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>3</sup></a></li>
 		
 			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
 		
@@ -702,9 +712,9 @@
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>33</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>34</sup></a></li>
 		
-			<li><a href="/tags/Docker/" title="Docker">Docker<sup>2</sup></a></li>
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>3</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		
@@ -736,7 +746,7 @@
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 10.00px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 11.67px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.67px;">Java</a><a href="/tags/Postgres/" style="font-size: 18.33px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 13.33px;">Quantmod</a><a href="/tags/R/" style="font-size: 13.33px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.67px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.67px;">Translation</a><a href="/tags/scheme/" style="font-size: 11.67px;">scheme</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 10.00px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 13.33px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.67px;">Java</a><a href="/tags/Postgres/" style="font-size: 18.33px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 13.33px;">Quantmod</a><a href="/tags/R/" style="font-size: 13.33px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.67px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.67px;">Translation</a><a href="/tags/scheme/" style="font-size: 11.67px;">scheme</a>
     </div>
   </div>
 

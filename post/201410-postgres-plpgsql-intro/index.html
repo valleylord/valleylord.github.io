@@ -11,7 +11,7 @@
     
     <meta name="description" content="默认情况下，PostgreSQL唯一默认会安装的存储过程语言就是PL/pgSQL。
 创建PL/pgSQL的方法是在psql或者pgAdmin中输入创建语句，如下，
-1234567891011121314151617181920CREATE or replace FUNCTION somefunc()">
+1234567891011121314151617181920CREATE or replace FUNCTION somefunc">
     
     
     
@@ -105,10 +105,10 @@
 <p>以上语句来自PostgreSQL的官方文档，运行后即可创建。运行的话，可以在pgAdmin的query窗口中输入如下语句，</p>
 <p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">select</span> somefunc() <span class="keyword">as</span> i;</span></div></pre></td></tr></table></figure></p>
 <p>得到的输出，如下图，</p>
-<p><img src="/images/201410-postgres-plpgsql-intro/run-plpgsql-output.png"></p>
-<p><img src="/images/201410-postgres-plpgsql-intro/run-plpgsql-message.png"></p>
+<p><img src="/images/201410-postgres-plpgsql-intro/run-plpgsql-output.png" alt=""></p>
+<p><img src="/images/201410-postgres-plpgsql-intro/run-plpgsql-message.png" alt=""></p>
 <p>可以看到，实际的结果输出在output栏下；程序运行的中间输出，即<code>RAISE NOTICE</code>，输出在message栏下。如果是在psql中输入以上语句，会先输出中间结果，然后输出实际的运行结果，如下图，</p>
-<p><img src="/images/201410-postgres-plpgsql-intro/run-plpgsql-psql.png"></p>
+<p><img src="/images/201410-postgres-plpgsql-intro/run-plpgsql-psql.png" alt=""></p>
 <p>其余的用法，基本和Oracle的PL/SQL很相似。</p>
   
 	</div>
@@ -197,7 +197,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -212,7 +212,7 @@
 		
 			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
 		
-			<li><a href="/categories/Docker/" title="Docker">Docker<sup>2</sup></a></li>
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>3</sup></a></li>
 		
 			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
 		
@@ -239,9 +239,9 @@
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>33</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>34</sup></a></li>
 		
-			<li><a href="/tags/Docker/" title="Docker">Docker<sup>2</sup></a></li>
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>3</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		
@@ -273,7 +273,7 @@
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 10.00px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 11.67px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.67px;">Java</a><a href="/tags/Postgres/" style="font-size: 18.33px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 13.33px;">Quantmod</a><a href="/tags/R/" style="font-size: 13.33px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.67px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.67px;">Translation</a><a href="/tags/scheme/" style="font-size: 11.67px;">scheme</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 10.00px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 13.33px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.67px;">Java</a><a href="/tags/Postgres/" style="font-size: 18.33px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 13.33px;">Quantmod</a><a href="/tags/R/" style="font-size: 13.33px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.67px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.67px;">Translation</a><a href="/tags/scheme/" style="font-size: 11.67px;">scheme</a>
     </div>
   </div>
 
