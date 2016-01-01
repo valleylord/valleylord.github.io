@@ -4,7 +4,7 @@
   <subtitle><![CDATA[我想写一些东西]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://valleylord.github.io/"/>
-  <updated>2015-12-27T09:58:16.523Z</updated>
+  <updated>2016-01-01T10:18:40.625Z</updated>
   <id>http://valleylord.github.io/</id>
   
   <author>
@@ -15,11 +15,61 @@
   <generator uri="http://zespia.tw/hexo/">Hexo</generator>
   
   <entry>
+    <title><![CDATA[Docker存储(Volumn)]]></title>
+    <link href="http://valleylord.github.io/post/201512-docker-volumn/"/>
+    <id>http://valleylord.github.io/post/201512-docker-volumn/</id>
+    <published>2016-01-01T06:25:00.000Z</published>
+    <updated>2016-01-01T10:18:29.550Z</updated>
+    <content type="html"><![CDATA[<h2>指定存储（Volumn）</h2>
+<p>Volumn是Docker容器中，用于将数据存储在容器之外的路径的工具。</p>
+<p>主要有两个地方会用到，一个是在使用<code>docker run</code>命令的时候，可以用<code>-v</code>参数指定存储，如<code>-v [host dir]:[container dir]</code>，将宿主机的目录<code>[host dir]</code>挂载到容器内的<code>[container dir]</code>，也可以只指定容器目录，如<code>-v [container dir]</code>，表示在容器内创建一个目录<code>container dir</code>，该目录的修改不会记录在容器的修改中，而会存在<code>/var/lib/docker</code>目录下的<code>./volumnes</code>目录中。<code>./volumnes</code>目录下的数据文件不会被docker删除，即使容器被删除也不会，如果要清理这个目录下的文件，只能手动进行。例如，可以使用<code>docker inspect</code>查看存储的路径，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">$ docker <span class="keyword">inspect</span> <span class="number">9</span>f47cb4bb97f</div><div class="line">...... <span class="comment">// 省略部分内容</span></div><div class="line">    <span class="string">"Mounts"</span>: [</div><div class="line">        {</div><div class="line">            <span class="string">"Name"</span>: <span class="string">"05d30758ebf0ca16e86026b2328b2c6b48cfaa62e9f7a262c0a6dfddde003a11"</span>,</div><div class="line">            <span class="string">"Source"</span>: <span class="string">"/var/lib/docker/volumes/05d30758ebf0ca16e86026b2328b2c6b48cfaa62e9f7a262c0a6dfddde003a11/_data"</span>,</div><div class="line">            <span class="string">"Destination"</span>: <span class="string">"/var/lib/mysql"</span>,</div><div class="line">            <span class="string">"Driver"</span>: <span class="string">"local"</span>,</div><div class="line">            <span class="string">"Mode"</span>: <span class="string">""</span>,</div><div class="line">            <span class="string">"RW"</span>: <span class="keyword">true</span></div><div class="line">        }</div><div class="line">    ],</div><div class="line">...... <span class="comment">// 省略部分内容</span></div></pre></td></tr></table></figure></p>
+<p>Volumn的另一种用法是在dockerfile中，其含义与<code>docker run</code>的后一种用法相同。可以参考mysql的dockerfile的例子，无论是标准的mysql镜像，或者是mariadb镜像，又或者是Oracle的mysql镜像，其dockerfile<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a><a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a><a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>中指定volumn的都只有如下一行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">VOLUME /<span class="keyword">var</span>/lib/mysql</div></pre></td></tr></table></figure></p>
+<p>即创建容器的存储路径<code>/var/lib/mysql</code>。这是因为，mysql的数据存储目录就是<code>/var/lib/mysql</code>，在mysql的容器被删除之后，我们希望数据目录仍然存在，不要跟着容器被一并删除；同样，如果容器做了修改，提交时应该也不能包含该目录，因为我们不能将业务相关的数据跟着容器中的程序一并提交。这正式Volumn存在的意义。</p>
+<h2>docker容器间通信</h2>
+<p>docker容器间的通信默认是通过iptables来完成。以tomcat的容器为例，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">$ docker run -p <span class="number">8080</span>:<span class="number">8080</span> -d tomcat </div><div class="line"><span class="number">9</span>a1b9aca0fddeb68489c974df5d09e6093d8e774ff7db9132d8d25606643dc1f</div><div class="line"></div><div class="line">$ docker ps</div><div class="line">CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                    NAMES</div><div class="line"><span class="number">9</span>a1b9aca0fdd        tomcat              <span class="string">"catalina.sh run"</span>   <span class="number">4</span> <span class="built_in">seconds</span> ago       Up <span class="number">2</span> <span class="built_in">seconds</span>        <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:<span class="number">8080</span>-&gt;<span class="number">8080</span>/tcp   silly_jennings</div><div class="line"></div><div class="line">$ iptables-save | grep <span class="number">8080</span></div><div class="line">-A POSTROUTING -s <span class="number">172.17</span><span class="number">.0</span><span class="number">.2</span>/<span class="number">32</span> -d <span class="number">172.17</span><span class="number">.0</span><span class="number">.2</span>/<span class="number">32</span> -p tcp -m tcp <span class="comment">--dport 8080 -j MASQUERADE</span></div><div class="line">-A DOCKER ! -i docker0 -p tcp -m tcp <span class="comment">--dport 8080 -j DNAT --to-destination 172.17.0.2:8080</span></div><div class="line">-A DOCKER -d <span class="number">172.17</span><span class="number">.0</span><span class="number">.2</span>/<span class="number">32</span> ! -i docker0 -o docker0 -p tcp -m tcp <span class="comment">--dport 8080 -j ACCEPT</span></div></pre></td></tr></table></figure></p>
+<p>可以发现，对容器8080端口配置了3条iptables规则。解释这几条规则，需要先理解docker的网络，默认情况下，所有的docker容器全都运行在docker0作为虚拟路由器的子网内，一般是一个172开头的网段，与外界的连接通过NAT方式桥接。</p>
+<p>第一条规则是，容器（172.17.0.2）访问外网时做的源地址伪装；第二条规则是，宿主机网络节点通过docker0访问8080端口，转发到172.17.0.2:8080，这是一个由外网节点向NAT内网机节点做转发的常见配置；第3条规则是，通过docker0访问端口8080，转发到172.17.0.2的8080端口，这是容器所在的NAT内网访问本节点的配置。以上所有转发规则都使用tcp协议。</p>
+<p>如果在<code>docker run</code>的时候使用了<code>--net=host</code>或<code>--net=container:&lt;name|id&gt;</code>选项，那么容器将使用宿主机的网络，或使用另一个容器的网络。这种情况下不会产生新的iptables规则。如果使用了<code>--net=container:&lt;name|id&gt;</code>选项，在另一个容器被关闭的时候，本容器也会无法访问，即使另一个容器又重启，本容器也需要重启后才可以访问。</p>
+<p>与iptables有关的选项在docker后台启动进程（daemon）上，<code>--icc=true</code>和<code>--iptables=true</code>，<code>--icc=true</code>表示不同容器之间是允许网络互通的，这是默认值。如果设置了这个选项，即使设置<code>--iptables=false</code>也可以容器间互通，但这样是不安全的，建议设置<code>--icc=false</code>。<code>--iptables=true</code>，表示通过设置iptables达到容器间互通，如果设置了这个选项，在容器启动的时候就会新增iptables规则。这些选项建议放在<code>/etc/default/docker</code>中，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="constant">DOCKER_OPTS</span>=<span class="string">"--icc=false --iptables=true"</span></div></pre></td></tr></table></figure></p>
+<p>也可以手动启动docker后台启动进程时加上，<code>docker daemon --icc=false --iptables=true</code>。</p>
+<h2>docker端口映射</h2>
+<p>容器可以在启动的时候使用<code>-p</code>选项来增加容器内和宿主机之间的端口映射。但是默认情况下，每增加一个端口映射都会产生一个docker-proxy进程，而这样一个进程需要消耗大约10M内存。如果映射的端口过多，就会导致内存耗尽，这样的情况，无论是宿主机上有一个映射端口很多的容器，还是容器虽然映射端口很少，但宿主机上有很多个这种容器，都会发生。为了解决这个问题，docker改进了设计，将docker-proxy进程设计为非必要。可以在docker后台启动进程中加入<code>--userland-proxy=false</code>选项来禁止docker-proxy进程的产生<a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a>。同样这个参数可以加在后台启动进程上，也可以加在<code>/etc/default/docker</code>中，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="comment">DOCKER_OPTS="</span><span class="literal">-</span><span class="literal">-</span><span class="comment">icc=false</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">iptables=true</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">userland</span><span class="literal">-</span><span class="comment">proxy=false"</span></div></pre></td></tr></table></figure></p>
+<p><img src="/images/201601-docker-volumn/docker-volumn-userland-proxy-1.png"></p>
+<div class="footnotes">
+<hr>
+<ol>
+<li id="fn1"><p><a href="https://github.com/docker-library/mysql/blob/a1a948c19137b7843ff0c7de0c95d22b74ecfefd/5.6/Dockerfile" target="_blank" rel="external">https://github.com/docker-library/mysql/blob/a1a948c19137b7843ff0c7de0c95d22b74ecfefd/5.6/Dockerfile</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="https://github.com/docker-library/mariadb/blob/d960d3cd750accc47d620886cff901d87a600d37/10.1/Dockerfile" target="_blank" rel="external">https://github.com/docker-library/mariadb/blob/d960d3cd750accc47d620886cff901d87a600d37/10.1/Dockerfile</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="https://github.com/mysql/mysql-docker/blob/mysql-server/5.6/Dockerfile" target="_blank" rel="external">https://github.com/mysql/mysql-docker/blob/mysql-server/5.6/Dockerfile</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="https://github.com/docker/docker/issues/14856" target="_blank" rel="external">https://github.com/docker/docker/issues/14856</a><a href="#fnref4">↩</a></p></li>
+</ol>
+</div>
+]]></content>
+    <summary type="html">
+    <![CDATA[<h2>指定存储（Volumn）</h2>
+<p>Volumn是Docker容器中，用于将数据存储在容器之外的路径的工具。</p>
+<p>主要有两个地方会用到，一个是在使用<code>docker run</code>命令的时候，可以用<code>-v</code>参数指定存储，]]>
+    </summary>
+    
+      <category term="Docker" scheme="http://valleylord.github.io/tags/Docker/"/>
+    
+      <category term="Dataguru" scheme="http://valleylord.github.io/tags/Dataguru/"/>
+    
+      <category term="Docker" scheme="http://valleylord.github.io/categories/Docker/"/>
+    
+  </entry>
+  
+  <entry>
     <title><![CDATA[Docker创建镜像]]></title>
     <link href="http://valleylord.github.io/post/201512-docker-build-image/"/>
     <id>http://valleylord.github.io/post/201512-docker-build-image/</id>
     <published>2015-12-27T01:43:00.000Z</published>
-    <updated>2015-12-27T09:56:54.068Z</updated>
+    <updated>2015-12-27T09:56:54.000Z</updated>
     <content type="html"><![CDATA[<p>通常情况下，我们使用dockerfile来创建镜像，主要是因为dockerfile可以实现脚本化，反复使用。</p>
 <p>dockerfile通常是由一系列指令组成，一个常见的dockerfile的例子主要有以下一些指令<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>。</p>
 <h2>dockerfile指令</h2>
@@ -33,36 +83,25 @@
 <p>前者将在 shell 终端中运行命令，即 <code>/bin/sh -c</code>；后者则使用 <code>exec</code> 执行。指定使用其它终端可以通过第二种方式实现，例如 <code>RUN [&quot;/bin/bash&quot;, &quot;-c&quot;, &quot;echo hello&quot;]</code>。</p>
 <p>每条 <code>RUN</code> 指令将在当前镜像基础上执行指定命令，并提交为新的镜像。当命令较长时可以使用 <code>\</code> 来换行。</p>
 <h3>CMD</h3>
-支持三种格式
-<ul>
-<li><code>CMD [&quot;executable&quot;,&quot;param1&quot;,&quot;param2&quot;]</code> 使用 <code>exec</code> 执行，推荐方式；</li>
-<li><code>CMD command param1 param2</code> 在 <code>/bin/sh</code> 中执行，提供给需要交互的应用；</li>
-<li><code>CMD [&quot;param1&quot;,&quot;param2&quot;]</code> 提供给 <code>ENTRYPOINT</code> 的默认参数；</li>
-</ul>
+<p>支持三种格式 * <code>CMD [&quot;executable&quot;,&quot;param1&quot;,&quot;param2&quot;]</code> 使用 <code>exec</code> 执行，推荐方式； * <code>CMD command param1 param2</code> 在 <code>/bin/sh</code> 中执行，提供给需要交互的应用； * <code>CMD [&quot;param1&quot;,&quot;param2&quot;]</code> 提供给 <code>ENTRYPOINT</code> 的默认参数；</p>
 <p>指定启动容器时执行的命令，每个 Dockerfile 只能有一条 <code>CMD</code> 命令。如果指定了多条命令，只有最后一条会被执行。</p>
 <p>如果用户启动容器时候指定了运行的命令，则会覆盖掉 <code>CMD</code> 指定的命令。</p>
 <h3>EXPOSE</h3>
 <p>格式为 <code>EXPOSE &lt;port&gt; [&lt;port&gt;...]</code>。</p>
 <p>告诉 Docker 服务端容器暴露的端口号，供互联系统使用。在启动容器时需要通过 -P，Docker 主机会自动分配一个端口转发到指定的端口。</p>
 <h3>ENV</h3>
-格式为 <code>ENV &lt;key&gt; &lt;value&gt;</code>。
-<p>指定一个环境变量，会被后续 <code>RUN</code> 指令使用，并在容器运行时保持。</p>
+<p>格式为 <code>ENV &lt;key&gt; &lt;value&gt;</code>。 指定一个环境变量，会被后续 <code>RUN</code> 指令使用，并在容器运行时保持。</p>
 <p>例如</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="constant">ENV</span> <span class="constant">PG_MAJOR</span> <span class="number">9.3</span></div><div class="line"><span class="constant">ENV</span> <span class="constant">PG_VERSION</span> <span class="number">9.3</span>.<span class="number">4</span></div><div class="line"><span class="constant">RUN</span> curl -<span class="constant">SL</span> <span class="symbol">http:</span>/<span class="regexp">/example.com/postgres</span>-<span class="variable">$PG_VERSION</span>.tar.xz | tar -xJC /usr/src/postgress && …</div><div class="line"><span class="constant">ENV</span> <span class="constant">PATH</span> /usr/local/postgres-<span class="variable">$PG_MAJOR</span>/<span class="symbol">bin:</span><span class="variable">$PATH</span></div></pre></td></tr></table></figure></p>
 <h3>ADD</h3>
 <p>格式为 <code>ADD &lt;src&gt; &lt;dest&gt;</code>。</p>
-该命令将复制指定的 <code>&lt;src&gt;</code> 到容器中的 <code>&lt;dest&gt;</code>。
-<p>其中 <code>&lt;src&gt;</code> 可以是Dockerfile所在目录的一个相对路径；也可以是一个 URL；还可以是一个 tar 文件（自动解压为目录）。</p>
+<p>该命令将复制指定的 <code>&lt;src&gt;</code> 到容器中的 <code>&lt;dest&gt;</code>。 其中 <code>&lt;src&gt;</code> 可以是Dockerfile所在目录的一个相对路径；也可以是一个 URL；还可以是一个 tar 文件（自动解压为目录）。</p>
 <h3>COPY</h3>
 <p>格式为 <code>COPY &lt;src&gt; &lt;dest&gt;</code>。</p>
 <p>复制本地主机的 <code>&lt;src&gt;</code>（为 Dockerfile 所在目录的相对路径）到容器中的 <code>&lt;dest&gt;</code>。</p>
 <p>当使用本地目录为源目录时，推荐使用 <code>COPY</code>。</p>
 <h3>ENTRYPOINT</h3>
-两种格式：
-<ul>
-<li><code>ENTRYPOINT [&quot;executable&quot;, &quot;param1&quot;, &quot;param2&quot;]</code></li>
-<li><code>ENTRYPOINT command param1 param2</code>（shell中执行）。</li>
-</ul>
+<p>两种格式： * <code>ENTRYPOINT [&quot;executable&quot;, &quot;param1&quot;, &quot;param2&quot;]</code> * <code>ENTRYPOINT command param1 param2</code>（shell中执行）。</p>
 <p>配置容器启动后执行的命令，并且不可被 <code>docker run</code> 提供的参数覆盖。</p>
 <p>每个 Dockerfile 中只能有一个 <code>ENTRYPOINT</code>，当指定多个时，只有最后一个起效。</p>
 <h3>VOLUME</h3>
@@ -92,7 +131,7 @@
 <p>镜像的dockerfile如下，</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div></pre></td><td class="code"><pre><div class="line">FROM centos:<span class="number">7</span></div><div class="line">MAINTAINER arnes &lt;arsen_mmx<span class="variable">@163</span>.com&gt;</div><div class="line">ENV REFRESHED_AT <span class="number">2015</span>-<span class="number">12</span>-<span class="number">26</span></div><div class="line"></div><div class="line"><span class="comment"># add fast yum repos</span></div><div class="line">ADD ./CentOS-Base.repo  /etc/yum.repos.d/CentOS-Base.repo</div><div class="line">ADD ./mysql-community.repo /etc/yum.repos.d/mysql-community.repo</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># install jdk 1.8</span></div><div class="line">COPY ./jdk1.<span class="number">8.0_66</span> /usr/java/jdk1.<span class="number">8.0_66</span></div><div class="line"></div><div class="line">ENV JAVA_HOME /usr/java/jdk1.<span class="number">8.0_66</span></div><div class="line">ENV JRE_HOME <span class="variable">$JAVA_HOME</span>/jre</div><div class="line">ENV PATH <span class="variable">$JAVA_HOME</span>/bin:<span class="variable">$JAVA_HOME</span>/jre/bin:<span class="variable">$PATH</span></div><div class="line">ENV CLASSPATH=.:<span class="variable">$JAVA_HOME</span>/lib:<span class="regexp">/usr/java</span><span class="regexp">/jdk1.6.0_25/jre</span><span class="regexp">/lib:$CLASSPATH</span></div><div class="line"></div><div class="line"></div><div class="line">#install tomcat</div><div class="line">COPY ./apache-tomcat-<span class="number">8.0</span>.<span class="number">28</span>  /usr/tomcat/apache-tomcat-<span class="number">8.0</span>.<span class="number">28</span></div><div class="line"></div><div class="line">ENV TOMCAT_HOME /usr/tomcat/apache-tomcat-<span class="number">8.0</span>.<span class="number">28</span></div><div class="line">ENV CATALINA_HOME <span class="variable">$TOMCAT_HOME</span></div><div class="line">ENV CATALINA_BASE <span class="variable">$TOMCAT_HOME</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># install php</span></div><div class="line">RUN yum update</div><div class="line">RUN yum install -<span class="keyword">y</span> openssh-server php</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># install mysql</span></div><div class="line">RUN groupadd -r mysql && useradd -r -g mysql mysql</div><div class="line"></div><div class="line"><span class="comment">#ADD ./mysql-community-release-el7-7.noarch.rpm /usr/mysql-community-release-el7-7.noarch.rpm</span></div><div class="line"><span class="comment">#ADD ./mysql-community-server-minimal-5.6.28-2.el7.x86_64.rpm /usr/mysql-community-server-minimal-5.6.28-2.el7.x86_64.rpm</span></div><div class="line"></div><div class="line"><span class="comment">#RUN rpm -ivh /usr/mysql-community-release-el7-7.noarch.rpm</span></div><div class="line"></div><div class="line">RUN rpmkeys --import http:<span class="regexp">//repo</span>.mysql.com/RPM-GPG-KEY-mysql </div><div class="line">RUN yum install -<span class="keyword">y</span> https:<span class="regexp">//repo</span>.mysql.com/yum/mysql-<span class="number">5.6</span>-community/docker/x86_64/mysql-community-server-minimal-<span class="number">5.6</span>.<span class="number">28</span>-<span class="number">2</span>.el7.x86_64.rpm </div><div class="line"><span class="comment">#RUN yum install -y mysql-community-server</span></div><div class="line">RUN yum install -<span class="keyword">y</span> libpwquality \</div><div class="line">  && rm -rf /var/cache/yum/*</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># config mysql</span></div><div class="line">ADD ./<span class="keyword">my</span>.cnf /etc/<span class="keyword">my</span>.cnf</div><div class="line">RUN sed -Ei <span class="string">'s/^(bind-address|log)/#&/'</span> /etc/<span class="keyword">my</span>.cnf \</div><div class="line">	&& echo -e <span class="string">"skip-host-cache\nskip-name-resolve\nlower_case_table_names=1"</span> | awk <span class="string">'{ print } $1 == "[mysqld]" && c == 0 { c = 1; system("cat") }'</span> /etc/<span class="keyword">my</span>.cnf &gt; <span class="regexp">/tmp/my</span>.cnf \</div><div class="line">	&& mv /tmp/<span class="keyword">my</span>.cnf /etc/<span class="keyword">my</span>.cnf</div><div class="line"></div><div class="line">VOLUME /var/lib/mysql</div><div class="line"></div><div class="line">ENV MYSQL_ROOT_PASSWORD <span class="string">"111111"</span></div><div class="line">ENV MYSQL_USER <span class="string">"mysql"</span></div><div class="line">ENV MYSQL_USER_DATABASE <span class="string">"mysql"</span></div><div class="line">ENV MYSQL_USER_PASSWORD <span class="string">"111111"</span></div><div class="line"></div><div class="line">COPY ./mysql-entrypoint.sh /usr/bin/mysql-entrypoint.sh</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># install mycat</span></div><div class="line">RUN groupadd -r mycat && useradd -r -g mycat mycat</div><div class="line"></div><div class="line">COPY ./mycat /opt/mycat</div><div class="line">ADD ./schema.xml /opt/mycat/conf/schema.xml</div><div class="line">COPY ./mycat-run.sh /usr/bin/mycat-run.sh</div><div class="line"></div><div class="line">ENV MYCAT_HOME /opt/mycat</div><div class="line"></div><div class="line">RUN <span class="keyword">chown</span> -R mycat:mycat /opt/mycat</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># export port for tomcat, mysql, mycat</span></div><div class="line">EXPOSE <span class="number">8080</span> <span class="number">8066</span> <span class="number">9066</span> <span class="number">3306</span></div><div class="line"></div><div class="line"></div><div class="line">CMD <span class="variable">$TOMCAT_HOME</span>/bin/startup.sh \</div><div class="line">  && bash -c <span class="string">"/usr/bin/mysql-entrypoint.sh mysqld &"</span> \</div><div class="line">  && echo <span class="string">"Waiting mysql startup."</span> && <span class="keyword">sleep</span> <span class="number">30</span> \</div><div class="line">  && bash -c <span class="string">"/usr/bin/mycat-run.sh"</span> \</div><div class="line">  && <span class="regexp">/usr/sbin</span><span class="regexp">/sshd -D</span></div><div class="line">#CMD /usr<span class="regexp">/bin/mysql</span>-entrypoint.sh && <span class="regexp">/usr/sbin</span><span class="regexp">/sshd -D</span></div></pre></td></tr></table></figure></p>
 <p>以上安装过程，主要就是按照jdk8-&gt;tomcat8-&gt;php-&gt;mysql-&gt;mycat的步骤来逐步安装的。需要用到的文件如下，</p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-needed-files.png"></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-needed-files.png" alt=""></p>
 <p>其中，<code>Dockerfile</code>文件上文已经列出，<code>jdk-8u66-linux-x64.tar.gz</code>、<code>apache-tomcat-8.0.28.tar.gz</code>、<code>Mycat-server-1.5-alpha-20151221110028-linux.tar.gz</code>分别是jdk8、tomcat8、mycat1.5的安装包文件，解压后分别是<code>jdk1.8.0_66</code>、<code>apache-tomcat-8.0.28</code>、<code>mycat</code>。<code>CentOS-Base.repo</code>是Centos7的更新源配置文件，用来替代默认的更新源，以加快速度，我用的是上海交大的源，文件内容如下，</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># CentOS-Base.repo</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment"># The mirror system uses the connecting IP address of the client and the</span></div><div class="line"><span class="comment"># update status of each mirror to pick mirrors that are updated to and</span></div><div class="line"><span class="comment"># geographically close to the client.  You should use this for CentOS updates</span></div><div class="line"><span class="comment"># unless you are manually picking other mirrors.</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment"># If the mirrorlist= does not work for you, as a fall back you can try the </span></div><div class="line"><span class="comment"># remarked out baseurl= line instead.</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment">#</span></div><div class="line"></div><div class="line">[base]</div><div class="line">name=<span class="constant">CentOS-</span><span class="variable">$releasever</span> - <span class="constant">Base</span></div><div class="line">baseurl=<span class="symbol">http:</span>/<span class="regexp">/ftp.sjtu.edu.cn/centos</span><span class="regexp">/$releasever/os</span><span class="regexp">/$basearch/</span></div><div class="line">gpgcheck=<span class="number">1</span></div><div class="line">gpgkey=<span class="symbol">file:</span>/<span class="regexp">//etc</span><span class="regexp">/pki/rpm</span>-gpg/<span class="constant">RPM-GPG-KEY-CentOS-</span><span class="number">7</span></div><div class="line"></div><div class="line"><span class="comment">#released updates </span></div><div class="line">[updates]</div><div class="line">name=<span class="constant">CentOS-</span><span class="variable">$releasever</span> - <span class="constant">Updates</span></div><div class="line">baseurl=<span class="symbol">http:</span>/<span class="regexp">/ftp.sjtu.edu.cn/centos</span><span class="regexp">/$releasever/updates</span><span class="regexp">/$basearch/</span></div><div class="line">gpgcheck=<span class="number">1</span></div><div class="line">gpgkey=<span class="symbol">file:</span>/<span class="regexp">//etc</span><span class="regexp">/pki/rpm</span>-gpg/<span class="constant">RPM-GPG-KEY-CentOS-</span><span class="number">7</span></div><div class="line"></div><div class="line"><span class="comment">#additional packages that may be useful</span></div><div class="line">[extras]</div><div class="line">name=<span class="constant">CentOS-</span><span class="variable">$releasever</span> - <span class="constant">Extras</span></div><div class="line">baseurl=<span class="symbol">http:</span>/<span class="regexp">/ftp.sjtu.edu.cn/centos</span><span class="regexp">/$releasever/extras</span><span class="regexp">/$basearch/</span></div><div class="line">gpgcheck=<span class="number">1</span></div><div class="line">gpgkey=<span class="symbol">file:</span>/<span class="regexp">//etc</span><span class="regexp">/pki/rpm</span>-gpg/<span class="constant">RPM-GPG-KEY-CentOS-</span><span class="number">7</span></div><div class="line"></div><div class="line"><span class="comment">#additional packages that extend functionality of existing packages</span></div><div class="line">[centosplus]</div><div class="line">name=<span class="constant">CentOS-</span><span class="variable">$releasever</span> - <span class="constant">Plus</span></div><div class="line">baseurl=<span class="symbol">http:</span>/<span class="regexp">/ftp.sjtu.edu.cn/centos</span><span class="regexp">/$releasever/centosplus</span><span class="regexp">/$basearch/</span></div><div class="line">gpgcheck=<span class="number">1</span></div><div class="line">enabled=<span class="number">0</span></div><div class="line">gpgkey=<span class="symbol">file:</span>/<span class="regexp">//etc</span><span class="regexp">/pki/rpm</span>-gpg/<span class="constant">RPM-GPG-KEY-CentOS-</span><span class="number">7</span></div></pre></td></tr></table></figure></p>
 <p><code>mysql-community.repo</code>是mysql的centos更新源，因为centos的默认mysql实现已经是mysql的mariadb分支，如果要用Oracle的mysql，现在在centos中改名为<code>mysql-community</code>，需要手动配置更新源，文件内容如下，</p>
@@ -110,23 +149,23 @@
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="shebang">#!/bin/bash</span></div><div class="line"></div><div class="line"><span class="built_in">echo</span> <span class="string">"CREATE database db1;"</span> | mysql -uroot -p<span class="variable">$MYSQL_ROOT_PASSWORD</span></div><div class="line"><span class="built_in">echo</span> <span class="string">"CREATE database db2;"</span> | mysql -uroot -p<span class="variable">$MYSQL_ROOT_PASSWORD</span></div><div class="line"><span class="built_in">echo</span> <span class="string">"CREATE database db3;"</span> | mysql -uroot -p<span class="variable">$MYSQL_ROOT_PASSWORD</span></div><div class="line"></div><div class="line"><span class="variable">$MYCAT_HOME</span>/bin/mycat start</div></pre></td></tr></table></figure></p>
 <h3>构建和测试</h3>
 <p>有了以上文件，就可以构建docker镜像了，<code>docker build -t arnes/my-centos7 .</code>，构建过程截图如下，</p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-1.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-2.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-3.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-4.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-5.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-6.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-7.png"></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-1.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-2.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-3.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-4.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-5.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-6.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-7.png" alt=""></p>
 <p>构建完成之后，就可以运行镜像了，运行的命令是<code>docker run -it -p 3306:3306 -p 8066:8066 -p 8080:8080 -p 9066:9066 -d arnes/my-centos7</code>，截图如下，</p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-running-1.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-running-2.png"></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-running-1.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-running-2.png" alt=""></p>
 <p>其中，大部分是mysql启动的log，这里主要是关注是否已经成功，正常使用的时候，建议使用<code>-d</code>后台启动。</p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-running-3.png"></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-running-3.png" alt=""></p>
 <p>如上所示，宿主机的ip在<code>192.168.2.101</code>，从另一台机器可以访问该容器的服务，截图如下，</p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-testing-1.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-testing-2.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-testing-3.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-testing-4.png"></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-testing-1.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-testing-2.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-testing-3.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-testing-4.png" alt=""></p>
 <p>综上，容器已经可以提供对外服务。</p>
 <h3>改进</h3>
 <p>可能的改进点有以下一些，</p>
@@ -139,17 +178,17 @@
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://dockerpool.com/static/books/docker_practice/dockerfile/instructions.html" target="_blank" rel="external">http://dockerpool.com/static/books/docker_practice/dockerfile/instructions.html</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/" target="_blank" rel="external">http://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="https://github.com/mysql/mysql-docker/tree/mysql-server/5.6" target="_blank" rel="external">https://github.com/mysql/mysql-docker/tree/mysql-server/5.6</a><a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p><a href="http://blog.sina.com.cn/s/blog_638b7ebb0102vv80.html" target="_blank" rel="external">http://blog.sina.com.cn/s/blog_638b7ebb0102vv80.html</a><a href="#fnref4">↩</a></p></li>
-<li id="fn5"><p><a href="http://blog.csdn.net/dreamcode/article/details/44307377" target="_blank" rel="external">http://blog.csdn.net/dreamcode/article/details/44307377</a><a href="#fnref5">↩</a></p></li>
+<li id="fn1"><p><a href="http://dockerpool.com/static/books/docker_practice/dockerfile/instructions.html" class="uri" target="_blank" rel="external">http://dockerpool.com/static/books/docker_practice/dockerfile/instructions.html</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/" class="uri" target="_blank" rel="external">http://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="https://github.com/mysql/mysql-docker/tree/mysql-server/5.6" class="uri" target="_blank" rel="external">https://github.com/mysql/mysql-docker/tree/mysql-server/5.6</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="http://blog.sina.com.cn/s/blog_638b7ebb0102vv80.html" class="uri" target="_blank" rel="external">http://blog.sina.com.cn/s/blog_638b7ebb0102vv80.html</a><a href="#fnref4">↩</a></p></li>
+<li id="fn5"><p><a href="http://blog.csdn.net/dreamcode/article/details/44307377" class="uri" target="_blank" rel="external">http://blog.csdn.net/dreamcode/article/details/44307377</a><a href="#fnref5">↩</a></p></li>
 </ol>
 </div>
 ]]></content>
     <summary type="html">
     <![CDATA[<p>通常情况下，我们使用dockerfile来创建镜像，主要是因为dockerfile可以实现脚本化，反复使用。</p>
-<p>dockerfile通常是由一系列指令组成，一个常见的dockerfile的例子主要有以下一些指令<a href="#fn1" class="foot]]>
+<p>dockerfile通常是由一系列指令组成，一个常见的dockerfile的例子主要有以下一些指令<a href="#fn1" class="foo]]>
     </summary>
     
       <category term="Docker" scheme="http://valleylord.github.io/tags/Docker/"/>
@@ -165,7 +204,7 @@
     <link href="http://valleylord.github.io/post/201512-docker-commands/"/>
     <id>http://valleylord.github.io/post/201512-docker-commands/</id>
     <published>2015-12-18T13:03:00.000Z</published>
-    <updated>2015-12-26T07:51:59.011Z</updated>
+    <updated>2015-12-26T07:51:59.000Z</updated>
     <content type="html"><![CDATA[<h2>Docker命令概要</h2>
 <p>常用的Docker命令有以下一些<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> <a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> <a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>。</p>
 <h3>1. docker version</h3>
@@ -332,9 +371,7 @@
 <h3>Container identification</h3>
 <h4>Name (--name)</h4>
 <p>给container命名有三种方式：</p>
-　　1. 使用UUID长命名(&quot;f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778&quot;)
-　　2. 使用UUID短命令(&quot;f78375b1c487&quot;)
-<p>　　3. 使用Name(&quot;evil_ptolemy&quot;)</p>
+<p>　　1. 使用UUID长命名(&quot;f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778&quot;) 　　2. 使用UUID短命令(&quot;f78375b1c487&quot;) 　　3. 使用Name(&quot;evil_ptolemy&quot;)</p>
 <p>这个UUID标示是由Docker deamon来生成的。如果你在执行docker run时没有指定 --name，那么deamon会自动生成一个随机数字符串当做UUID。但是对于一个container来说有个name会非常方便，因为你可以当你需要link其它容器时或者其他类似需要区分其它容器时，使用容器名称会简化操作。无论container运行在前台或者后台，这个名字都是有效的。</p>
 <h4>PID equivalent</h4>
 <p>当你在运行docker时有自动化的要求，那么你可以要求Docker将containerID 输出到你指定的文件中(PIDfile).这种行为就类似于有些应用程序将自身ID输出到文件中，方便后续脚本操作。</p>
@@ -431,13 +468,15 @@
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment">--expose=[]: Expose a port or a range of ports from the container</span></div><div class="line">            <span class="keyword">without</span> publishing <span class="keyword">it</span> <span class="built_in">to</span> your host</div><div class="line">-P=<span class="constant">false</span>   : Publish all exposed ports <span class="built_in">to</span> <span class="operator">the</span> host interfaces</div><div class="line">-p=[]      : Publish <span class="operator">a</span> container᾿s port <span class="built_in">to</span> <span class="operator">the</span> host (<span class="built_in">format</span>:</div><div class="line">             ip:hostPort:containerPort | ip::containerPort |</div><div class="line">             hostPort:containerPort | containerPort)</div><div class="line">             (use <span class="string">'docker port'</span> <span class="built_in">to</span> see <span class="operator">the</span> actual mapping)</div><div class="line"><span class="comment">--link=""  : Add link to another container (name:alias)</span></div></pre></td></tr></table></figure></p>
 <p>--expose可以让container接受外部传入的数据。container内监听的port不需要和外部host的port相同。比如说在container内部，一个HTTP服务监听在80端口，对应外部host的port就可能是49880.</p>
 <p>操作人员可以使用--expose，让新的container访问到这个container。具体有三个方式：</p>
-　　1. 使用-p来启动container。
-　　2. 使用-P来启动container。
-<p>　　3. 使用--link来启动container。</p>
+<p>　　1. 使用-p来启动container。 　　2. 使用-P来启动container。 　　3. 使用--link来启动container。</p>
 <p>如果使用-p或者-P，那么container会开发部分端口到host，只要对方可以连接到host，就可以连接到container内部。当使用-P时，docker会在host中随机从49153 和65535之间查找一个未被占用的端口绑定到container。你可以使用docker port来查找这个随机绑定端口。</p>
 <p>当你使用--link方式时，作为客户端的container可以通过私有网络形式访问到这个container。同时Docker会在客户端的container中设定一些环境变量来记录绑定的IP和PORT。</p>
 <h4>ENV (环境变量)</h4>
-<table>
+<table style="width:33%;">
+<colgroup>
+<col width="13%">
+<col width="19%">
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left">Variable</th>
@@ -482,7 +521,7 @@
 <p>container中默认的工作目录是根目录(/)。开发人员可以通过Dockerfile的WORKDIR来设定默认工作目录，操作人员可以通过&quot;-w&quot;来覆盖默认的工作目录。</p>
 <h2>docker create与docker run的区别</h2>
 <p>docker create表示新增一个容器，但是并不启动；docker run表示新增一个容器，并启动运行，直到运行结束。参照容器的生命周期<a href="#fn6" class="footnoteRef" id="fnref6"><sup>6</sup></a>，如下图，</p>
-<p><img src="http://7xpbnt.com1.z0.glb.clouddn.com/docker-architecture-v12-15-638.jpg"></p>
+<p><img src="http://7xpbnt.com1.z0.glb.clouddn.com/docker-architecture-v12-15-638.jpg" alt=""></p>
 <p>详细来说，docker create只是新增一个容器，并进入容器生命周期中的created状态；而docker run不但新增一个容器，还立刻start并进入running状态，如运行过程中没有被pause或者kill，会一直运行到程序结束，容器进入stopped状态。因此，docker create命令没有-d参数，而docker run有。在docker run中，-d参数表示后台运行容器，而对于docker create来讲，仅仅只创建了容器，容器并未开始运行，因此也不存在所谓后台运行的概念，因此，docker create没有-d参数。</p>
 <h2>镜像与容器存放的路径</h2>
 <p>镜像的存放路径可以看我的另一篇文章《Docker入门介绍》中有提到，在<code>/var/lib/docker</code>下。具体细节来说，一些镜像本身信息相关的文件放在<code>./graph</code>下，容器相关的设置，如一些网络（eg，ip、hostname、hosts等）、unix mq、unix共享内存等信息放在<code>./containers</code>下，镜像本身的文件和容器相关的文件都放在该目录下的<code>./aufs/diff</code>目录下。该目录下有很多以镜像id和容器id命名的目录，每个目录下都是镜像与容器本身的文件。</p>
@@ -646,19 +685,19 @@
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://www.server110.com/docker/201411/11122.html" target="_blank" rel="external">http://www.server110.com/docker/201411/11122.html</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://www.bubuko.com/infodetail-1027194.html" target="_blank" rel="external">http://www.bubuko.com/infodetail-1027194.html</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="http://www.open-open.com/lib/view/open1422492851548.html" target="_blank" rel="external">http://www.open-open.com/lib/view/open1422492851548.html</a><a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p><a href="https://docs.docker.com/engine/reference/run/" target="_blank" rel="external">https://docs.docker.com/engine/reference/run/</a><a href="#fnref4">↩</a></p></li>
-<li id="fn5"><p><a href="http://www.open-open.com/lib/view/open1422492851548.html" target="_blank" rel="external">http://www.open-open.com/lib/view/open1422492851548.html</a><a href="#fnref5">↩</a></p></li>
-<li id="fn6"><p><a href="http://segmentfault.com/a/1190000000667514" target="_blank" rel="external">http://segmentfault.com/a/1190000000667514</a><a href="#fnref6">↩</a></p></li>
-<li id="fn7"><p><a href="https://docs.docker.com/registry/" target="_blank" rel="external">https://docs.docker.com/registry/</a><a href="#fnref7">↩</a></p></li>
+<li id="fn1"><p><a href="http://www.server110.com/docker/201411/11122.html" class="uri" target="_blank" rel="external">http://www.server110.com/docker/201411/11122.html</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://www.bubuko.com/infodetail-1027194.html" class="uri" target="_blank" rel="external">http://www.bubuko.com/infodetail-1027194.html</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="http://www.open-open.com/lib/view/open1422492851548.html" class="uri" target="_blank" rel="external">http://www.open-open.com/lib/view/open1422492851548.html</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="https://docs.docker.com/engine/reference/run/" class="uri" target="_blank" rel="external">https://docs.docker.com/engine/reference/run/</a><a href="#fnref4">↩</a></p></li>
+<li id="fn5"><p><a href="http://www.open-open.com/lib/view/open1422492851548.html" class="uri" target="_blank" rel="external">http://www.open-open.com/lib/view/open1422492851548.html</a><a href="#fnref5">↩</a></p></li>
+<li id="fn6"><p><a href="http://segmentfault.com/a/1190000000667514" class="uri" target="_blank" rel="external">http://segmentfault.com/a/1190000000667514</a><a href="#fnref6">↩</a></p></li>
+<li id="fn7"><p><a href="https://docs.docker.com/registry/" class="uri" target="_blank" rel="external">https://docs.docker.com/registry/</a><a href="#fnref7">↩</a></p></li>
 </ol>
 </div>
 ]]></content>
     <summary type="html">
     <![CDATA[<h2>Docker命令概要</h2>
-<p>常用的Docker命令有以下一些<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> <a href="#fn2" class="footnoteRef" id]]>
+<p>常用的Docker命令有以下一些<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> <a href="#fn2" class="footnoteRef" i]]>
     </summary>
     
       <category term="Docker" scheme="http://valleylord.github.io/tags/Docker/"/>
@@ -2568,116 +2607,6 @@
       <category term="Dataguru" scheme="http://valleylord.github.io/tags/Dataguru/"/>
     
       <category term="JVM" scheme="http://valleylord.github.io/categories/JVM/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[PostgreSQL集群搭建（使用Postgres XL）]]></title>
-    <link href="http://valleylord.github.io/post/201409-postgres-cluster-xl/"/>
-    <id>http://valleylord.github.io/post/201409-postgres-cluster-xl/</id>
-    <published>2014-09-14T00:04:00.000Z</published>
-    <updated>2014-12-03T01:16:01.000Z</updated>
-    <content type="html"><![CDATA[<p>Postgres XL（PGXL）和Postgres XC（pgxl）的架构很类似，安装步骤也很类似。</p>
-<p>本文使用源码在单机上搭建PostgreSQL的最简单集群，1个GTM，协调节点和数据节点各2个。</p>
-<p>先去下载PGXL的源码包，在官网上有最新版，本文使用的版本是<a href="http://sourceforge.net/projects/postgres-xl/files/Releases/Version_9.2rc/postgres-xl-v9.2-src.tar.gz/download" target="_blank" rel="external">postgres-xl-v9.2-src.tar.gz</a>。建立独立的用户pgxl用于管理集群，并用新的账号解压源码包。</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">[root@anzhy ~]<span class="comment"># adduser pgxl</span></div><div class="line">[root@anzhy ~]<span class="comment"># su - pgxl</span></div><div class="line">[pgxl@anzhy ~]$ <span class="keyword">exit</span></div><div class="line">logout</div><div class="line">[root@anzhy ~]<span class="comment"># cp Downloads/postgres-xl-v9.2-src.tar.gz ~pgxl/</span></div><div class="line">[root@anzhy ~]<span class="comment"># su - pgxl</span></div><div class="line">[pgxl@anzhy ~]$ ls</div><div class="line">postgres-xl-v9.<span class="number">2</span>-src.tar.gz</div><div class="line">[pgxl@anzhy ~]$ tar xzf postgres-xl-v9.<span class="number">2</span>-src.tar.gz</div><div class="line">[pgxl@anzhy ~]$ ls</div><div class="line">postgres-xl-v9.<span class="number">2</span>-src.tar.gz  postgres-xl</div></pre></td></tr></table></figure></p>
-<p>解压后的源码需要编译，编译的过程和Postgres XC类似，具体可以参考<a href="http://valleylord.sinaapp.com/post/201408-postgres-cluster#content" target="_blank" rel="external">之前的文章</a>。不同的是，Postgres XL有其他的依赖需要安装，如jade等，</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">[root@anzhy ~]$ yum install jade docbook-style-dsssl</div></pre></td></tr></table></figure></p>
-<p>不然会编译报错，如果之前没有安装这些依赖，在安装之后需要重新做<code>./configure</code>。以下只简单列一下编译的步骤，</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">[pgxl@anzhy ~]$ mkdir pg-xl</div><div class="line">[pgxl@anzhy ~]$ mkdir data</div><div class="line">[pgxl@anzhy ~]$ <span class="built_in">pwd</span></div><div class="line">/home/pgxl</div><div class="line">[pgxl@anzhy ~]$ <span class="built_in">cd</span> postgres-xl/</div><div class="line">......</div><div class="line">[pgxl@anzhy ~]$ ./configure --prefix=<span class="variable">$HOME</span>/pg-xl</div><div class="line">......</div><div class="line">[pgxl@anzhy ~]$ make</div><div class="line">......</div><div class="line">[pgxl@anzhy ~]$ make install</div><div class="line">......</div></pre></td></tr></table></figure></p>
-<p>一切正常的话，上述每个步骤都会提示成功，Postgres XL最终会安装在<code>$HOME/pg-xl</code>目录下。下面在.bashrc中配置必要的环境变量，</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">export</span> PGHOME=/home/pgxl/pg-xl</div><div class="line"><span class="keyword">export</span> PGPORT=<span class="number">25431</span></div><div class="line"><span class="keyword">export</span> PGDATA=<span class="variable">$PGHOME</span>/../data/db_1/data</div><div class="line"><span class="keyword">export</span> LANG=en_US.utf8</div><div class="line"><span class="keyword">export</span> LD_LIBRARY_PATH=<span class="variable">$PGHOME</span>/lib:<span class="variable">$LD_LIBRARY_PATH</span></div><div class="line"><span class="keyword">export</span> PATH=<span class="variable">$PGHOME</span>/bin:<span class="variable">$PATH</span>:.</div><div class="line"><span class="keyword">export</span> MANPATH=<span class="variable">$PGHOME</span>/share/man:<span class="variable">$MANPATH</span></div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-env.png" alt=""></p>
-<p>接下来就可以初始化数据库了，由于是要模拟双机，所以需要创建db_1和db_2两个数据节点。同样使用initdb命令，如下，</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">[pgxl@anzhy ~]$ initdb -D <span class="variable">$HOME</span>/data/db_1/data --nodename db_1</div><div class="line">[pgxl@anzhy ~]$ initdb -D <span class="variable">$HOME</span>/data/db_2/data --nodename db_2</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-initdb.png" alt=""></p>
-<p>修改两个数据节点的postgresql.conf中的参数，主要是GTM的选项，如下，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">listen_addresses = <span class="string">'*'</span></div><div class="line">port = <span class="number">25431</span>    # <span class="keyword">change</span> <span class="keyword">to</span> <span class="number">25432</span> <span class="keyword">for</span> db_2</div><div class="line">gtm_host = <span class="string">'192.168.1.7'</span></div><div class="line">gtm_port = <span class="number">7777</span></div><div class="line">pooler_port = <span class="number">35431</span> # <span class="keyword">change</span> <span class="keyword">to</span> <span class="number">35432</span> <span class="keyword">for</span> db_2</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-dn-setting1.png" alt=""></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-dn-setting2.png" alt=""></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-dn-setting4.png" alt=""></p>
-<p>其中，port参数两个节点不能相同（分别为25431和25432），否则会出错，gtm的地址要写本机的ip地址，其实对于单机的情况写localhost也是可以的。然后修改pg_hba.conf的参数配置数据节点的连接和认证，在IPv4那一段加入以下配置，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">host    <span class="literal">all</span>             <span class="literal">all</span>             <span class="number">192.168</span>.<span class="number">1.7</span>/<span class="number">32</span>          trust</div><div class="line">host    <span class="literal">all</span>             <span class="literal">all</span>             <span class="number">0.0</span>.<span class="number">0.0</span>/<span class="number">0</span>               md5</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-dn-setting3.png" alt=""></p>
-<p>配置完2个数据节点之后，然后去做GTM的初始化，</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">[pgxl@anzhy ~]$ initgtm -Z gtm -D <span class="variable">$HOME</span>/data/gtm/data</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-initgtm.png" alt=""></p>
-<p>然后配置GTM的参数，gtm.conf中需要做如下修改，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="attribute">port </span>=<span class="string"> 7777</span></div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-gtm-setting1.png" alt=""></p>
-<p>接下来做协调器的配置，先做初始化，</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">[pgxl@anzhy data]$ initdb -D <span class="variable">$HOME</span>/data/coor_1/data --nodename coor_1</div><div class="line">[pgxl@anzhy data]$ initdb -D <span class="variable">$HOME</span>/data/coor_2/data --nodename coor_2</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-initcoor.png" alt=""></p>
-<p>从这个命令可以看出，其实协调器和数据节点是很相似的，他们的初始化命令是一样的。同样，也要配置协调器的参数，先是postgresql.conf中的参数，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">listen_addresses = <span class="string">'*'</span></div><div class="line">port = <span class="number">2921</span>    # <span class="keyword">change</span> <span class="keyword">to</span> <span class="number">2922</span> <span class="keyword">for</span> coor_2</div><div class="line">gtm_host = <span class="string">'192.168.1.7'</span></div><div class="line">gtm_port = <span class="number">7777</span></div><div class="line">pooler_port = <span class="number">7778</span> # <span class="keyword">change</span> <span class="keyword">to</span> <span class="number">7779</span> <span class="keyword">for</span> coor_2</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-coor-setting1.png" alt=""></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-coor-setting2.png" alt=""></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-coor-setting3.png" alt=""></p>
-<p>pg_hba.conf的设置和数据节点一样，加入以下配置，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">host    <span class="literal">all</span>             <span class="literal">all</span>             <span class="number">192.168</span>.<span class="number">1.7</span>/<span class="number">32</span>          trust</div><div class="line">host    <span class="literal">all</span>             <span class="literal">all</span>             <span class="number">0.0</span>.<span class="number">0.0</span>/<span class="number">0</span>               md5</div></pre></td></tr></table></figure></p>
-<p>接下来就可以启动集群了，启动的顺序是，GTM-&gt;数据节点-&gt;协调器，先启动GTM，并查看状态。</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">[pgxl@anzhy ~]$ gtm_ctl start -Z gtm -D <span class="variable">$HOME</span>/data/gtm/data/</div><div class="line">[pgxl@anzhy ~]$ gtm_ctl status -Z gtm -D <span class="variable">$HOME</span>/data/gtm/data</div></pre></td></tr></table></figure></p>
-<p>也可以简单的直接运行GTM，如下，</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">[pgxl@anzhy ~]$ gtm -D <span class="variable">$HOME</span>/data/gtm/data/</div></pre></td></tr></table></figure></p>
-<p>同样，数据节点的启动，也有两种方式，如下，</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">[pgxl@anzhy ~]$ pg_ctl start -D <span class="variable">$HOME</span>/data/db_1/data -Z datanode</div><div class="line">[pgxl@anzhy ~]$ pg_ctl start -D <span class="variable">$HOME</span>/data/db_2/data -Z datanode</div></pre></td></tr></table></figure></p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">[pgxl@anzhy ~]$ postgres -X -D <span class="variable">$HOME</span>/data/db_1/data</div><div class="line">[pgxl@anzhy ~]$ postgres -X -D <span class="variable">$HOME</span>/data/db_2/data</div></pre></td></tr></table></figure></p>
-<p>协调器的启动和数据节点是类似的，如下，</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">[pgxl@anzhy ~]$ pg_ctl start -D <span class="variable">$HOME</span>/data/coor_1/data -Z coordinator</div><div class="line">[pgxl@anzhy ~]$ pg_ctl start -D <span class="variable">$HOME</span>/data/coor_2/data -Z coordinator</div></pre></td></tr></table></figure></p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">[pgxl@anzhy ~]$ postgres -X -D <span class="variable">$HOME</span>/data/coor_1/data</div><div class="line">[pgxl@anzhy ~]$ postgres -X -D <span class="variable">$HOME</span>/data/coor_2/data</div></pre></td></tr></table></figure></p>
-<p>将上述启动步骤的前一种方法放在一个脚本中，这样就可以使用脚本启动，脚本如下，</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="shebang">#!/bin/bash</span></div><div class="line"></div><div class="line">gtm_ctl -Z gtm -D <span class="variable">$HOME</span>/data/gtm/data/ start</div><div class="line">sleep <span class="number">3</span>s</div><div class="line"></div><div class="line">gtm_ctl -Z gtm -D <span class="variable">$HOME</span>/data/gtm/data status</div><div class="line"></div><div class="line">pg_ctl start -D <span class="variable">$HOME</span>/data/db_1/data -Z datanode</div><div class="line">pg_ctl start -D <span class="variable">$HOME</span>/data/db_2/data -Z datanode</div><div class="line">sleep <span class="number">2</span>s</div><div class="line"></div><div class="line">pg_ctl start -D <span class="variable">$HOME</span>/data/coor_1/data -Z coordinator</div><div class="line">pg_ctl start -D <span class="variable">$HOME</span>/data/coor_2/data -Z coordinator</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-start.png" alt=""></p>
-<p>关闭集群的顺序是相反的，协调器-&gt;数据节点-&gt;GTM，同样，将关闭的操作合也并成一个脚本，如下，</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="shebang">#!/bin/bash</span></div><div class="line"></div><div class="line">pg_ctl stop -D <span class="variable">$HOME</span>/data/coor_2/data -Z coordinator</div><div class="line">pg_ctl stop -D <span class="variable">$HOME</span>/data/coor_1/data -Z coordinator</div><div class="line"></div><div class="line">pg_ctl stop -D <span class="variable">$HOME</span>/data/db_2/data -Z datanode</div><div class="line">pg_ctl stop -D <span class="variable">$HOME</span>/data/db_1/data -Z datanode</div><div class="line"></div><div class="line">gtm_ctl stop -Z gtm -D <span class="variable">$HOME</span>/data/gtm/data/</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-stop.png" alt=""></p>
-<p>最后一步是注册各个节点，登陆协调者节点1和2，数据节点1和2，运行如下脚本，</p>
-<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">drop</span> node coor_1;</span></div><div class="line"><span class="operator"><span class="keyword">drop</span> node coor_2;</span></div><div class="line"><span class="operator"><span class="keyword">drop</span> node db_1;</span></div><div class="line"><span class="operator"><span class="keyword">drop</span> node db_2;</span></div><div class="line"><span class="operator"><span class="keyword">drop</span> node <span class="keyword">group</span> gp1;</span></div><div class="line"><span class="operator"><span class="keyword">drop</span> node <span class="keyword">group</span> gp2;</span></div><div class="line"><span class="operator"><span class="keyword">create</span> node coor_1 <span class="keyword">with</span>(TYPE=<span class="string">'coordinator'</span>,HOST=<span class="string">'192.168.1.7'</span>,PORT=<span class="number">2921</span>);</span></div><div class="line"><span class="operator"><span class="keyword">create</span> node coor_2 <span class="keyword">with</span>(TYPE=<span class="string">'coordinator'</span>,HOST=<span class="string">'192.168.1.7'</span>,PORT=<span class="number">2922</span>);</span></div><div class="line"><span class="operator"><span class="keyword">create</span> node db_1 <span class="keyword">with</span>(TYPE=<span class="string">'datanode'</span>,HOST=<span class="string">'192.168.1.7'</span>,PORT=<span class="number">25431</span>,<span class="keyword">primary</span>=<span class="literal">false</span>);</span></div><div class="line"><span class="operator"><span class="keyword">create</span> node db_2 <span class="keyword">with</span>(TYPE=<span class="string">'datanode'</span>,HOST=<span class="string">'192.168.1.7'</span>,PORT=<span class="number">25432</span>,<span class="keyword">primary</span>=<span class="literal">false</span>);</span></div><div class="line"><span class="operator"><span class="keyword">alter</span> node coor_1 <span class="keyword">with</span>(TYPE=<span class="string">'coordinator'</span>,HOST=<span class="string">'192.168.1.7'</span>,PORT=<span class="number">2921</span>);</span></div><div class="line"><span class="operator"><span class="keyword">alter</span> node coor_2 <span class="keyword">with</span>(TYPE=<span class="string">'coordinator'</span>,HOST=<span class="string">'192.168.1.7'</span>,PORT=<span class="number">2922</span>);</span></div><div class="line"><span class="operator"><span class="keyword">alter</span> node db_1 <span class="keyword">with</span>(TYPE=<span class="string">'datanode'</span>,HOST=<span class="string">'192.168.1.7'</span>,PORT=<span class="number">25431</span>,<span class="keyword">primary</span>=<span class="literal">true</span>);</span></div><div class="line"><span class="operator"><span class="keyword">alter</span> node db_2 <span class="keyword">with</span>(TYPE=<span class="string">'datanode'</span>,HOST=<span class="string">'192.168.1.7'</span>,PORT=<span class="number">25432</span>,<span class="keyword">primary</span>=<span class="literal">false</span>);</span></div><div class="line"><span class="operator"><span class="keyword">create</span> node <span class="keyword">group</span> gp1 <span class="keyword">with</span>(db_1);</span></div><div class="line"><span class="operator"><span class="keyword">create</span> node <span class="keyword">group</span> gp2 <span class="keyword">with</span>(db_2);</span></div><div class="line"></div><div class="line"><span class="operator"><span class="keyword">select</span> pgxc_pool_reload();</span></div><div class="line"><span class="operator"><span class="keyword">select</span> * <span class="keyword">from</span> pgxc_node;</span></div></pre></td></tr></table></figure></p>
-<p>如果是第一次运行，drop相关的步骤也可以不运行，运行完之后，就可以看到多个节点正常的运行起来了。另外，可以将上述脚本保存成文件<code>pgxl_register.sql</code>，并在之前的启动脚本之后加上注册步骤，每次启动的时候即可自动完成，如下</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">sleep <span class="number">2</span>s</div><div class="line"></div><div class="line">psql <span class="operator">-d</span> postgres -p <span class="number">2921</span> <span class="operator">-f</span> pgxl_register.sql</div><div class="line">psql <span class="operator">-d</span> postgres -p <span class="number">2922</span> <span class="operator">-f</span> pgxl_register.sql</div><div class="line">psql <span class="operator">-d</span> postgres -p <span class="number">25431</span> <span class="operator">-f</span> pgxl_register.sql</div><div class="line">psql <span class="operator">-d</span> postgres -p <span class="number">25432</span> <span class="operator">-f</span> pgxl_register.sql</div></pre></td></tr></table></figure></p>
-<p>如果没有在数据节点上注册，会发生如下错误，</p>
-<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">postgres=# <span class="operator"><span class="keyword">create</span> <span class="keyword">database</span> test;</span></div><div class="line">LOG:  Will fall back to local snapshot for XID = 22474, source = 0, gxmin = 0, autovac launch = 0, autovac = 0, normProcMode = 0, postEnv = 1</div><div class="line">ERROR:  node "coor_1_31452" does not exist</div><div class="line">STATEMENT:  <span class="operator"><span class="keyword">SET</span> global_session <span class="keyword">TO</span> coor_1_31452;</span></div><div class="line">LOG:  Will fall back to local snapshot for XID = 22475, source = 0, gxmin = 0, autovac launch = 0, autovac = 0, normProcMode = 0, postEnv = 1</div><div class="line">ERROR:  node "coor_1_31452" does not exist</div><div class="line">STATEMENT:  <span class="operator"><span class="keyword">SET</span> global_session <span class="keyword">TO</span> coor_1_31452;</span></div><div class="line">ERROR:  node "coor_1_31452" does not exist</div><div class="line">STATEMENT:  <span class="operator"><span class="keyword">SET</span> global_session <span class="keyword">TO</span> coor_1_31452;</span></div><div class="line">ERROR:  node "coor_1_31452" does not exist</div><div class="line">STATEMENT:  <span class="operator"><span class="keyword">SET</span> global_session <span class="keyword">TO</span> coor_1_31452;</span></div><div class="line"><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span></span></div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-error1.png" alt=""></p>
-<p>如果没有新建node group，则会发生如下的错误，</p>
-<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">postgres=# <span class="operator"><span class="keyword">create</span> <span class="keyword">database</span> test;</span></div><div class="line">LOG:  Will fall back to local snapshot for XID = 22677, source = 0, gxmin = 0, autovac launch = 0, autovac = 0, normProcMode = 0, postEnv = 1</div><div class="line">LOG:  Will fall back to local snapshot for XID = 22678, source = 0, gxmin = 0, autovac launch = 0, autovac = 0, normProcMode = 0, postEnv = 1</div><div class="line"><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span></span></div><div class="line">postgres=# \c test;</div><div class="line">You are now connected to database "test" as user "pgxl".</div><div class="line">test=# <span class="operator"><span class="keyword">create</span> <span class="keyword">table</span> test_table(id <span class="built_in">int</span>);</span></div><div class="line">LOG:  Will fall back to local snapshot for XID = 22681, source = 0, gxmin = 0, autovac launch = 0, autovac = 0, normProcMode = 0, postEnv = 1</div><div class="line">LOG:  Will fall back to local snapshot for XID = 22682, source = 0, gxmin = 0, autovac launch = 0, autovac = 0, normProcMode = 0, postEnv = 1</div><div class="line"><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span></span></div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-error2.png" alt=""></p>
-<p>下面做一些简单的建表测试，先登陆协调节点1，新增数据库，建表，并插入4笔数据，如下，</p>
-<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">[pgxl@anzhy ~]$ psql -d postgres -p 2922</div><div class="line">psql (PGXL 9.2.0, based on PG 9.2.4 (Postgres-XL 9.2.0))</div><div class="line">Type "<span class="operator"><span class="keyword">help</span><span class="string">" for help.</span></span></div><div class="line"></div><div class="line">postgres=# create database test;</div><div class="line">CREATE DATABASE</div><div class="line">postgres=# \c test;</div><div class="line">You are now connected to database "test<span class="string">" as user "</span>pgxl<span class="string">".</span></div><div class="line">test=# create table test_table(id int);</div><div class="line">CREATE TABLE</div><div class="line">test=# insert into test_table values(1);</div><div class="line">INSERT 0 1</div><div class="line">test=# insert into test_table values(2);</div><div class="line">INSERT 0 1</div><div class="line">test=# insert into test_table values(3);</div><div class="line">INSERT 0 1</div><div class="line">test=# insert into test_table values(4);</div><div class="line">INSERT 0 1</div><div class="line">test=# select * from test_table;</div><div class="line"> id</div><div class="line">----</div><div class="line">  1</div><div class="line">  2</div><div class="line">  3</div><div class="line">  4</div><div class="line">(4 rows)</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201409-postgres-cluster/pgxc-test1.png" alt=""></p>
-<p>然后登陆协调节点2，查询刚才新增的表中的数据，发现已经可以查到了，</p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-test2.png" alt=""></p>
-<p>分别登陆数据节点1和2，发现数据分散在这2个节点上，每个节点上2条数据，</p>
-<p><img src="/images/201409-postgres-cluster-xl/pgxl-test3.png" alt=""></p>
-<p>至此，Postgres XL的集群搭建已经成功，可以与Postgres XC的集群搭建步骤做对比，主要差别有以下一些，</p>
-<blockquote>
-<ol>
-<li>多几个依赖关系，需要用<code>yum install jade docbook-style-dsssl</code>解决；</li>
-<li>配置数据节点的时候，也要配置<code>pooler_port</code>，虽然目前还不知道具体的用处；</li>
-<li>注册节点的时候，需要加上<code>create node group</code>的步骤；</li>
-<li>注册节点的时候，不仅要在协调节点上注册，也要在数据节点上注册；</li>
-</ol>
-</blockquote>
-<p>以上是安装Postgres XL集群的要点，本文主要参考了以下一些文章<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>，<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>，<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>。</p>
-<div class="footnotes">
-<hr>
-<ol>
-<li id="fn1"><p><a href="http://blog.163.com/digoal@126/blog/static/16387704020146243755910/" class="uri" target="_blank" rel="external">http://blog.163.com/digoal@126/blog/static/16387704020146243755910/</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://blog.csdn.net/lianshunke/article/details/38979711" class="uri" target="_blank" rel="external">http://blog.csdn.net/lianshunke/article/details/38979711</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="http://blog.163.com/digoal@126/blog/static/163877040201441423449445/" class="uri" target="_blank" rel="external">http://blog.163.com/digoal@126/blog/static/163877040201441423449445/</a><a href="#fnref3">↩</a></p></li>
-</ol>
-</div>
-]]></content>
-    <summary type="html">
-    <![CDATA[<p>Postgres XL（PGXL）和Postgres XC（pgxl）的架构很类似，安装步骤也很类似。</p>
-<p>本文使用源码在单机上搭建PostgreSQL的最简单集群，1个GTM，协调节点和数据节点各2个。</p>
-<p>先去下载PGXL的源码包，在官网上有最新]]>
-    </summary>
-    
-      <category term="Postgres" scheme="http://valleylord.github.io/tags/Postgres/"/>
-    
-      <category term="Dataguru" scheme="http://valleylord.github.io/tags/Dataguru/"/>
-    
-      <category term="Postgres" scheme="http://valleylord.github.io/categories/Postgres/"/>
     
   </entry>
   
