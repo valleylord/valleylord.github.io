@@ -4,16 +4,14 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>关于我 | 褚哥说|</title>
+    <title>Ubuntu14.04无法无线上网 | 褚哥说|</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
     
     <meta name="author" content="Valleylord">
     
-    <meta name="description" content="常用id: Valleylord，金融软件产品后端开发工程师，现在在魔都供职。
-没事的时候喜欢折腾各种编程语言，框架，工具......
-除此之外大部分时间在看书，主要是编程和金融方面的。
-喜欢看电影，尤其是剧情片，基本不太看电视机，地铁杀时间完全靠漫画。
-目前维护2个博客，分别在github和SAE">
+    <meta name="description" content="安装了Ubuntu14.04之后，一直使用无线上网，直到今天。系统中什么事情也没做，只是在无线路由器上，给本机分配了一个固定ip。
+找了一些文章，有说是无线驱动的问题的，需要重新编译内核；有说是需要更新驱动的，需要在更新中升级；等等很多，不一而足。
+我的判断是，驱动应该是没啥问题，因为之前也能上网，">
     
     
     
@@ -81,15 +79,15 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/post/about/" title="关于我" itemprop="url">关于我</a>
+      <a href="/post/201601-ubuntu-wifi/" title="Ubuntu14.04无法无线上网" itemprop="url">Ubuntu14.04无法无线上网</a>
   </h1>
   <p class="article-author">By
     
       <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
     </p>
   <p class="article-time">
-    <time datetime="2014-04-24T00:22:00.000Z" itemprop="datePublished">2014-04-24</time>
-    更新日期:<time datetime="2014-12-08T02:48:55.000Z" itemprop="dateModified">2014-12-08</time>
+    <time datetime="2015-12-31T10:09:00.000Z" itemprop="datePublished">2015-12-31</time>
+    更新日期:<time datetime="2016-01-02T10:21:37.068Z" itemprop="dateModified">2016-01-02</time>
     
   </p>
 </header>
@@ -101,26 +99,34 @@
 		
 		</div>
 		
-		<p>常用id: Valleylord，金融软件产品后端开发工程师，现在在魔都供职。</p>
-没事的时候喜欢折腾各种编程语言，框架，工具......
-<p>除此之外大部分时间在看书，主要是编程和金融方面的。</p>
-<p>喜欢看电影，尤其是剧情片，基本不太看电视机，地铁杀时间完全靠漫画。</p>
-<p>目前维护2个博客，分别在github和SAE，希望可以坚持写下来。</p>
-<p>github: <a href="http://valleylord.github.io/" target="_blank" rel="external">http://valleylord.github.io/</a></p>
-<p>SAE: <a href="http://valleylord.sinaapp.com/" target="_blank" rel="external">http://valleylord.sinaapp.com/</a></p>
-<p>老的文章是在cnblogs上写，如果想看的话可以去<a href="http://www.cnblogs.com/valleylord" target="_blank" rel="external">这里</a>。</p>
-<p>之前还维护过一个在farbox上的博客，可惜国内访问速度一直比较慢，不再更新了</p>
-<p>farbox: <a href="http://valleylord.farbox.com/" target="_blank" rel="external">http://valleylord.farbox.com/</a></p>
+		<p>安装了Ubuntu14.04之后，一直使用无线上网，直到今天。系统中什么事情也没做，只是在无线路由器上，给本机分配了一个固定ip。</p>
+<p>找了一些文章，有说是无线驱动的问题的，需要重新编译内核；有说是需要更新驱动的，需要在更新中升级；等等很多，不一而足。</p>
+<p>我的判断是，驱动应该是没啥问题，因为之前也能上网，而且更新里面显示为空，表示我的驱动已经是最新了。猜测可能是网络环境变了，导致之前的某个选项不能适配新环境。</p>
+<p>在网上找到<a href="http://www.emmolution.org/?p=253" target="_blank" rel="external">这篇文章</a>，设置硬件加密为不启用即可。我照做了，然后就能正常用wifi了。</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo <span class="keyword">vi</span> /etc/modprobe.<span class="keyword">d</span>/ath9k.<span class="keyword">conf</span></div></pre></td></tr></table></figure></p>
+<p>增加以下内容，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="attribute">options ath9k nohwcrypt</span>=<span class="string">1</span></div></pre></td></tr></table></figure></p>
+<p>然后重启即可。</p>
   
 	</div>
 		<footer class="article-footer clearfix">
 
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Linux/">Linux</a>
+</div>
 
 
 
 <div class="article-share" id="share">
 
-  <div data-url="http://valleylord.github.io/post/about/" data-title="关于我 | 褚哥说|" data-tsina="null" class="share clearfix">
+  <div data-url="http://valleylord.github.io/post/201601-ubuntu-wifi/" data-title="Ubuntu14.04无法无线上网 | 褚哥说|" data-tsina="null" class="share clearfix">
   </div>
 
 </div>
@@ -130,18 +136,18 @@
 <nav class="article-nav clearfix">
  
  <div class="prev" >
- <a href="/post/links/" title="经常去的地方">
+ <a href="/post/201601-docker-volumn/" title="Docker存储(Volumn)">
   <strong>PREVIOUS:</strong><br/>
   <span>
-  经常去的地方</span>
+  Docker存储(Volumn)</span>
 </a>
 </div>
 
 
 <div class="next">
-<a href="/post/201402-sicp-solution-ch1/"  title="我的SICP习题解答-chapter 1">
+<a href="/post/201512-docker-build-image/"  title="Docker创建镜像">
  <strong>NEXT:</strong><br/> 
- <span>我的SICP习题解答-chapter 1
+ <span>Docker创建镜像
 </span>
 </a>
 </div>
