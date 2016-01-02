@@ -78,6 +78,31 @@
   <article>
     <h1 itemprop="name">
       
+        <a href="/post/201409-java-deadlock/" title="Java运行时死锁检测和分析" itemprop="url">
+      
+        Java运行时死锁检测和分析
+      </a>
+    </h1>
+    
+     
+           <p itemprop="description" >SUN JDK提供了一系列的运行时分析工具1可以用于分析运行时的JVM状况，这些工具包括jps、jstack、jstat、jinfo、jmap、jconsole、jvisualvm等。
+本文使用其中的部分工具来检测运行时是否发生死锁。先写一个运行时会发生死锁的程序，其实最经典的哲</p>
+        
+    
+    <p class="article-more-link">
+      <time datetime="2014-09-19T09:39:00.000Z" itemprop="datePublished">2014-09-19</time>
+      
+          <a href="/post/201409-java-deadlock/">阅读更多&raquo;</a>
+      
+    </p>
+
+  </article>
+</section>
+
+  <section class="post" itemscope itemprop="blogPost">
+  <article>
+    <h1 itemprop="name">
+      
         <a href="/post/201409-postgres-cluster-xl/" title="PostgreSQL集群搭建（使用Postgres XL）" itemprop="url">
       
         PostgreSQL集群搭建（使用Postgres XL）
@@ -87,7 +112,7 @@
      
            <p itemprop="description" >Postgres XL（PGXL）和Postgres XC（pgxl）的架构很类似，安装步骤也很类似。
 本文使用源码在单机上搭建PostgreSQL的最简单集群，1个GTM，协调节点和数据节点各2个。
-先去下载PGXL的源码包，在官网上有最新版，本文使用的版本是postgre</p>
+先去下载PGXL的源码包，在官网上有最新版，本文使用的版本是postgres-</p>
         
     
     <p class="article-more-link">
@@ -184,7 +209,7 @@
     
      
            <p itemprop="description" >相比与Oracle来说，PostgreSQL的备份还是简单许多了，基本上只需要简单做数据文件的copy就可以完成。
-所有操作都用postgres用户完成，所有用到的目录都对postgres用户赋予了权限，否则可能会有权限问题。先建立archive归档目录，用于备份WAL Log</p>
+所有操作都用postgres用户完成，所有用到的目录都对postgres用户赋予了权限，否则可能会有权限问题。先建立archive归档目录，用于备份WAL Log（</p>
         
     
     <p class="article-more-link">
@@ -211,7 +236,7 @@
            <p itemprop="description" >PostgreSQL的进程结构
 PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列子进程，这些进程包括数据库实例的后台进程，例如，Data Writer、Achiver等，也有服务client的session进程。大致结构图如下，
 
-在Post</p>
+在Postgre</p>
         
     
     <p class="article-more-link">
@@ -260,7 +285,7 @@ PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列
     
      
            <p itemprop="description" >jre的运行时主要jar文件rt.jar都很大，这导致了用java做的桌面客户端程序很难发布绑定jre发布。这在很大程度上限制了java桌面软件的分发。可是，jre并不是在所有的用户计算机上都有安装，即使安装了，也未必我们期望的版本。因此，对jre做精简，减少体积是有必要的。
-</p>
+减</p>
         
     
     <p class="article-more-link">
@@ -287,42 +312,13 @@ PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列
            <p itemprop="description" >由于PostgreSQL的代码托管是使用GIT做源码管理工具的，需要先安装git。
 1yum install git
 所有的PostgreSQL项目的代码可以在这里找到。将代码clone到本地
-1git clone git://git.postgresql.org/git/</p>
+1git clone git://git.postgresql.org/git/pos</p>
         
     
     <p class="article-more-link">
       <time datetime="2014-08-17T04:55:00.000Z" itemprop="datePublished">2014-08-17</time>
       
           <a href="/post/201408-postgres-dev-env/">阅读更多&raquo;</a>
-      
-    </p>
-
-  </article>
-</section>
-
-  <section class="post" itemscope itemprop="blogPost">
-  <article>
-    <h1 itemprop="name">
-      
-        <a href="/post/201408-jvm-oom/" title="JVM的OutOfMemoryException" itemprop="url">
-      
-        JVM的OutOfMemoryException
-      </a>
-    </h1>
-    
-     
-           <p itemprop="description" >JVM的OOM异常简介
-JVM的OOM(OutOfMemory)异常一般有以下几种，转载自1。
-
-java.lang.StackOverflowError:（很少）
-java.lang.OutOfMemoryError：heap space(比较常见)
-java.lan</p>
-        
-    
-    <p class="article-more-link">
-      <time datetime="2014-08-16T02:49:00.000Z" itemprop="datePublished">2014-08-16</time>
-      
-          <a href="/post/201408-jvm-oom/">阅读更多&raquo;</a>
       
     </p>
 
@@ -368,7 +364,7 @@ java.lan</p>
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -391,6 +387,8 @@ java.lan</p>
 		
 			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
 		
+			<li><a href="/categories/Mycat/" title="Mycat">Mycat<sup>1</sup></a></li>
+		
 			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
 		
 			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
@@ -410,7 +408,7 @@ java.lan</p>
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>35</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>36</sup></a></li>
 		
 			<li><a href="/tags/Docker/" title="Docker">Docker<sup>4</sup></a></li>
 		
@@ -419,6 +417,8 @@ java.lan</p>
 			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
 		
 			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Mycat/" title="Mycat">Mycat<sup>1</sup></a></li>
 		
 			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
 		
@@ -444,7 +444,7 @@ java.lan</p>
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 10.00px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 10.00px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Mycat/" style="font-size: 10.00px;">Mycat</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a>
     </div>
   </div>
 

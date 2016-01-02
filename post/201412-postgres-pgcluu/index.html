@@ -10,7 +10,7 @@
     <meta name="author" content="Valleylord">
     
     <meta name="description" content="pgCluu是一款PostgreSQL的新能监控和审计工具，遵循PostgreSQL Licence，近似与BSD和MIT的一个Licence，对商业使用友好。本文将从源码编译安装pgCluu，并试用该工具做PostgreSQL的性能监控。
-pgCluu的托管在github上，其项目主页在这里，也">
+pgCluu的托管在github上，其项目主页在这里，也可">
     
     
     
@@ -104,31 +104,31 @@ pgCluu的托管在github上，其项目主页在这里，也">
 <p>如果是用于生产使用，还是建议去下载稳定的release版本，在<a href="https://github.com/darold/pgcluu/releases" target="_blank" rel="external">这里</a>有下载，本文使用的是<a href="https://github.com/darold/pgcluu/archive/v2.1.tar.gz" target="_blank" rel="external">2.1稳定版本</a>。</p>
 <p>然后就是和大多数linux软件一样，开始做<code>make &amp; make install</code>，pgCluu比较特别的地方是，没有用<code>configure</code>生成Makefile，而是用一个perl脚本来生成。</p>
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">[postgres@anzhy pgcluu-<span class="number">2.1</span>]$ perl Makefile.PL </div><div class="line">Checking <span class="keyword">if</span> your kit is complete...</div><div class="line">Looks good</div><div class="line">Writing Makefile <span class="keyword">for</span> pgCluu</div><div class="line">[postgres@anzhy pgcluu-<span class="number">2.1</span>]$ make</div><div class="line">cp pgcluu_collectd blib/script/pgcluu_collectd</div><div class="line">/usr/bin/perl -MExtUtils::MY <span class="operator">-e</span> <span class="string">'MY-&gt;fixin(shift)'</span> -- blib/script/pgcluu_collectd</div><div class="line">cp pgcluu blib/script/pgcluu</div><div class="line">/usr/bin/perl -MExtUtils::MY <span class="operator">-e</span> <span class="string">'MY-&gt;fixin(shift)'</span> -- blib/script/pgcluu</div><div class="line">Manifying blib/man1/pgcluu.<span class="number">1</span></div><div class="line">[postgres@anzhy pgcluu-<span class="number">2.1</span>]$ <span class="built_in">sudo</span> make install</div><div class="line">[<span class="built_in">sudo</span>] password <span class="keyword">for</span> postgres: </div><div class="line">Installing /usr/local/share/man/man1/pgcluu.<span class="number">1</span></div><div class="line">Installing /usr/local/bin/pgcluu_collectd</div><div class="line">Installing /usr/local/bin/pgcluu</div><div class="line">Appending installation info to /usr/lib64/perl5/perllocal.pod</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201412-postgres-pgcluu/pgcluu-install.png" alt=""></p>
+<p><img src="/images/201412-postgres-pgcluu/pgcluu-install.png"></p>
 <p>默认情况下，<code>pgcluu</code>和<code>pgcluu_collectd</code>这两个程序安装在<code>/usr/local/bin</code>目录下，两个程序都是用perl写的。</p>
 <p>要测试PostgreSQL的性能，为了能看到明显一些的结果，要给数据库加一些压力，本文采用之前的文章用pgbench的初始化方式，给数据库加一些DML和DDL操作的压力。命令如下，</p>
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> (( i = <span class="number">0</span>; i &lt; <span class="number">8</span>; i++)); </div><div class="line"><span class="keyword">do</span></div><div class="line">    time pgbench  -i  --unlogged-tables <span class="operator">-s</span> <span class="number">16</span> -U postgres -p <span class="number">5432</span> <span class="operator">-d</span> pgbench; </div><div class="line"><span class="keyword">done</span>;</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201412-postgres-pgcluu/pgcluu-pgbench.png" alt=""></p>
+<p><img src="/images/201412-postgres-pgcluu/pgcluu-pgbench.png"></p>
 <p>以上命令中，测试用的数据库名是pgbench。为了可以持续增加数据库压力，对数据库反复执行了8次初始化，每次初始化的时间大约在15～20s(在我的测试机器上)，因此数据库繁忙的时间总共大约有120～160s。</p>
 <p>然后建立收集数据的目录，并开始收集数据库的性能数据，</p>
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">[postgres@anzhy ~]$ mkdir /tmp/stat_db1/</div><div class="line">[postgres@anzhy ~]$ pgcluu_collectd -D -i <span class="number">30</span> /tmp/stat_db1/ -h localhost -U postgres <span class="operator">-d</span> pgbench</div><div class="line">LOG: Detach from terminal with pid: <span class="number">13352</span></div><div class="line">[postgres@anzhy ~]$ pgcluu_collectd -k</div><div class="line">OK: pgcluu_collectd exited with value <span class="number">0</span></div><div class="line">[postgres@anzhy ~]$</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201412-postgres-pgcluu/pgcluu-collect1.png" alt=""></p>
+<p><img src="/images/201412-postgres-pgcluu/pgcluu-collect1.png"></p>
 <p>上述参数中，<code>-D</code>表示后台运行；<code>-i 30</code>表示30秒收集一次数据；<code>/tmp/stat_db1/</code>是收集数据保存的目录；其他参数表示数据库的地址，用户名和数据库名。由于程序在后台运行，如果需要结束程序需要使用<code>-k</code>参数，表示kill掉后台的pgcluu_collectd。本文采用的方式是另一种自动退出的方法，即<code>-E 200</code>表示程序运行200秒之后自动退出，如下，</p>
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">[postgres@anzhy ~]$ pgcluu_collectd -E <span class="number">200</span> -i <span class="number">30</span> /tmp/stat_db1/ -h localhost -U postgres <span class="operator">-d</span> pgbench</div><div class="line"></div><div class="line">*** pgcluu_collectd v2.<span class="number">1</span> (pid:<span class="number">8551</span>) started at Thu Dec  <span class="number">4</span> <span class="number">21</span>:<span class="number">27</span>:<span class="number">06</span> <span class="number">2014</span></div><div class="line">Type Ctrl+c to quit.</div><div class="line"></div><div class="line">sh: LC_ALL=C sar -t -p -A <span class="number">1</span> <span class="number">1</span>: No such file or directory</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201412-postgres-pgcluu/pgcluu-collect2-error.png" alt=""></p>
+<p><img src="/images/201412-postgres-pgcluu/pgcluu-collect2-error.png"></p>
 <p>以上脚本确保可以收集到6(200/3)次数据，但是发现了错误，提示找不到sar命令，尝试了使用-s命令指定sar的位置，以及修改源代码，仍然不能解决。决定采用<a href="https://github.com/darold/pgcluu/archive/v2.0.tar.gz" target="_blank" rel="external">2.0版</a>，重复上述操作，2.0版没有这样的问题，但是2.0版本没有提供<code>-E</code>参数，如下，</p>
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">[postgres@anzhy ~]$ pgcluu_collectd -i <span class="number">30</span> /tmp/stat_db1/ -h localhost -U postgres <span class="operator">-d</span> pgbench</div><div class="line"></div><div class="line">*** pgcluu_collectd v2.<span class="number">0</span> (pid:<span class="number">13908</span>) started at Thu Dec  <span class="number">4</span> <span class="number">22</span>:<span class="number">29</span>:<span class="number">24</span> <span class="number">2014</span></div><div class="line">Type Ctrl+c to quit.</div><div class="line"></div><div class="line">^CLOG: Received terminating signal.</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201412-postgres-pgcluu/pgcluu-collect2.png" alt=""></p>
+<p><img src="/images/201412-postgres-pgcluu/pgcluu-collect2.png"></p>
 <p>此次收集正常，运行一段时间后<code>Ctrl+C</code>退出。接下来就可以用pgcluu做报表了，一般的报表呈现是使用html，就可以简单的使用默认参数即可，如下，</p>
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">[postgres@anzhy ~]$ rm -rf /tmp/report_db1/</div><div class="line">[postgres@anzhy ~]$ mkdir /tmp/report_db1/</div><div class="line">[postgres@anzhy ~]$ pgcluu -o /tmp/report_db1/ /tmp/stat_db1/</div><div class="line">[postgres@anzhy ~]$ ls /tmp/report_db1/</div><div class="line">bootstrap.min.css         pgbench-index-scan.html              postgres-table-size.html                system-device0.html</div><div class="line">bootstrap.min.js          pgbench-index-size.html              regression-index-scan.html              system-device1.html</div><div class="line">cluster.html              pgbench-missing-index.html           regression-index-size.html              system.html</div><div class="line">database-pgbench.html     pgbench-statio-table.html            regression-missing-index.html           test-index-size.html</div><div class="line">database-postgres.html    pgbench-table-indexes.html           regression-redundant-index.html         test-table-indexes.html</div><div class="line">database-regression.html  pgbench-table-kind-tuples.html       regression-table-indexes.html           test-table-kind-tuples.html</div><div class="line">database-test.html        pgbench-table-query-tuples.html      regression-table-kind-tuples.html       test-table-query-tuples.html</div><div class="line">font-awesome.min.css      pgbench-table-size.html              regression-table-query-tuples.html      test-table-size.html</div><div class="line">index.html                pgbench-table-vacuums-analyzes.html  regression-table-size.html              test-table-vacuums-analyzes.html</div><div class="line">jquery.min.js             pgcluu.css                           regression-table-vacuums-analyzes.html</div><div class="line">network-device0.html      pgcluu.js                            regression-unused-index.html</div><div class="line">network-device1.html      postgres-index-size.html             sorttable.js</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201412-postgres-pgcluu/pgcluu-generate-report.png" alt=""></p>
+<p><img src="/images/201412-postgres-pgcluu/pgcluu-generate-report.png"></p>
 <p>生成的报表直接用浏览器打开即可，主入口是<code>index.html</code>，以下列举几张图，</p>
-<p><img src="/images/201412-postgres-pgcluu/pgcluu-report1.png" alt=""></p>
+<p><img src="/images/201412-postgres-pgcluu/pgcluu-report1.png"></p>
 <p>这个是CPU使用情况的图，可以看到系统突然有一个激增，这是开始做初始化的时候。</p>
-<p><img src="/images/201412-postgres-pgcluu/pgcluu-report2.png" alt=""></p>
+<p><img src="/images/201412-postgres-pgcluu/pgcluu-report2.png"></p>
 <p>这个是各个种类锁争用的情况，也是突然有一个激增。</p>
-<p><img src="/images/201412-postgres-pgcluu/pgcluu-report3.png" alt=""></p>
-<p><img src="/images/201412-postgres-pgcluu/pgcluu-report4.png" alt=""></p>
+<p><img src="/images/201412-postgres-pgcluu/pgcluu-report3.png"></p>
+<p><img src="/images/201412-postgres-pgcluu/pgcluu-report4.png"></p>
 <p>除去动态信息的图表，pgcluu也收集了静态信息，如上图中，首页上的概要数据汇总，和数据库分页下数据库大小的数据等等。</p>
 <p>以上是pgCluu的使用简述。本文的操作主要参考官方代码中的<a href="https://github.com/darold/pgcluu/blob/master/README" target="_blank" rel="external">Readme</a>。</p>
   
@@ -218,7 +218,7 @@ pgCluu的托管在github上，其项目主页在这里，也">
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -241,6 +241,8 @@ pgCluu的托管在github上，其项目主页在这里，也">
 		
 			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
 		
+			<li><a href="/categories/Mycat/" title="Mycat">Mycat<sup>1</sup></a></li>
+		
 			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
 		
 			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
@@ -260,7 +262,7 @@ pgCluu的托管在github上，其项目主页在这里，也">
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>35</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>36</sup></a></li>
 		
 			<li><a href="/tags/Docker/" title="Docker">Docker<sup>4</sup></a></li>
 		
@@ -269,6 +271,8 @@ pgCluu的托管在github上，其项目主页在这里，也">
 			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
 		
 			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Mycat/" title="Mycat">Mycat<sup>1</sup></a></li>
 		
 			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
 		
@@ -294,7 +298,7 @@ pgCluu的托管在github上，其项目主页在这里，也">
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 10.00px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 10.00px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Mycat/" style="font-size: 10.00px;">Mycat</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a>
     </div>
   </div>
 

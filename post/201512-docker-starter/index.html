@@ -10,7 +10,7 @@
     <meta name="author" content="Valleylord">
     
     <meta name="description" content="Docker应该是最近几年最火的云计算技术了，为应用的构建方式带来了一系列的变革。本文试图介绍一些关于Docker的原理和基本操作。
-Docker以容器（Container）的方式，对计算机的各种资源作出隔离，以达到一个类似虚拟机（Virtual Machine）的效果。与虚拟机主要的不同在于，虚">
+Docker以容器（Container）的方式，对计算机的各种资源作出隔离，以达到一个类似虚拟机（Virtual Machine）的效果。与虚拟机主要的不同在于，虚拟">
     
     
     
@@ -86,7 +86,7 @@ Docker以容器（Container）的方式，对计算机的各种资源作出隔�
     </p>
   <p class="article-time">
     <time datetime="2015-12-13T01:46:00.000Z" itemprop="datePublished">2015-12-13</time>
-    更新日期:<time datetime="2015-12-19T10:07:22.000Z" itemprop="dateModified">2015-12-19</time>
+    更新日期:<time datetime="2015-12-19T10:07:29.545Z" itemprop="dateModified">2015-12-19</time>
     
   </p>
 </header>
@@ -119,12 +119,7 @@ Docker以容器（Container）的方式，对计算机的各种资源作出隔�
 <h2>Linux Namespace</h2>
 <p>只有资源的隔离显然不足以隔离不同的应用，还需要有对访问权限的隔离，这就是Linux Namespace的主要作用。Linux Namespace是Linux提供的一种内核级别环境隔离的方法<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>，主要是在使用<code>clone</code>系统调用的时候，添加不同的隔离效果参数来达到。注意，此处的隔离仅仅是应用层面的隔离，这些clone出来的进程仍然使用相同的Linux内核。</p>
 <p>可以达到的不同的隔离效果有：</p>
-<table style="width:50%;">
-<colgroup>
-<col width="13%">
-<col width="19%">
-<col width="16%">
-</colgroup>
+<table>
 <thead>
 <tr class="header">
 <th align="left">分类</th>
@@ -201,10 +196,10 @@ Docker以容器（Container）的方式，对计算机的各种资源作出隔�
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://coolshell.cn/articles/17049.html" class="uri" target="_blank" rel="external">http://coolshell.cn/articles/17049.html</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://coolshell.cn/articles/17010.html" class="uri" target="_blank" rel="external">http://coolshell.cn/articles/17010.html</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="http://coolshell.cn/articles/17061.html" class="uri" target="_blank" rel="external">http://coolshell.cn/articles/17061.html</a><a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p><a href="http://www.csdn.net/article/2014-11-18/2822693" class="uri" target="_blank" rel="external">http://www.csdn.net/article/2014-11-18/2822693</a><a href="#fnref4">↩</a></p></li>
+<li id="fn1"><p><a href="http://coolshell.cn/articles/17049.html" target="_blank" rel="external">http://coolshell.cn/articles/17049.html</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://coolshell.cn/articles/17010.html" target="_blank" rel="external">http://coolshell.cn/articles/17010.html</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="http://coolshell.cn/articles/17061.html" target="_blank" rel="external">http://coolshell.cn/articles/17061.html</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="http://www.csdn.net/article/2014-11-18/2822693" target="_blank" rel="external">http://www.csdn.net/article/2014-11-18/2822693</a><a href="#fnref4">↩</a></p></li>
 </ol>
 </div>
   
@@ -294,7 +289,7 @@ Docker以容器（Container）的方式，对计算机的各种资源作出隔�
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -317,6 +312,8 @@ Docker以容器（Container）的方式，对计算机的各种资源作出隔�
 		
 			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
 		
+			<li><a href="/categories/Mycat/" title="Mycat">Mycat<sup>1</sup></a></li>
+		
 			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
 		
 			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
@@ -336,7 +333,7 @@ Docker以容器（Container）的方式，对计算机的各种资源作出隔�
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>35</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>36</sup></a></li>
 		
 			<li><a href="/tags/Docker/" title="Docker">Docker<sup>4</sup></a></li>
 		
@@ -345,6 +342,8 @@ Docker以容器（Container）的方式，对计算机的各种资源作出隔�
 			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
 		
 			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Mycat/" title="Mycat">Mycat<sup>1</sup></a></li>
 		
 			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
 		
@@ -370,7 +369,7 @@ Docker以容器（Container）的方式，对计算机的各种资源作出隔�
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 10.00px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 10.00px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Mycat/" style="font-size: 10.00px;">Mycat</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a>
     </div>
   </div>
 

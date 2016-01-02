@@ -78,6 +78,30 @@
   <article>
     <h1 itemprop="name">
       
+        <a href="/post/201411-postgres-pgbench/" title="pgbench压力测试工具简介" itemprop="url">
+      
+        pgbench压力测试工具简介
+      </a>
+    </h1>
+    
+     
+           <p itemprop="description" >pgbench是基于tpc-b模型的postgresql测试工具。它属于开源软件，主要为对 PostgreSQL 进行压力测试的一款简单程序, SQL命令可以在一个连接中顺序地执行，通常会开多个数据库 Session, 并且在测试最后形成测试报告，得出每秒平均事务数，pgbenc</p>
+        
+    
+    <p class="article-more-link">
+      <time datetime="2014-11-19T12:40:00.000Z" itemprop="datePublished">2014-11-19</time>
+      
+          <a href="/post/201411-postgres-pgbench/">阅读更多&raquo;</a>
+      
+    </p>
+
+  </article>
+</section>
+
+  <section class="post" itemscope itemprop="blogPost">
+  <article>
+    <h1 itemprop="name">
+      
         <a href="/post/201410-postgres-trigger-example/" title="PostgreSQL扩展函数和触发器" itemprop="url">
       
         PostgreSQL扩展函数和触发器
@@ -86,7 +110,7 @@
     
      
            <p itemprop="description" >PostgreSQL是一个对扩展和程序开发很友好的数据库，有很多的外部扩展接口，很易于扩展。本文使用PostgreSQL的C扩展编写扩展函数，并提供给触发器调用，本文的例子来源与官方文档。
-PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格</p>
+PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格式</p>
         
     
     <p class="article-more-link">
@@ -112,7 +136,7 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格</p>
      
            <p itemprop="description" >PostgreSQL可以支持多种存储过程语言，官方支持的除了PL/pgSQL，还有TCL，Perl，Python。
 本文使用源码安装PL/Python过程语言支持，并简介PL/Python的一些简单的入门。如果是使用安装包安装的话，可以参考1。
-参考PostgreSQL的官方</p>
+参考PostgreSQL的官方文档</p>
         
     
     <p class="article-more-link">
@@ -138,7 +162,7 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格</p>
      
            <p itemprop="description" >默认情况下，PostgreSQL唯一默认会安装的存储过程语言就是PL/pgSQL。
 创建PL/pgSQL的方法是在psql或者pgAdmin中输入创建语句，如下，
-1234567891011121314151617181920CREATE or replace FUNCTIO</p>
+1234567891011121314151617181920CREATE or replace FUNCTION </p>
         
     
     <p class="article-more-link">
@@ -187,7 +211,7 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格</p>
     
      
            <p itemprop="description" >每一个Java类在经过编译后，都会生成.class文件，作为JVM执行的输入。.class文件的结构分析和示例可以参考1，2，3。本文用Java代码分析.class文件的结构，获取类的定义，以及类中每一个域和方法的声明。
-首先，.class文件是Java的字节码文件，需要逐个逐</p>
+首先，.class文件是Java的字节码文件，需要逐个逐个</p>
         
     
     <p class="article-more-link">
@@ -212,7 +236,7 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格</p>
     
      
            <p itemprop="description" >UUID是用于提供全局唯一编码的程序，可以将其添加到PostgreSQL中，这里是UUID的主页。
-下载最新版本uuid-1.6.2.tar.gz的源码，解压，configure，编译安装，与一般的程序安装并无很大差异。也可以使用yum install uuid uuid-de</p>
+下载最新版本uuid-1.6.2.tar.gz的源码，解压，configure，编译安装，与一般的程序安装并无很大差异。也可以使用yum install uuid uuid-dev</p>
         
     
     <p class="article-more-link">
@@ -238,7 +262,7 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格</p>
      
            <p itemprop="description" >Java的锁是多线程编程中必须理解的概念，其synchronized关键字本质上就是一个互斥锁的实现。
 本文比较在Java中使用锁和使用atomic包中类型在多线程环境下的性能差异，并探讨JVM获取锁的一般步骤。
-假设要对一个整数做++操作1000000次。在使用锁（本文使用</p>
+假设要对一个整数做++操作1000000次。在使用锁（本文使用的是</p>
         
     
     <p class="article-more-link">
@@ -263,7 +287,7 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格</p>
     
      
            <p itemprop="description" >本文以createuser和pg_dump两个过程为例，分析PostgreSQL的工具程序的一般设计方式。本文使用的是PostgreSQL 9.3.4版本。
-所有这些工具过程的main函数代码都在源码目录的src\bin目录下面，例如，createuser和pg_dump就分别</p>
+所有这些工具过程的main函数代码都在源码目录的src\bin目录下面，例如，createuser和pg_dump就分别对</p>
         
     
     <p class="article-more-link">
@@ -288,38 +312,13 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格</p>
     
      
            <p itemprop="description" >本文主要使用Eclipse的MAT工具和JDK自带的jvisualvm工具来分析程序运行异常之后的堆dump文件，以找到程序出错的原因。
-Eclipse的MAT(Memory Analyzer Tool) 是基于heap dumps来进行分析的，它的分析速度比jhat快，分析结</p>
+Eclipse的MAT(Memory Analyzer Tool) 是基于heap dumps来进行分析的，它的分析速度比jhat快，分析结果</p>
         
     
     <p class="article-more-link">
       <time datetime="2014-09-27T01:02:00.000Z" itemprop="datePublished">2014-09-27</time>
       
           <a href="/post/201409-java-heap-dump/">阅读更多&raquo;</a>
-      
-    </p>
-
-  </article>
-</section>
-
-  <section class="post" itemscope itemprop="blogPost">
-  <article>
-    <h1 itemprop="name">
-      
-        <a href="/post/201409-java-deadlock/" title="Java运行时死锁检测和分析" itemprop="url">
-      
-        Java运行时死锁检测和分析
-      </a>
-    </h1>
-    
-     
-           <p itemprop="description" >SUN JDK提供了一系列的运行时分析工具1可以用于分析运行时的JVM状况，这些工具包括jps、jstack、jstat、jinfo、jmap、jconsole、jvisualvm等。
-本文使用其中的部分工具来检测运行时是否发生死锁。先写一个运行时会发生死锁的程序，其实最经典的</p>
-        
-    
-    <p class="article-more-link">
-      <time datetime="2014-09-19T09:39:00.000Z" itemprop="datePublished">2014-09-19</time>
-      
-          <a href="/post/201409-java-deadlock/">阅读更多&raquo;</a>
       
     </p>
 
@@ -365,7 +364,7 @@ Eclipse的MAT(Memory Analyzer Tool) 是基于heap dumps来进行分析的，它�
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -388,6 +387,8 @@ Eclipse的MAT(Memory Analyzer Tool) 是基于heap dumps来进行分析的，它�
 		
 			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
 		
+			<li><a href="/categories/Mycat/" title="Mycat">Mycat<sup>1</sup></a></li>
+		
 			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
 		
 			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
@@ -407,7 +408,7 @@ Eclipse的MAT(Memory Analyzer Tool) 是基于heap dumps来进行分析的，它�
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>35</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>36</sup></a></li>
 		
 			<li><a href="/tags/Docker/" title="Docker">Docker<sup>4</sup></a></li>
 		
@@ -416,6 +417,8 @@ Eclipse的MAT(Memory Analyzer Tool) 是基于heap dumps来进行分析的，它�
 			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
 		
 			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Mycat/" title="Mycat">Mycat<sup>1</sup></a></li>
 		
 			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
 		
@@ -441,7 +444,7 @@ Eclipse的MAT(Memory Analyzer Tool) 是基于heap dumps来进行分析的，它�
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 10.00px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 10.00px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Mycat/" style="font-size: 10.00px;">Mycat</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a>
     </div>
   </div>
 
