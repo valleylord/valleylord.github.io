@@ -78,6 +78,31 @@
   <article>
     <h1 itemprop="name">
       
+        <a href="/post/201409-postgres-createuser-pgdump/" title="PostgreSQL的createuser和pg_dump的过程分析" itemprop="url">
+      
+        PostgreSQL的createuser和pg_dump的过程分析
+      </a>
+    </h1>
+    
+     
+           <p itemprop="description" >本文以createuser和pg_dump两个过程为例，分析PostgreSQL的工具程序的一般设计方式。本文使用的是PostgreSQL 9.3.4版本。
+所有这些工具过程的main函数代码都在源码目录的src\bin目录下面，例如，createuser和pg_dump就分别对</p>
+        
+    
+    <p class="article-more-link">
+      <time datetime="2014-09-27T08:15:00.000Z" itemprop="datePublished">2014-09-27</time>
+      
+          <a href="/post/201409-postgres-createuser-pgdump/">阅读更多&raquo;</a>
+      
+    </p>
+
+  </article>
+</section>
+
+  <section class="post" itemscope itemprop="blogPost">
+  <article>
+    <h1 itemprop="name">
+      
         <a href="/post/201409-java-heap-dump/" title="Java堆dump文件分析" itemprop="url">
       
         Java堆dump文件分析
@@ -298,31 +323,6 @@ PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列
   </article>
 </section>
 
-  <section class="post" itemscope itemprop="blogPost">
-  <article>
-    <h1 itemprop="name">
-      
-        <a href="/post/201408-jre-thin/" title="JRE打包精简" itemprop="url">
-      
-        JRE打包精简
-      </a>
-    </h1>
-    
-     
-           <p itemprop="description" >jre的运行时主要jar文件rt.jar都很大，这导致了用java做的桌面客户端程序很难发布绑定jre发布。这在很大程度上限制了java桌面软件的分发。可是，jre并不是在所有的用户计算机上都有安装，即使安装了，也未必我们期望的版本。因此，对jre做精简，减少体积是有必要的。
-减</p>
-        
-    
-    <p class="article-more-link">
-      <time datetime="2014-08-22T14:03:00.000Z" itemprop="datePublished">2014-08-22</time>
-      
-          <a href="/post/201408-jre-thin/">阅读更多&raquo;</a>
-      
-    </p>
-
-  </article>
-</section>
-
 
   <nav id="page-nav" class="clearfix">
     <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
@@ -362,7 +362,7 @@ PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -377,7 +377,7 @@ PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列
 		
 			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
 		
-			<li><a href="/categories/Docker/" title="Docker">Docker<sup>4</sup></a></li>
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>5</sup></a></li>
 		
 			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
 		
@@ -408,9 +408,9 @@ PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>36</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>37</sup></a></li>
 		
-			<li><a href="/tags/Docker/" title="Docker">Docker<sup>4</sup></a></li>
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>5</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		
