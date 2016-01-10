@@ -78,6 +78,32 @@
   <article>
     <h1 itemprop="name">
       
+        <a href="/post/201411-postgres-rpm/" title="PostgreSQL的rpm打包" itemprop="url">
+      
+        PostgreSQL的rpm打包
+      </a>
+    </h1>
+    
+     
+           <p itemprop="description" >如果要发布个人修改的PostgreSQL，就需要使用rpm打包工具。
+先将修改后的代码打包，假设代码的目录在mypostgresql
+1234[postgres@anzhy pg9.3.4]$ tar -zcf mypostgresql.tar.gz mypostgresql/[</p>
+        
+    
+    <p class="article-more-link">
+      <time datetime="2014-11-30T07:58:00.000Z" itemprop="datePublished">2014-11-30</time>
+      
+          <a href="/post/201411-postgres-rpm/">阅读更多&raquo;</a>
+      
+    </p>
+
+  </article>
+</section>
+
+  <section class="post" itemscope itemprop="blogPost">
+  <article>
+    <h1 itemprop="name">
+      
         <a href="/post/201411-java-new-features/" title="Java 8新特性(What&#39;s New in Java 8 中文翻译版)" itemprop="url">
       
         Java 8新特性(What&#39;s New in Java 8 中文翻译版)
@@ -310,32 +336,6 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格式<
   </article>
 </section>
 
-  <section class="post" itemscope itemprop="blogPost">
-  <article>
-    <h1 itemprop="name">
-      
-        <a href="/post/201410-java-lock/" title="Java锁性能分析" itemprop="url">
-      
-        Java锁性能分析
-      </a>
-    </h1>
-    
-     
-           <p itemprop="description" >Java的锁是多线程编程中必须理解的概念，其synchronized关键字本质上就是一个互斥锁的实现。
-本文比较在Java中使用锁和使用atomic包中类型在多线程环境下的性能差异，并探讨JVM获取锁的一般步骤。
-假设要对一个整数做++操作1000000次。在使用锁（本文使用的是</p>
-        
-    
-    <p class="article-more-link">
-      <time datetime="2014-10-09T06:54:00.000Z" itemprop="datePublished">2014-10-09</time>
-      
-          <a href="/post/201410-java-lock/">阅读更多&raquo;</a>
-      
-    </p>
-
-  </article>
-</section>
-
 
   <nav id="page-nav" class="clearfix">
     <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
@@ -375,7 +375,7 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格式<
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -406,6 +406,8 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格式<
 		
 			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
 		
+			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+		
 		</ul>
 </div>
 
@@ -421,7 +423,7 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格式<
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>37</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>38</sup></a></li>
 		
 			<li><a href="/tags/Docker/" title="Docker">Docker<sup>5</sup></a></li>
 		
