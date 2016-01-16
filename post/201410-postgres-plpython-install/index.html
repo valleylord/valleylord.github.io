@@ -11,7 +11,7 @@
     
     <meta name="description" content="PostgreSQL可以支持多种存储过程语言，官方支持的除了PL/pgSQL，还有TCL，Perl，Python。
 本文使用源码安装PL/Python过程语言支持，并简介PL/Python的一些简单的入门。如果是使用安装包安装的话，可以参考1。
-参考PostgreSQL的官方文档，使用源码安装的时候">
+参考PostgreSQL的官方文档，使用源码安装的">
     
     
     
@@ -105,41 +105,41 @@
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Note: Users <span class="operator">of</span> source packages must specially enable <span class="operator">the</span> build <span class="operator">of</span> PL/Python during <span class="operator">the</span> installation <span class="built_in">process</span>. (Refer <span class="built_in">to</span> <span class="operator">the</span> installation instructions <span class="keyword">for</span> more information.) Users <span class="operator">of</span> binary packages might find PL/Python <span class="operator">in</span> <span class="operator">a</span> separate subpackage.</div><div class="line"></div><div class="line">注意: 使用源码包的用户必须在安装过程中声明打开 PL/Python 的制作。 （请参考安装指导获取更多信息。）二进制包的用户可能会在独立的子包中找到 PL/Python。</div></pre></td></tr></table></figure></p>
 <p>PostgreSQL的编译安装可以参考我之前的博客，<a href="http://valleylord.sinaapp.com/post/201408-postgresql-install" target="_blank" rel="external">这里</a>和<a href="http://valleylord.sinaapp.com/post/201408-postgresql-dev-env" target="_blank" rel="external">这里</a>。先做PostgreSQL的configure，</p>
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">[postgres@anzhy postgresql]$ ./configure --prefix=<span class="variable">$HOME</span>/postgres --enable-depend --enable-cassert --enable-debug --with-python</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-configure-error.png"></p>
+<p><img src="/images/201410-postgres-plpython-install/plpython-configure-error.png" alt=""></p>
 <p>运行结果提示有错，找不到Python.h，需要安装python-devel。</p>
-<p><img src="/images/201410-postgres-plpython-install/python-devel-install.png"></p>
+<p><img src="/images/201410-postgres-plpython-install/python-devel-install.png" alt=""></p>
 <p>之后再<code>configure</code>就正常了，之后的步骤就是一般的用源码安装PostgreSQL的步骤，不再赘述。</p>
 <p>安装之后启动PostgreSQL，然后需要注册plpythonu这个语言扩展，根据官方文档，可以用以下两种等价的方法。一种是在命令行下运行<code>createlang</code></p>
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">[postgres@anzhy ~]$ createlang plpythonu test</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-createlang.png"></p>
+<p><img src="/images/201410-postgres-plpython-install/plpython-createlang.png" alt=""></p>
 <p>上面的<code>test</code>参数表示数据库名，即在<code>test</code>数据库上启用plpythonu。还有一种是用psql登陆数据库之后运行<code>create extension</code>，</p>
 <p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">test=# <span class="operator"><span class="keyword">create</span> extension plpythonu;</span></div></pre></td></tr></table></figure></p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-create-extension.png"></p>
+<p><img src="/images/201410-postgres-plpython-install/plpython-create-extension.png" alt=""></p>
 <p>由于Python有Python2和Python3两个版本，以上是使用默认的Python，也就是Python2。如果需要指明是哪个Python版本，可以将上述命令中的<code>plpythonu</code>替换成<code>plpython2u</code>或<code>plpython3u</code>。</p>
 <p>然后可以在psql中创建PL/Python的存储过程，如下</p>
 <p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">FUNCTION</span> pyfib(n <span class="built_in">bigint</span>)</span></div><div class="line"> <span class="keyword">RETURNS</span> SETOF <span class="built_in">bigint</span></div><div class="line"> <span class="keyword">AS</span> $$</div><div class="line">  a, b = <span class="number">0</span>, <span class="number">1</span></div><div class="line">  fibnum = []</div><div class="line">  while b &lt; n:</div><div class="line">   fibnum.append(b)</div><div class="line">   a, b = b, a+b</div><div class="line">  <span class="keyword">return</span> fibnum</div><div class="line"> $$ <span class="keyword">LANGUAGE</span> plpythonu;</div></pre></td></tr></table></figure></p>
 <p>如果之前的操作都正确，可以看到提示成功，</p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-create-function.png"></p>
+<p><img src="/images/201410-postgres-plpython-install/plpython-create-function.png" alt=""></p>
 <p>如果有问题的话，可以看到提示错误，<code>plpythonu</code>语言找不到，需要重新检查之前的操作，</p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-create-function-error.png"></p>
+<p><img src="/images/201410-postgres-plpython-install/plpython-create-function-error.png" alt=""></p>
 <p>创建的函数是用于计算fibonacci序列，可以试着运行一下，</p>
 <p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">test=# <span class="operator"><span class="keyword">select</span> pyfib(<span class="number">3</span>) <span class="keyword">as</span> i;</span></div><div class="line"> i</div><div class="line"><span class="comment">---</span></div><div class="line"> 1</div><div class="line"> 1</div><div class="line"> 2</div><div class="line">(3 rows)</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-function-test.png"></p>
+<p><img src="/images/201410-postgres-plpython-install/plpython-function-test.png" alt=""></p>
 <p>如果不需要PL/Python了，可以将这个扩展drop掉，</p>
 <p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">test=# <span class="operator"><span class="keyword">drop</span> extension plpythonu;</span></div></pre></td></tr></table></figure></p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-drop-extension-error.png"></p>
+<p><img src="/images/201410-postgres-plpython-install/plpython-drop-extension-error.png" alt=""></p>
 <p>可以看到提示，已经有function依赖了这个扩展，需要先将function先drop掉，或者使用<code>DROP...CASCADE</code>选项。如果drop function的话，需要注意，要把function的参数也加上，否则会报错，因为PostgreSQL是可以重载函数的，不同的参数但是拥有相同的函数名是合法的，被认为是不同的函数。drop所有的PL/Python的过程之后，就可以成功drop extension了。</p>
 <p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">test=# <span class="operator"><span class="keyword">drop</span> <span class="keyword">function</span> pyfib(<span class="built_in">bigint</span>);</span></div></pre></td></tr></table></figure></p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-drop-function.png"></p>
+<p><img src="/images/201410-postgres-plpython-install/plpython-drop-function.png" alt=""></p>
 <p>以上是PL/Python的安装和使用基础。本文参考了<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>，还有PostgreSQL 9.3官方文档<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>，<a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a>，以及8.1中文版文档<a href="#fn5" class="footnoteRef" id="fnref5"><sup>5</sup></a>的对应章节。</p>
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://zhenghaoju700.blog.163.com/blog/static/1358595182012418104619386/" target="_blank" rel="external">http://zhenghaoju700.blog.163.com/blog/static/1358595182012418104619386/</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://zhenghaoju700.blog.163.com/blog/static/1358595182012418104619386/" target="_blank" rel="external">http://zhenghaoju700.blog.163.com/blog/static/1358595182012418104619386/</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="http://www.postgresql.org/docs/9.3/interactive/trigger-example.html" target="_blank" rel="external">http://www.postgresql.org/docs/9.3/interactive/trigger-example.html</a><a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p><a href="http://www.postgresql.org/docs/9.3/interactive/install-procedure.html" target="_blank" rel="external">http://www.postgresql.org/docs/9.3/interactive/install-procedure.html</a><a href="#fnref4">↩</a></p></li>
-<li id="fn5"><p><a href="http://www.php100.com/manual/PostgreSQL8/" target="_blank" rel="external">http://www.php100.com/manual/PostgreSQL8/</a><a href="#fnref5">↩</a></p></li>
+<li id="fn1"><p><a href="http://zhenghaoju700.blog.163.com/blog/static/1358595182012418104619386/" class="uri" target="_blank" rel="external">http://zhenghaoju700.blog.163.com/blog/static/1358595182012418104619386/</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://zhenghaoju700.blog.163.com/blog/static/1358595182012418104619386/" class="uri" target="_blank" rel="external">http://zhenghaoju700.blog.163.com/blog/static/1358595182012418104619386/</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="http://www.postgresql.org/docs/9.3/interactive/trigger-example.html" class="uri" target="_blank" rel="external">http://www.postgresql.org/docs/9.3/interactive/trigger-example.html</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="http://www.postgresql.org/docs/9.3/interactive/install-procedure.html" class="uri" target="_blank" rel="external">http://www.postgresql.org/docs/9.3/interactive/install-procedure.html</a><a href="#fnref4">↩</a></p></li>
+<li id="fn5"><p><a href="http://www.php100.com/manual/PostgreSQL8/" class="uri" target="_blank" rel="external">http://www.php100.com/manual/PostgreSQL8/</a><a href="#fnref5">↩</a></p></li>
 </ol>
 </div>
   
@@ -229,7 +229,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -244,7 +244,7 @@
 		
 			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
 		
-			<li><a href="/categories/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
 		
@@ -277,9 +277,9 @@
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>38</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>39</sup></a></li>
 		
-			<li><a href="/tags/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		

@@ -13,7 +13,7 @@
 dockerfile通常是由一系列指令组成，一个常见的dockerfile的例子主要有以下一些指令1。
 dockerfile指令
 FROM
-格式为 FROM &amp;lt;image&amp;gt;或FR">
+格式为 FROM &amp;lt;image&amp;gt">
     
     
     
@@ -89,7 +89,7 @@ FROM
     </p>
   <p class="article-time">
     <time datetime="2015-12-27T01:43:00.000Z" itemprop="datePublished">2015-12-27</time>
-    更新日期:<time datetime="2015-12-27T09:56:54.068Z" itemprop="dateModified">2015-12-27</time>
+    更新日期:<time datetime="2015-12-27T09:56:54.000Z" itemprop="dateModified">2015-12-27</time>
     
   </p>
 </header>
@@ -114,36 +114,25 @@ FROM
 <p>前者将在 shell 终端中运行命令，即 <code>/bin/sh -c</code>；后者则使用 <code>exec</code> 执行。指定使用其它终端可以通过第二种方式实现，例如 <code>RUN [&quot;/bin/bash&quot;, &quot;-c&quot;, &quot;echo hello&quot;]</code>。</p>
 <p>每条 <code>RUN</code> 指令将在当前镜像基础上执行指定命令，并提交为新的镜像。当命令较长时可以使用 <code>\</code> 来换行。</p>
 <h3>CMD</h3>
-支持三种格式
-<ul>
-<li><code>CMD [&quot;executable&quot;,&quot;param1&quot;,&quot;param2&quot;]</code> 使用 <code>exec</code> 执行，推荐方式；</li>
-<li><code>CMD command param1 param2</code> 在 <code>/bin/sh</code> 中执行，提供给需要交互的应用；</li>
-<li><code>CMD [&quot;param1&quot;,&quot;param2&quot;]</code> 提供给 <code>ENTRYPOINT</code> 的默认参数；</li>
-</ul>
+<p>支持三种格式 * <code>CMD [&quot;executable&quot;,&quot;param1&quot;,&quot;param2&quot;]</code> 使用 <code>exec</code> 执行，推荐方式； * <code>CMD command param1 param2</code> 在 <code>/bin/sh</code> 中执行，提供给需要交互的应用； * <code>CMD [&quot;param1&quot;,&quot;param2&quot;]</code> 提供给 <code>ENTRYPOINT</code> 的默认参数；</p>
 <p>指定启动容器时执行的命令，每个 Dockerfile 只能有一条 <code>CMD</code> 命令。如果指定了多条命令，只有最后一条会被执行。</p>
 <p>如果用户启动容器时候指定了运行的命令，则会覆盖掉 <code>CMD</code> 指定的命令。</p>
 <h3>EXPOSE</h3>
 <p>格式为 <code>EXPOSE &lt;port&gt; [&lt;port&gt;...]</code>。</p>
 <p>告诉 Docker 服务端容器暴露的端口号，供互联系统使用。在启动容器时需要通过 -P，Docker 主机会自动分配一个端口转发到指定的端口。</p>
 <h3>ENV</h3>
-格式为 <code>ENV &lt;key&gt; &lt;value&gt;</code>。
-<p>指定一个环境变量，会被后续 <code>RUN</code> 指令使用，并在容器运行时保持。</p>
+<p>格式为 <code>ENV &lt;key&gt; &lt;value&gt;</code>。 指定一个环境变量，会被后续 <code>RUN</code> 指令使用，并在容器运行时保持。</p>
 <p>例如</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="constant">ENV</span> <span class="constant">PG_MAJOR</span> <span class="number">9.3</span></div><div class="line"><span class="constant">ENV</span> <span class="constant">PG_VERSION</span> <span class="number">9.3</span>.<span class="number">4</span></div><div class="line"><span class="constant">RUN</span> curl -<span class="constant">SL</span> <span class="symbol">http:</span>/<span class="regexp">/example.com/postgres</span>-<span class="variable">$PG_VERSION</span>.tar.xz | tar -xJC /usr/src/postgress && …</div><div class="line"><span class="constant">ENV</span> <span class="constant">PATH</span> /usr/local/postgres-<span class="variable">$PG_MAJOR</span>/<span class="symbol">bin:</span><span class="variable">$PATH</span></div></pre></td></tr></table></figure></p>
 <h3>ADD</h3>
 <p>格式为 <code>ADD &lt;src&gt; &lt;dest&gt;</code>。</p>
-该命令将复制指定的 <code>&lt;src&gt;</code> 到容器中的 <code>&lt;dest&gt;</code>。
-<p>其中 <code>&lt;src&gt;</code> 可以是Dockerfile所在目录的一个相对路径；也可以是一个 URL；还可以是一个 tar 文件（自动解压为目录）。</p>
+<p>该命令将复制指定的 <code>&lt;src&gt;</code> 到容器中的 <code>&lt;dest&gt;</code>。 其中 <code>&lt;src&gt;</code> 可以是Dockerfile所在目录的一个相对路径；也可以是一个 URL；还可以是一个 tar 文件（自动解压为目录）。</p>
 <h3>COPY</h3>
 <p>格式为 <code>COPY &lt;src&gt; &lt;dest&gt;</code>。</p>
 <p>复制本地主机的 <code>&lt;src&gt;</code>（为 Dockerfile 所在目录的相对路径）到容器中的 <code>&lt;dest&gt;</code>。</p>
 <p>当使用本地目录为源目录时，推荐使用 <code>COPY</code>。</p>
 <h3>ENTRYPOINT</h3>
-两种格式：
-<ul>
-<li><code>ENTRYPOINT [&quot;executable&quot;, &quot;param1&quot;, &quot;param2&quot;]</code></li>
-<li><code>ENTRYPOINT command param1 param2</code>（shell中执行）。</li>
-</ul>
+<p>两种格式： * <code>ENTRYPOINT [&quot;executable&quot;, &quot;param1&quot;, &quot;param2&quot;]</code> * <code>ENTRYPOINT command param1 param2</code>（shell中执行）。</p>
 <p>配置容器启动后执行的命令，并且不可被 <code>docker run</code> 提供的参数覆盖。</p>
 <p>每个 Dockerfile 中只能有一个 <code>ENTRYPOINT</code>，当指定多个时，只有最后一个起效。</p>
 <h3>VOLUME</h3>
@@ -173,7 +162,7 @@ FROM
 <p>镜像的dockerfile如下，</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div></pre></td><td class="code"><pre><div class="line">FROM centos:<span class="number">7</span></div><div class="line">MAINTAINER arnes &lt;arsen_mmx<span class="variable">@163</span>.com&gt;</div><div class="line">ENV REFRESHED_AT <span class="number">2015</span>-<span class="number">12</span>-<span class="number">26</span></div><div class="line"></div><div class="line"><span class="comment"># add fast yum repos</span></div><div class="line">ADD ./CentOS-Base.repo  /etc/yum.repos.d/CentOS-Base.repo</div><div class="line">ADD ./mysql-community.repo /etc/yum.repos.d/mysql-community.repo</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># install jdk 1.8</span></div><div class="line">COPY ./jdk1.<span class="number">8.0_66</span> /usr/java/jdk1.<span class="number">8.0_66</span></div><div class="line"></div><div class="line">ENV JAVA_HOME /usr/java/jdk1.<span class="number">8.0_66</span></div><div class="line">ENV JRE_HOME <span class="variable">$JAVA_HOME</span>/jre</div><div class="line">ENV PATH <span class="variable">$JAVA_HOME</span>/bin:<span class="variable">$JAVA_HOME</span>/jre/bin:<span class="variable">$PATH</span></div><div class="line">ENV CLASSPATH=.:<span class="variable">$JAVA_HOME</span>/lib:<span class="regexp">/usr/java</span><span class="regexp">/jdk1.6.0_25/jre</span><span class="regexp">/lib:$CLASSPATH</span></div><div class="line"></div><div class="line"></div><div class="line">#install tomcat</div><div class="line">COPY ./apache-tomcat-<span class="number">8.0</span>.<span class="number">28</span>  /usr/tomcat/apache-tomcat-<span class="number">8.0</span>.<span class="number">28</span></div><div class="line"></div><div class="line">ENV TOMCAT_HOME /usr/tomcat/apache-tomcat-<span class="number">8.0</span>.<span class="number">28</span></div><div class="line">ENV CATALINA_HOME <span class="variable">$TOMCAT_HOME</span></div><div class="line">ENV CATALINA_BASE <span class="variable">$TOMCAT_HOME</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># install php</span></div><div class="line">RUN yum update</div><div class="line">RUN yum install -<span class="keyword">y</span> openssh-server php</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># install mysql</span></div><div class="line">RUN groupadd -r mysql && useradd -r -g mysql mysql</div><div class="line"></div><div class="line"><span class="comment">#ADD ./mysql-community-release-el7-7.noarch.rpm /usr/mysql-community-release-el7-7.noarch.rpm</span></div><div class="line"><span class="comment">#ADD ./mysql-community-server-minimal-5.6.28-2.el7.x86_64.rpm /usr/mysql-community-server-minimal-5.6.28-2.el7.x86_64.rpm</span></div><div class="line"></div><div class="line"><span class="comment">#RUN rpm -ivh /usr/mysql-community-release-el7-7.noarch.rpm</span></div><div class="line"></div><div class="line">RUN rpmkeys --import http:<span class="regexp">//repo</span>.mysql.com/RPM-GPG-KEY-mysql </div><div class="line">RUN yum install -<span class="keyword">y</span> https:<span class="regexp">//repo</span>.mysql.com/yum/mysql-<span class="number">5.6</span>-community/docker/x86_64/mysql-community-server-minimal-<span class="number">5.6</span>.<span class="number">28</span>-<span class="number">2</span>.el7.x86_64.rpm </div><div class="line"><span class="comment">#RUN yum install -y mysql-community-server</span></div><div class="line">RUN yum install -<span class="keyword">y</span> libpwquality \</div><div class="line">  && rm -rf /var/cache/yum/*</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># config mysql</span></div><div class="line">ADD ./<span class="keyword">my</span>.cnf /etc/<span class="keyword">my</span>.cnf</div><div class="line">RUN sed -Ei <span class="string">'s/^(bind-address|log)/#&/'</span> /etc/<span class="keyword">my</span>.cnf \</div><div class="line">	&& echo -e <span class="string">"skip-host-cache\nskip-name-resolve\nlower_case_table_names=1"</span> | awk <span class="string">'{ print } $1 == "[mysqld]" && c == 0 { c = 1; system("cat") }'</span> /etc/<span class="keyword">my</span>.cnf &gt; <span class="regexp">/tmp/my</span>.cnf \</div><div class="line">	&& mv /tmp/<span class="keyword">my</span>.cnf /etc/<span class="keyword">my</span>.cnf</div><div class="line"></div><div class="line">VOLUME /var/lib/mysql</div><div class="line"></div><div class="line">ENV MYSQL_ROOT_PASSWORD <span class="string">"111111"</span></div><div class="line">ENV MYSQL_USER <span class="string">"mysql"</span></div><div class="line">ENV MYSQL_USER_DATABASE <span class="string">"mysql"</span></div><div class="line">ENV MYSQL_USER_PASSWORD <span class="string">"111111"</span></div><div class="line"></div><div class="line">COPY ./mysql-entrypoint.sh /usr/bin/mysql-entrypoint.sh</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># install mycat</span></div><div class="line">RUN groupadd -r mycat && useradd -r -g mycat mycat</div><div class="line"></div><div class="line">COPY ./mycat /opt/mycat</div><div class="line">ADD ./schema.xml /opt/mycat/conf/schema.xml</div><div class="line">COPY ./mycat-run.sh /usr/bin/mycat-run.sh</div><div class="line"></div><div class="line">ENV MYCAT_HOME /opt/mycat</div><div class="line"></div><div class="line">RUN <span class="keyword">chown</span> -R mycat:mycat /opt/mycat</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># export port for tomcat, mysql, mycat</span></div><div class="line">EXPOSE <span class="number">8080</span> <span class="number">8066</span> <span class="number">9066</span> <span class="number">3306</span></div><div class="line"></div><div class="line"></div><div class="line">CMD <span class="variable">$TOMCAT_HOME</span>/bin/startup.sh \</div><div class="line">  && bash -c <span class="string">"/usr/bin/mysql-entrypoint.sh mysqld &"</span> \</div><div class="line">  && echo <span class="string">"Waiting mysql startup."</span> && <span class="keyword">sleep</span> <span class="number">30</span> \</div><div class="line">  && bash -c <span class="string">"/usr/bin/mycat-run.sh"</span> \</div><div class="line">  && <span class="regexp">/usr/sbin</span><span class="regexp">/sshd -D</span></div><div class="line">#CMD /usr<span class="regexp">/bin/mysql</span>-entrypoint.sh && <span class="regexp">/usr/sbin</span><span class="regexp">/sshd -D</span></div></pre></td></tr></table></figure></p>
 <p>以上安装过程，主要就是按照jdk8-&gt;tomcat8-&gt;php-&gt;mysql-&gt;mycat的步骤来逐步安装的。需要用到的文件如下，</p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-needed-files.png"></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-needed-files.png" alt=""></p>
 <p>其中，<code>Dockerfile</code>文件上文已经列出，<code>jdk-8u66-linux-x64.tar.gz</code>、<code>apache-tomcat-8.0.28.tar.gz</code>、<code>Mycat-server-1.5-alpha-20151221110028-linux.tar.gz</code>分别是jdk8、tomcat8、mycat1.5的安装包文件，解压后分别是<code>jdk1.8.0_66</code>、<code>apache-tomcat-8.0.28</code>、<code>mycat</code>。<code>CentOS-Base.repo</code>是Centos7的更新源配置文件，用来替代默认的更新源，以加快速度，我用的是上海交大的源，文件内容如下，</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># CentOS-Base.repo</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment"># The mirror system uses the connecting IP address of the client and the</span></div><div class="line"><span class="comment"># update status of each mirror to pick mirrors that are updated to and</span></div><div class="line"><span class="comment"># geographically close to the client.  You should use this for CentOS updates</span></div><div class="line"><span class="comment"># unless you are manually picking other mirrors.</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment"># If the mirrorlist= does not work for you, as a fall back you can try the </span></div><div class="line"><span class="comment"># remarked out baseurl= line instead.</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment">#</span></div><div class="line"></div><div class="line">[base]</div><div class="line">name=<span class="constant">CentOS-</span><span class="variable">$releasever</span> - <span class="constant">Base</span></div><div class="line">baseurl=<span class="symbol">http:</span>/<span class="regexp">/ftp.sjtu.edu.cn/centos</span><span class="regexp">/$releasever/os</span><span class="regexp">/$basearch/</span></div><div class="line">gpgcheck=<span class="number">1</span></div><div class="line">gpgkey=<span class="symbol">file:</span>/<span class="regexp">//etc</span><span class="regexp">/pki/rpm</span>-gpg/<span class="constant">RPM-GPG-KEY-CentOS-</span><span class="number">7</span></div><div class="line"></div><div class="line"><span class="comment">#released updates </span></div><div class="line">[updates]</div><div class="line">name=<span class="constant">CentOS-</span><span class="variable">$releasever</span> - <span class="constant">Updates</span></div><div class="line">baseurl=<span class="symbol">http:</span>/<span class="regexp">/ftp.sjtu.edu.cn/centos</span><span class="regexp">/$releasever/updates</span><span class="regexp">/$basearch/</span></div><div class="line">gpgcheck=<span class="number">1</span></div><div class="line">gpgkey=<span class="symbol">file:</span>/<span class="regexp">//etc</span><span class="regexp">/pki/rpm</span>-gpg/<span class="constant">RPM-GPG-KEY-CentOS-</span><span class="number">7</span></div><div class="line"></div><div class="line"><span class="comment">#additional packages that may be useful</span></div><div class="line">[extras]</div><div class="line">name=<span class="constant">CentOS-</span><span class="variable">$releasever</span> - <span class="constant">Extras</span></div><div class="line">baseurl=<span class="symbol">http:</span>/<span class="regexp">/ftp.sjtu.edu.cn/centos</span><span class="regexp">/$releasever/extras</span><span class="regexp">/$basearch/</span></div><div class="line">gpgcheck=<span class="number">1</span></div><div class="line">gpgkey=<span class="symbol">file:</span>/<span class="regexp">//etc</span><span class="regexp">/pki/rpm</span>-gpg/<span class="constant">RPM-GPG-KEY-CentOS-</span><span class="number">7</span></div><div class="line"></div><div class="line"><span class="comment">#additional packages that extend functionality of existing packages</span></div><div class="line">[centosplus]</div><div class="line">name=<span class="constant">CentOS-</span><span class="variable">$releasever</span> - <span class="constant">Plus</span></div><div class="line">baseurl=<span class="symbol">http:</span>/<span class="regexp">/ftp.sjtu.edu.cn/centos</span><span class="regexp">/$releasever/centosplus</span><span class="regexp">/$basearch/</span></div><div class="line">gpgcheck=<span class="number">1</span></div><div class="line">enabled=<span class="number">0</span></div><div class="line">gpgkey=<span class="symbol">file:</span>/<span class="regexp">//etc</span><span class="regexp">/pki/rpm</span>-gpg/<span class="constant">RPM-GPG-KEY-CentOS-</span><span class="number">7</span></div></pre></td></tr></table></figure></p>
 <p><code>mysql-community.repo</code>是mysql的centos更新源，因为centos的默认mysql实现已经是mysql的mariadb分支，如果要用Oracle的mysql，现在在centos中改名为<code>mysql-community</code>，需要手动配置更新源，文件内容如下，</p>
@@ -191,23 +180,23 @@ FROM
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="shebang">#!/bin/bash</span></div><div class="line"></div><div class="line"><span class="built_in">echo</span> <span class="string">"CREATE database db1;"</span> | mysql -uroot -p<span class="variable">$MYSQL_ROOT_PASSWORD</span></div><div class="line"><span class="built_in">echo</span> <span class="string">"CREATE database db2;"</span> | mysql -uroot -p<span class="variable">$MYSQL_ROOT_PASSWORD</span></div><div class="line"><span class="built_in">echo</span> <span class="string">"CREATE database db3;"</span> | mysql -uroot -p<span class="variable">$MYSQL_ROOT_PASSWORD</span></div><div class="line"></div><div class="line"><span class="variable">$MYCAT_HOME</span>/bin/mycat start</div></pre></td></tr></table></figure></p>
 <h3>构建和测试</h3>
 <p>有了以上文件，就可以构建docker镜像了，<code>docker build -t arnes/my-centos7 .</code>，构建过程截图如下，</p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-1.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-2.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-3.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-4.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-5.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-6.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-building-7.png"></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-1.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-2.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-3.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-4.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-5.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-6.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-building-7.png" alt=""></p>
 <p>构建完成之后，就可以运行镜像了，运行的命令是<code>docker run -it -p 3306:3306 -p 8066:8066 -p 8080:8080 -p 9066:9066 -d arnes/my-centos7</code>，截图如下，</p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-running-1.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-running-2.png"></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-running-1.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-running-2.png" alt=""></p>
 <p>其中，大部分是mysql启动的log，这里主要是关注是否已经成功，正常使用的时候，建议使用<code>-d</code>后台启动。</p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-running-3.png"></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-running-3.png" alt=""></p>
 <p>如上所示，宿主机的ip在<code>192.168.2.101</code>，从另一台机器可以访问该容器的服务，截图如下，</p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-testing-1.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-testing-2.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-testing-3.png"></p>
-<p><img src="/images/201512-docker-build-image/docker-build-image-testing-4.png"></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-testing-1.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-testing-2.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-testing-3.png" alt=""></p>
+<p><img src="/images/201512-docker-build-image/docker-build-image-testing-4.png" alt=""></p>
 <p>综上，容器已经可以提供对外服务。</p>
 <h3>改进</h3>
 <p>可能的改进点有以下一些，</p>
@@ -220,11 +209,11 @@ FROM
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://dockerpool.com/static/books/docker_practice/dockerfile/instructions.html" target="_blank" rel="external">http://dockerpool.com/static/books/docker_practice/dockerfile/instructions.html</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/" target="_blank" rel="external">http://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="https://github.com/mysql/mysql-docker/tree/mysql-server/5.6" target="_blank" rel="external">https://github.com/mysql/mysql-docker/tree/mysql-server/5.6</a><a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p><a href="http://blog.sina.com.cn/s/blog_638b7ebb0102vv80.html" target="_blank" rel="external">http://blog.sina.com.cn/s/blog_638b7ebb0102vv80.html</a><a href="#fnref4">↩</a></p></li>
-<li id="fn5"><p><a href="http://blog.csdn.net/dreamcode/article/details/44307377" target="_blank" rel="external">http://blog.csdn.net/dreamcode/article/details/44307377</a><a href="#fnref5">↩</a></p></li>
+<li id="fn1"><p><a href="http://dockerpool.com/static/books/docker_practice/dockerfile/instructions.html" class="uri" target="_blank" rel="external">http://dockerpool.com/static/books/docker_practice/dockerfile/instructions.html</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/" class="uri" target="_blank" rel="external">http://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="https://github.com/mysql/mysql-docker/tree/mysql-server/5.6" class="uri" target="_blank" rel="external">https://github.com/mysql/mysql-docker/tree/mysql-server/5.6</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="http://blog.sina.com.cn/s/blog_638b7ebb0102vv80.html" class="uri" target="_blank" rel="external">http://blog.sina.com.cn/s/blog_638b7ebb0102vv80.html</a><a href="#fnref4">↩</a></p></li>
+<li id="fn5"><p><a href="http://blog.csdn.net/dreamcode/article/details/44307377" class="uri" target="_blank" rel="external">http://blog.csdn.net/dreamcode/article/details/44307377</a><a href="#fnref5">↩</a></p></li>
 </ol>
 </div>
   
@@ -314,7 +303,7 @@ FROM
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -329,7 +318,7 @@ FROM
 		
 			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
 		
-			<li><a href="/categories/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
 		
@@ -362,9 +351,9 @@ FROM
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>38</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>39</sup></a></li>
 		
-			<li><a href="/tags/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		

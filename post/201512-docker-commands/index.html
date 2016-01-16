@@ -16,7 +16,7 @@
 2. docker info
 显示 Docker 系统信息，包括镜像和容器数。
 3. docker search
-12docker search [options ">
+12docker search [o">
     
     
     
@@ -92,7 +92,7 @@
     </p>
   <p class="article-time">
     <time datetime="2015-12-18T13:03:00.000Z" itemprop="datePublished">2015-12-18</time>
-    更新日期:<time datetime="2015-12-26T07:51:59.011Z" itemprop="dateModified">2015-12-26</time>
+    更新日期:<time datetime="2015-12-26T07:51:59.000Z" itemprop="dateModified">2015-12-26</time>
     
   </p>
 </header>
@@ -265,9 +265,7 @@
 <h3>Container identification</h3>
 <h4>Name (--name)</h4>
 <p>给container命名有三种方式：</p>
-　　1. 使用UUID长命名(&quot;f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778&quot;)
-　　2. 使用UUID短命令(&quot;f78375b1c487&quot;)
-<p>　　3. 使用Name(&quot;evil_ptolemy&quot;)</p>
+<p>　　1. 使用UUID长命名(&quot;f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778&quot;) 　　2. 使用UUID短命令(&quot;f78375b1c487&quot;) 　　3. 使用Name(&quot;evil_ptolemy&quot;)</p>
 <p>这个UUID标示是由Docker deamon来生成的。如果你在执行docker run时没有指定 --name，那么deamon会自动生成一个随机数字符串当做UUID。但是对于一个container来说有个name会非常方便，因为你可以当你需要link其它容器时或者其他类似需要区分其它容器时，使用容器名称会简化操作。无论container运行在前台或者后台，这个名字都是有效的。</p>
 <h4>PID equivalent</h4>
 <p>当你在运行docker时有自动化的要求，那么你可以要求Docker将containerID 输出到你指定的文件中(PIDfile).这种行为就类似于有些应用程序将自身ID输出到文件中，方便后续脚本操作。</p>
@@ -364,13 +362,15 @@
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment">--expose=[]: Expose a port or a range of ports from the container</span></div><div class="line">            <span class="keyword">without</span> publishing <span class="keyword">it</span> <span class="built_in">to</span> your host</div><div class="line">-P=<span class="constant">false</span>   : Publish all exposed ports <span class="built_in">to</span> <span class="operator">the</span> host interfaces</div><div class="line">-p=[]      : Publish <span class="operator">a</span> container᾿s port <span class="built_in">to</span> <span class="operator">the</span> host (<span class="built_in">format</span>:</div><div class="line">             ip:hostPort:containerPort | ip::containerPort |</div><div class="line">             hostPort:containerPort | containerPort)</div><div class="line">             (use <span class="string">'docker port'</span> <span class="built_in">to</span> see <span class="operator">the</span> actual mapping)</div><div class="line"><span class="comment">--link=""  : Add link to another container (name:alias)</span></div></pre></td></tr></table></figure></p>
 <p>--expose可以让container接受外部传入的数据。container内监听的port不需要和外部host的port相同。比如说在container内部，一个HTTP服务监听在80端口，对应外部host的port就可能是49880.</p>
 <p>操作人员可以使用--expose，让新的container访问到这个container。具体有三个方式：</p>
-　　1. 使用-p来启动container。
-　　2. 使用-P来启动container。
-<p>　　3. 使用--link来启动container。</p>
+<p>　　1. 使用-p来启动container。 　　2. 使用-P来启动container。 　　3. 使用--link来启动container。</p>
 <p>如果使用-p或者-P，那么container会开发部分端口到host，只要对方可以连接到host，就可以连接到container内部。当使用-P时，docker会在host中随机从49153 和65535之间查找一个未被占用的端口绑定到container。你可以使用docker port来查找这个随机绑定端口。</p>
 <p>当你使用--link方式时，作为客户端的container可以通过私有网络形式访问到这个container。同时Docker会在客户端的container中设定一些环境变量来记录绑定的IP和PORT。</p>
 <h4>ENV (环境变量)</h4>
-<table>
+<table style="width:33%;">
+<colgroup>
+<col width="13%">
+<col width="19%">
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left">Variable</th>
@@ -415,7 +415,7 @@
 <p>container中默认的工作目录是根目录(/)。开发人员可以通过Dockerfile的WORKDIR来设定默认工作目录，操作人员可以通过&quot;-w&quot;来覆盖默认的工作目录。</p>
 <h2>docker create与docker run的区别</h2>
 <p>docker create表示新增一个容器，但是并不启动；docker run表示新增一个容器，并启动运行，直到运行结束。参照容器的生命周期<a href="#fn6" class="footnoteRef" id="fnref6"><sup>6</sup></a>，如下图，</p>
-<p><img src="http://7xpbnt.com1.z0.glb.clouddn.com/docker-architecture-v12-15-638.jpg"></p>
+<p><img src="http://7xpbnt.com1.z0.glb.clouddn.com/docker-architecture-v12-15-638.jpg" alt=""></p>
 <p>详细来说，docker create只是新增一个容器，并进入容器生命周期中的created状态；而docker run不但新增一个容器，还立刻start并进入running状态，如运行过程中没有被pause或者kill，会一直运行到程序结束，容器进入stopped状态。因此，docker create命令没有-d参数，而docker run有。在docker run中，-d参数表示后台运行容器，而对于docker create来讲，仅仅只创建了容器，容器并未开始运行，因此也不存在所谓后台运行的概念，因此，docker create没有-d参数。</p>
 <h2>镜像与容器存放的路径</h2>
 <p>镜像的存放路径可以看我的另一篇文章《Docker入门介绍》中有提到，在<code>/var/lib/docker</code>下。具体细节来说，一些镜像本身信息相关的文件放在<code>./graph</code>下，容器相关的设置，如一些网络（eg，ip、hostname、hosts等）、unix mq、unix共享内存等信息放在<code>./containers</code>下，镜像本身的文件和容器相关的文件都放在该目录下的<code>./aufs/diff</code>目录下。该目录下有很多以镜像id和容器id命名的目录，每个目录下都是镜像与容器本身的文件。</p>
@@ -579,13 +579,13 @@
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://www.server110.com/docker/201411/11122.html" target="_blank" rel="external">http://www.server110.com/docker/201411/11122.html</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://www.bubuko.com/infodetail-1027194.html" target="_blank" rel="external">http://www.bubuko.com/infodetail-1027194.html</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="http://www.open-open.com/lib/view/open1422492851548.html" target="_blank" rel="external">http://www.open-open.com/lib/view/open1422492851548.html</a><a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p><a href="https://docs.docker.com/engine/reference/run/" target="_blank" rel="external">https://docs.docker.com/engine/reference/run/</a><a href="#fnref4">↩</a></p></li>
-<li id="fn5"><p><a href="http://www.open-open.com/lib/view/open1422492851548.html" target="_blank" rel="external">http://www.open-open.com/lib/view/open1422492851548.html</a><a href="#fnref5">↩</a></p></li>
-<li id="fn6"><p><a href="http://segmentfault.com/a/1190000000667514" target="_blank" rel="external">http://segmentfault.com/a/1190000000667514</a><a href="#fnref6">↩</a></p></li>
-<li id="fn7"><p><a href="https://docs.docker.com/registry/" target="_blank" rel="external">https://docs.docker.com/registry/</a><a href="#fnref7">↩</a></p></li>
+<li id="fn1"><p><a href="http://www.server110.com/docker/201411/11122.html" class="uri" target="_blank" rel="external">http://www.server110.com/docker/201411/11122.html</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://www.bubuko.com/infodetail-1027194.html" class="uri" target="_blank" rel="external">http://www.bubuko.com/infodetail-1027194.html</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="http://www.open-open.com/lib/view/open1422492851548.html" class="uri" target="_blank" rel="external">http://www.open-open.com/lib/view/open1422492851548.html</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="https://docs.docker.com/engine/reference/run/" class="uri" target="_blank" rel="external">https://docs.docker.com/engine/reference/run/</a><a href="#fnref4">↩</a></p></li>
+<li id="fn5"><p><a href="http://www.open-open.com/lib/view/open1422492851548.html" class="uri" target="_blank" rel="external">http://www.open-open.com/lib/view/open1422492851548.html</a><a href="#fnref5">↩</a></p></li>
+<li id="fn6"><p><a href="http://segmentfault.com/a/1190000000667514" class="uri" target="_blank" rel="external">http://segmentfault.com/a/1190000000667514</a><a href="#fnref6">↩</a></p></li>
+<li id="fn7"><p><a href="https://docs.docker.com/registry/" class="uri" target="_blank" rel="external">https://docs.docker.com/registry/</a><a href="#fnref7">↩</a></p></li>
 </ol>
 </div>
   
@@ -670,7 +670,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -685,7 +685,7 @@
 		
 			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
 		
-			<li><a href="/categories/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
 		
@@ -718,9 +718,9 @@
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>38</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>39</sup></a></li>
 		
-			<li><a href="/tags/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		

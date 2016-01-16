@@ -10,12 +10,10 @@
     <meta name="author" content="Valleylord">
     
     <meta name="description" content="Postgres的数据模型(翻译稿)1
-Lawrence A. Rowe
-Michael R. Stonebraker
-计算机科学学院，EECS系，
-加州大学伯克利分校，CA 94720
+Lawrence A. Rowe Michael R. Stonebraker
+计算机科学学院，EECS系， 加州大学伯克利分校，CA 94720
 摘要
-本文描述了Postgres数据模型的设计。数据模型是一个关系模型，并扩展了抽象数据类型，包括用户自定义的操">
+本文描述了Postgres数据模型的设计。数据模型是一个关系模型，并扩展了抽象数据类型，包括用户自">
     
     
     
@@ -104,10 +102,8 @@ Michael R. Stonebraker
 		</div>
 		
 		<h1>Postgres的数据模型(翻译稿)<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></h1>
-Lawrence A. Rowe
-<p>Michael R. Stonebraker</p>
-计算机科学学院，EECS系，
-<p>加州大学伯克利分校，CA 94720</p>
+<p>Lawrence A. Rowe Michael R. Stonebraker</p>
+<p>计算机科学学院，EECS系， 加州大学伯克利分校，CA 94720</p>
 <h2>摘要</h2>
 <p>本文描述了Postgres数据模型的设计。数据模型是一个关系模型，并扩展了抽象数据类型，包括用户自定义的操作符和过程、类型过程的关系属性、以及属性和方法的继承。这些机制可以用来模拟各种语义和面向对象数据模型的结构，包括聚合和泛化、具有共享子对象复杂对象、和引用其他关系中元组的属性。</p>
 <h2>1 引言</h2>
@@ -123,9 +119,7 @@ Lawrence A. Rowe
 <p>该命令定义了一个关系，并创建了用于存储元组的结构。</p>
 <p>关系的定义可以根据需要指定一个主键，其它关系可从该主键继承属性。主键是属性的组合用于唯一标识每个元组。主键可以通过<code>key</code>子句指定，如下：</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">create</span> PERSON ( . . .)</span></div><div class="line"><span class="keyword">key</span> (Name)</div></pre></td></tr></table></figure></p>
-元组必须对所有主键属性都有值。主键的规格可任意包括一个用于比较两个元组的操作符的名称。例如，
-假设一个关系有一个主键，其类型是一个用户定义的ADT。如果一个类型是<code>box</code>的属性是主键的一部分，比较操作符必须被指定，因为不同<code>box</code>操作符可以用来区分数据条目（例如，面积等于或<code>box</code>相等）。下面的例子
-<p>显示了包含类型为<code>box</code>属性的关系的定义，它使用面积等于这个操作符（AE），以确定主键值相等：</p>
+<p>元组必须对所有主键属性都有值。主键的规格可任意包括一个用于比较两个元组的操作符的名称。例如， 假设一个关系有一个主键，其类型是一个用户定义的ADT。如果一个类型是<code>box</code>的属性是主键的一部分，比较操作符必须被指定，因为不同<code>box</code>操作符可以用来区分数据条目（例如，面积等于或<code>box</code>相等）。下面的例子 显示了包含类型为<code>box</code>属性的关系的定义，它使用面积等于这个操作符（AE），以确定主键值相等：</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">create</span> PICTURE(Title = <span class="built_in">char</span>[<span class="number">25</span>], Item = box)</span></div><div class="line"><span class="keyword">key</span> (Item <span class="keyword">using</span> AE)</div></pre></td></tr></table></figure></p>
 <p>数据继承可以用<code>inherits</code>子句来指定。举个例子，人在大学这个数据库中表示为雇员和/或学生，并且不同的属性可用来定义每个不同的类别。每个类别的关系，包含了<strong>人</strong>的属性和该类别的特定属性。这些关系可以通过复制<strong>人</strong>在每个关系定义中的属性或从<strong>人</strong>的定义中继承这些属性来定义。图1显示了可用于共享属性定义的关系和继承层次结构。定义除去上述已定义的<strong>人</strong>这个关系之外的关系的命令是：</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">create</span> EMPLOYEE (Dept = <span class="built_in">char</span>[<span class="number">25</span>],</span></div><div class="line">    <span class="keyword">Status</span> = int2, Mgr = <span class="built_in">char</span>[<span class="number">25</span>],</div><div class="line">    JobTitle = <span class="built_in">char</span>[<span class="number">25</span>], Salary = money)</div><div class="line">inherits (PERSON)</div><div class="line"></div><div class="line"><span class="keyword">create</span> STUDENT (Sno = <span class="built_in">char</span>[<span class="number">12</span>],</div><div class="line">    <span class="keyword">Status</span> = int2, <span class="keyword">Level</span> = <span class="built_in">char</span>[<span class="number">20</span>])</div><div class="line">inherits (PERSON)</div><div class="line"></div><div class="line"><span class="keyword">create</span> STUDEMP (IsWorkStudy = bool)</div><div class="line">inherits (STUDENT, EMPLOYEE)</div></pre></td></tr></table></figure></p>
@@ -138,8 +132,7 @@ Lawrence A. Rowe
 <p>Postgres查询语言是QUEL[HSW75]的广义版本，称为POSTQUEL。对QUEL在几个方向做了拓展。首先，POSTQUEL有一个<code>from</code>子句来定义元组变量，而不是用<code>range</code>命令。第二，任意关系-值表达式在QUEL中，可能会出现在任何关系名可以出现的地方。三，传递闭包和<code>execute</code>命令已被添加进来[Kue84]。最后，POSTGRES保留历史数据，因此POSTQUEL允许将查询执行在过去的数据库状态上或数据库上任何时间的任何数据。本节的齐豫部分将会讨论这些扩展中。</p>
 <p>在<code>from</code>子句添加到语言后，查询中的元组变量定义可以很容易地在编译时确定。POSTGRES需要这种能力，因为它会在用户的请求时，编译查询并保存在系统目录中。在下面的查询中，我们用<code>from</code>子句演示，列出所有大二的学生员工：</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">retrieve (SE.<span class="property">name</span>)</div><div class="line"><span class="keyword">from</span> SE <span class="keyword">in</span> STUDEMP</div><div class="line"><span class="keyword">where</span> SE.IsWorkStudy</div><div class="line">    <span class="keyword">and</span> SE.Status = ‘‘sophomore’’</div></pre></td></tr></table></figure></p>
-<code>from</code>子句指定元组的集合表示元组变量的范围。在这个例子中，
-<p>元组变量<code>SE</code>的范围是设定再学生员工这个集合上。</p>
+<p><code>from</code>子句指定元组的集合表示元组变量的范围。在这个例子中， 元组变量<code>SE</code>的范围是设定再学生员工这个集合上。</p>
 <p>具有相同名称的默认元组变量定义为在引用目标列表中或查询的<code>where</code>子句中的每个关系。例如，上面的查询可以被写成：</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">retrieve (STUDEMP.<span class="property">name</span>)</div><div class="line"><span class="keyword">where</span> STUDEMP.IsWorkStudy</div><div class="line">    <span class="keyword">and</span> STUDEMP.Status = ‘‘sophomore’’</div></pre></td></tr></table></figure></p>
 <p>请注意，该属性<code>IsWorkStudy</code>是一个布尔值属性，因此它并不需要一个明确的值检验（例如，<code>STUDEMP.IsWorkStudy=‘‘true’’</code>）。</p>
@@ -170,8 +163,7 @@ Lawrence A. Rowe
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">retrieve (S.Name)</div><div class="line"><span class="keyword">from</span> S <span class="keyword">in</span> STUDENT[‘‘August <span class="number">1</span>, <span class="number">1980</span>’’]</div><div class="line"><span class="keyword">where</span> S.City = ‘‘Berkeley’’</div></pre></td></tr></table></figure></p>
 <p>在关系名之后的括号内指定的数据用于指定特定的时间。日期可以指定为不同的格式，甚至可以包括一天中的某个时间点。上述查询只检查不是学生员工的学生。如果要检索集合中的所有学生，<code>from</code>子句可以改为：</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">...<span class="keyword">from</span> S <span class="keyword">in</span> STUDENT*[‘‘August <span class="number">1</span>, <span class="number">1980</span>’’]</div></pre></td></tr></table></figure></p>
-查询也可以在当前关系中的所有数据上或在关系上的过去任意时间（即，所有数据）执行。下面的查询检索曾经住在
-<p>伯克利的学生：</p>
+<p>查询也可以在当前关系中的所有数据上或在关系上的过去任意时间（即，所有数据）执行。下面的查询检索曾经住在 伯克利的学生：</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">retrieve (S.Name)</div><div class="line"><span class="keyword">from</span> S <span class="keyword">in</span> STUDENT[]</div><div class="line"><span class="keyword">where</span> S.City = ‘‘Berkeley’’</div></pre></td></tr></table></figure></p>
 <p>符号'<code>[]</code>'可以附加到任何关系名之后。</p>
 <p>查询也可以指定在关系中某段给定时间段的数据上。时间段是通过给定一个开始和结束时间来指定的，例如，以下查寻检索在1980年8月的任何时间住在伯克利的学生：</p>
@@ -430,7 +422,7 @@ Lawrence A. Rowe
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -445,7 +437,7 @@ Lawrence A. Rowe
 		
 			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
 		
-			<li><a href="/categories/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
 		
@@ -478,9 +470,9 @@ Lawrence A. Rowe
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>38</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>39</sup></a></li>
 		
-			<li><a href="/tags/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		

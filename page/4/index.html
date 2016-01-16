@@ -78,6 +78,33 @@
   <article>
     <h1 itemprop="name">
       
+        <a href="/post/201408-postgres-process-memory/" title="PostgreSQL的进程结构和内存消耗" itemprop="url">
+      
+        PostgreSQL的进程结构和内存消耗
+      </a>
+    </h1>
+    
+     
+           <p itemprop="description" >PostgreSQL的进程结构
+PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列子进程，这些进程包括数据库实例的后台进程，例如，Data Writer、Achiver等，也有服务client的session进程。大致结构图如下，
+
+在Post</p>
+        
+    
+    <p class="article-more-link">
+      <time datetime="2014-08-31T04:54:00.000Z" itemprop="datePublished">2014-08-31</time>
+      
+          <a href="/post/201408-postgres-process-memory/">阅读更多&raquo;</a>
+      
+    </p>
+
+  </article>
+</section>
+
+  <section class="post" itemscope itemprop="blogPost">
+  <article>
+    <h1 itemprop="name">
+      
         <a href="/post/201408-jvm-stop-the-world/" title="JVM串行GC的stop the world现象分析" itemprop="url">
       
         JVM串行GC的stop the world现象分析
@@ -110,7 +137,7 @@
     
      
            <p itemprop="description" >jre的运行时主要jar文件rt.jar都很大，这导致了用java做的桌面客户端程序很难发布绑定jre发布。这在很大程度上限制了java桌面软件的分发。可是，jre并不是在所有的用户计算机上都有安装，即使安装了，也未必我们期望的版本。因此，对jre做精简，减少体积是有必要的。
-减</p>
+</p>
         
     
     <p class="article-more-link">
@@ -137,7 +164,7 @@
            <p itemprop="description" >由于PostgreSQL的代码托管是使用GIT做源码管理工具的，需要先安装git。
 1yum install git
 所有的PostgreSQL项目的代码可以在这里找到。将代码clone到本地
-1git clone git://git.postgresql.org/git/pos</p>
+1git clone git://git.postgresql.org/git/</p>
         
     
     <p class="article-more-link">
@@ -166,7 +193,7 @@ JVM的OOM(OutOfMemory)异常一般有以下几种，转载自1。
 
 java.lang.StackOverflowError:（很少）
 java.lang.OutOfMemoryError：heap space(比较常见)
-java.lang.Out</p>
+java.lan</p>
         
     
     <p class="article-more-link">
@@ -192,7 +219,7 @@ java.lang.Out</p>
      
            <p itemprop="description" >psql是Postgres的命令行终端，类似于Oracle的sqlplus，提供dba管理的功能。本文介绍其基本使用。
 首先，psql的登陆参数比较多，不像oracle都配置在tnsnames里面，命令如下
-1psql -h localhost -p 5432 -d test -</p>
+1psql -h localhost -p 5432 -d test</p>
         
     
     <p class="article-more-link">
@@ -218,7 +245,7 @@ java.lang.Out</p>
      
            <p itemprop="description" >pgAdmin是Postgres的客户端管理工具，类似Oracle的sqldeveloper或者toad这样的工具。
 先去官网下载源码，本文使用的是pgAdmin3-1.18.1版本，源码下载地址在这里。然后解压。
-解压后的目录中，有README和INSTALL两个文件，其中详细</p>
+解压后的目录中，有README和INSTALL两个文件，其中</p>
         
     
     <p class="article-more-link">
@@ -252,8 +279,7 @@ http://wonderfl.net/
 
 Ada:
 
-
-http://id</p>
+</p>
         
     
     <p class="article-more-link">
@@ -278,12 +304,10 @@ http://id</p>
     
      
            <p itemprop="description" >Postgres的数据模型(翻译稿)1
-Lawrence A. Rowe
-Michael R. Stonebraker
-计算机科学学院，EECS系，
-加州大学伯克利分校，CA 94720
+Lawrence A. Rowe Michael R. Stonebraker
+计算机科学学院，EECS系， 加州大学伯克利分校，CA 94720
 摘要
-本文描述了Postgres数据模型的设计。数据模型是一个关系模型，并扩展了抽象数据类型</p>
+本文描述了Postgres数据模型的设计。数据模型是一个关系模型，并扩展了抽象</p>
         
     
     <p class="article-more-link">
@@ -311,37 +335,13 @@ Michael R. Stonebraker
 先去Postgres官网下载源码包，本文采用的是9.3.4版本的源码，在这里。
 解压源码，这里使用的是root账户，如下图。
 
-进入源代码目录，编译源代码，与大部分linux软件没有什么差异，先configure，</p>
+进入源代码目录，编译源代码，与大部分linux软件没有什么差异，先config</p>
         
     
     <p class="article-more-link">
       <time datetime="2014-08-03T08:17:00.000Z" itemprop="datePublished">2014-08-03</time>
       
           <a href="/post/201408-postgresql-install/">阅读更多&raquo;</a>
-      
-    </p>
-
-  </article>
-</section>
-
-  <section class="post" itemscope itemprop="blogPost">
-  <article>
-    <h1 itemprop="name">
-      
-        <a href="/post/201405-cpp11-new-features-1/" title="C++11的一些新特性" itemprop="url">
-      
-        C++11的一些新特性
-      </a>
-    </h1>
-    
-     
-           <p itemprop="description" >本文的大部分内容翻译自The C++ Standard Library A Tutorial and Reference (2nd Edition)的第三章，书中只列出了一些比较主要的新特性，更多比较详细的C++11特性可以参考C++11FAQ和The C++ Programmi</p>
-        
-    
-    <p class="article-more-link">
-      <time datetime="2014-05-27T04:55:00.000Z" itemprop="datePublished">2014-05-27</time>
-      
-          <a href="/post/201405-cpp11-new-features-1/">阅读更多&raquo;</a>
       
     </p>
 
@@ -387,7 +387,7 @@ Michael R. Stonebraker
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -402,7 +402,7 @@ Michael R. Stonebraker
 		
 			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
 		
-			<li><a href="/categories/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
 		
@@ -435,9 +435,9 @@ Michael R. Stonebraker
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>38</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>39</sup></a></li>
 		
-			<li><a href="/tags/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		

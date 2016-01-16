@@ -12,7 +12,7 @@
     <meta name="description" content="本文翻译自1
 前言
 和很多Java开发者一样，第一次见到lambda表达式的时候，我就对它有了浓厚的兴趣；也和很多人一样，当得知它被推迟的时候，我感到很失望。不过，推迟总比没有好。
-Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了很多。在Lambda项目中，Java有了闭包语法、方">
+Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了很多。在Lambda项目中，Java有了闭包语">
     
     
     
@@ -582,7 +582,7 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
 <p><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Date date = <span class="keyword">new</span> Date();</div><div class="line">Instant now = date.toInstant();</div><div class="line">LocalDateTime dateTime = LocalDateTime.ofInstant(now, myZone);</div><div class="line">ZonedDateTime zdt = ZonedDateTime.ofInstant(now, myZone);</div></pre></td></tr></table></figure></p>
 <h2>8 再也没有永久代了</h2>
 <blockquote>
-<p>发布的实现将把类的元数据放在本地内存，并将内部的字符串和静态类移至Java堆中。<a href="http://openjdk.java.net/jeps/122" target="_blank" rel="external">http://openjdk.java.net/jeps/122</a></p>
+<p>发布的实现将把类的元数据放在本地内存，并将内部的字符串和静态类移至Java堆中。<a href="http://openjdk.java.net/jeps/122" class="uri" target="_blank" rel="external">http://openjdk.java.net/jeps/122</a></p>
 </blockquote>
 <p>大多数情况的类元数据内存分配现在被分配在了本地内存。这意味着不用再设置&quot;XX:PermSize&quot;选项了(实际上也没有了)。</p>
 <p>这也意味着，在内存溢出的时候，你会得到&quot;java.lang.OutOfMemoryError: Metadata space&quot;的错误信息，而不是之前的&quot;java.lang.OutOfMemoryError: Permgen space&quot;</p>
@@ -721,7 +721,7 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p>译者注：本文原地址在<a href="https://leanpub.com/whatsnewinjava8/read" target="_blank" rel="external">https://leanpub.com/whatsnewinjava8/read</a><a href="#fnref1">↩</a></p></li>
+<li id="fn1"><p>译者注：本文原地址在<a href="https://leanpub.com/whatsnewinjava8/read" class="uri" target="_blank" rel="external">https://leanpub.com/whatsnewinjava8/read</a><a href="#fnref1">↩</a></p></li>
 <li id="fn2"><p>译者注：这里指Optional类<a href="#fnref2">↩</a></p></li>
 <li id="fn3"><p>lambda表达式<em>不是</em>匿名类，实际上它在字节码中使用了<code>invokedynamic</code>(译者注：动态调用)。<a href="#fnref3">↩</a></p></li>
 <li id="fn4"><p>下一节中介绍&quot;函数接口&quot;的含义。<a href="#fnref4">↩</a></p></li>
@@ -817,7 +817,7 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -832,7 +832,7 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
 		
 			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
 		
-			<li><a href="/categories/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
 		
@@ -865,9 +865,9 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>38</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>39</sup></a></li>
 		
-			<li><a href="/tags/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		

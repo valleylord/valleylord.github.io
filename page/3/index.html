@@ -78,6 +78,31 @@
   <article>
     <h1 itemprop="name">
       
+        <a href="/post/201410-postgres-uuid/" title="PostgreSQL添加UUID扩展" itemprop="url">
+      
+        PostgreSQL添加UUID扩展
+      </a>
+    </h1>
+    
+     
+           <p itemprop="description" >UUID是用于提供全局唯一编码的程序，可以将其添加到PostgreSQL中，这里是UUID的主页。
+下载最新版本uuid-1.6.2.tar.gz的源码，解压，configure，编译安装，与一般的程序安装并无很大差异。也可以使用yum install uuid uuid-de</p>
+        
+    
+    <p class="article-more-link">
+      <time datetime="2014-10-09T11:53:00.000Z" itemprop="datePublished">2014-10-09</time>
+      
+          <a href="/post/201410-postgres-uuid/">阅读更多&raquo;</a>
+      
+    </p>
+
+  </article>
+</section>
+
+  <section class="post" itemscope itemprop="blogPost">
+  <article>
+    <h1 itemprop="name">
+      
         <a href="/post/201410-java-lock/" title="Java锁性能分析" itemprop="url">
       
         Java锁性能分析
@@ -87,7 +112,7 @@
      
            <p itemprop="description" >Java的锁是多线程编程中必须理解的概念，其synchronized关键字本质上就是一个互斥锁的实现。
 本文比较在Java中使用锁和使用atomic包中类型在多线程环境下的性能差异，并探讨JVM获取锁的一般步骤。
-假设要对一个整数做++操作1000000次。在使用锁（本文使用的是</p>
+假设要对一个整数做++操作1000000次。在使用锁（本文使用</p>
         
     
     <p class="article-more-link">
@@ -112,7 +137,7 @@
     
      
            <p itemprop="description" >本文以createuser和pg_dump两个过程为例，分析PostgreSQL的工具程序的一般设计方式。本文使用的是PostgreSQL 9.3.4版本。
-所有这些工具过程的main函数代码都在源码目录的src\bin目录下面，例如，createuser和pg_dump就分别对</p>
+所有这些工具过程的main函数代码都在源码目录的src\bin目录下面，例如，createuser和pg_dump就分别</p>
         
     
     <p class="article-more-link">
@@ -137,7 +162,7 @@
     
      
            <p itemprop="description" >本文主要使用Eclipse的MAT工具和JDK自带的jvisualvm工具来分析程序运行异常之后的堆dump文件，以找到程序出错的原因。
-Eclipse的MAT(Memory Analyzer Tool) 是基于heap dumps来进行分析的，它的分析速度比jhat快，分析结果</p>
+Eclipse的MAT(Memory Analyzer Tool) 是基于heap dumps来进行分析的，它的分析速度比jhat快，分析结</p>
         
     
     <p class="article-more-link">
@@ -162,7 +187,7 @@ Eclipse的MAT(Memory Analyzer Tool) 是基于heap dumps来进行分析的，它�
     
      
            <p itemprop="description" >SUN JDK提供了一系列的运行时分析工具1可以用于分析运行时的JVM状况，这些工具包括jps、jstack、jstat、jinfo、jmap、jconsole、jvisualvm等。
-本文使用其中的部分工具来检测运行时是否发生死锁。先写一个运行时会发生死锁的程序，其实最经典的哲</p>
+本文使用其中的部分工具来检测运行时是否发生死锁。先写一个运行时会发生死锁的程序，其实最经典的</p>
         
     
     <p class="article-more-link">
@@ -188,7 +213,7 @@ Eclipse的MAT(Memory Analyzer Tool) 是基于heap dumps来进行分析的，它�
      
            <p itemprop="description" >Postgres XL（PGXL）和Postgres XC（pgxl）的架构很类似，安装步骤也很类似。
 本文使用源码在单机上搭建PostgreSQL的最简单集群，1个GTM，协调节点和数据节点各2个。
-先去下载PGXL的源码包，在官网上有最新版，本文使用的版本是postgres-</p>
+先去下载PGXL的源码包，在官网上有最新版，本文使用的版本是postgre</p>
         
     
     <p class="article-more-link">
@@ -285,40 +310,13 @@ Eclipse的MAT(Memory Analyzer Tool) 是基于heap dumps来进行分析的，它�
     
      
            <p itemprop="description" >相比与Oracle来说，PostgreSQL的备份还是简单许多了，基本上只需要简单做数据文件的copy就可以完成。
-所有操作都用postgres用户完成，所有用到的目录都对postgres用户赋予了权限，否则可能会有权限问题。先建立archive归档目录，用于备份WAL Log（</p>
+所有操作都用postgres用户完成，所有用到的目录都对postgres用户赋予了权限，否则可能会有权限问题。先建立archive归档目录，用于备份WAL Log</p>
         
     
     <p class="article-more-link">
       <time datetime="2014-09-06T02:18:00.000Z" itemprop="datePublished">2014-09-06</time>
       
           <a href="/post/201409-postgres-backup-restore/">阅读更多&raquo;</a>
-      
-    </p>
-
-  </article>
-</section>
-
-  <section class="post" itemscope itemprop="blogPost">
-  <article>
-    <h1 itemprop="name">
-      
-        <a href="/post/201408-postgres-process-memory/" title="PostgreSQL的进程结构和内存消耗" itemprop="url">
-      
-        PostgreSQL的进程结构和内存消耗
-      </a>
-    </h1>
-    
-     
-           <p itemprop="description" >PostgreSQL的进程结构
-PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列子进程，这些进程包括数据库实例的后台进程，例如，Data Writer、Achiver等，也有服务client的session进程。大致结构图如下，
-
-在Postgre</p>
-        
-    
-    <p class="article-more-link">
-      <time datetime="2014-08-31T04:54:00.000Z" itemprop="datePublished">2014-08-31</time>
-      
-          <a href="/post/201408-postgres-process-memory/">阅读更多&raquo;</a>
       
     </p>
 
@@ -364,7 +362,7 @@ PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -379,7 +377,7 @@ PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列
 		
 			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
 		
-			<li><a href="/categories/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
 		
@@ -412,9 +410,9 @@ PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>38</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>39</sup></a></li>
 		
-			<li><a href="/tags/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		

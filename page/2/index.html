@@ -78,6 +78,31 @@
   <article>
     <h1 itemprop="name">
       
+        <a href="/post/201412-postgres-pgcluu/" title="PostgreSQL的性能监控工具pgCluu试用" itemprop="url">
+      
+        PostgreSQL的性能监控工具pgCluu试用
+      </a>
+    </h1>
+    
+     
+           <p itemprop="description" >pgCluu是一款PostgreSQL的新能监控和审计工具，遵循PostgreSQL Licence，近似与BSD和MIT的一个Licence，对商业使用友好。本文将从源码编译安装pgCluu，并试用该工具做PostgreSQL的性能监控。
+pgCluu的托管在github上，</p>
+        
+    
+    <p class="article-more-link">
+      <time datetime="2014-12-03T12:00:00.000Z" itemprop="datePublished">2014-12-03</time>
+      
+          <a href="/post/201412-postgres-pgcluu/">阅读更多&raquo;</a>
+      
+    </p>
+
+  </article>
+</section>
+
+  <section class="post" itemscope itemprop="blogPost">
+  <article>
+    <h1 itemprop="name">
+      
         <a href="/post/201411-postgres-rpm/" title="PostgreSQL的rpm打包" itemprop="url">
       
         PostgreSQL的rpm打包
@@ -87,7 +112,7 @@
      
            <p itemprop="description" >如果要发布个人修改的PostgreSQL，就需要使用rpm打包工具。
 先将修改后的代码打包，假设代码的目录在mypostgresql
-1234[postgres@anzhy pg9.3.4]$ tar -zcf mypostgresql.tar.gz mypostgresql/[</p>
+1234[postgres@anzhy pg9.3.4]$ tar -zcf mypostgresql.tar.gz mypostgresql</p>
         
     
     <p class="article-more-link">
@@ -114,7 +139,7 @@
            <p itemprop="description" >本文翻译自1
 前言
 和很多Java开发者一样，第一次见到lambda表达式的时候，我就对它有了浓厚的兴趣；也和很多人一样，当得知它被推迟的时候，我感到很失望。不过，推迟总比没有好。
-Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了很多。在Lambda项目中，Ja</p>
+Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了很多。在Lambda项目中</p>
         
     
     <p class="article-more-link">
@@ -144,11 +169,13 @@ postgres的物化视图和Oracle的比较如下表，
 
 
 
-功能点
-PostgreSQL
-Oracle
 
-</p>
+
+
+
+
+功能点
+Po</p>
         
     
     <p class="article-more-link">
@@ -197,7 +224,7 @@ Oracle
     
      
            <p itemprop="description" >PostgreSQL是一个对扩展和程序开发很友好的数据库，有很多的外部扩展接口，很易于扩展。本文使用PostgreSQL的C扩展编写扩展函数，并提供给触发器调用，本文的例子来源与官方文档。
-PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格式</p>
+PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格</p>
         
     
     <p class="article-more-link">
@@ -223,7 +250,7 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格式<
      
            <p itemprop="description" >PostgreSQL可以支持多种存储过程语言，官方支持的除了PL/pgSQL，还有TCL，Perl，Python。
 本文使用源码安装PL/Python过程语言支持，并简介PL/Python的一些简单的入门。如果是使用安装包安装的话，可以参考1。
-参考PostgreSQL的官方文档</p>
+参考PostgreSQL的官方</p>
         
     
     <p class="article-more-link">
@@ -249,7 +276,7 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格式<
      
            <p itemprop="description" >默认情况下，PostgreSQL唯一默认会安装的存储过程语言就是PL/pgSQL。
 创建PL/pgSQL的方法是在psql或者pgAdmin中输入创建语句，如下，
-1234567891011121314151617181920CREATE or replace FUNCTION </p>
+1234567891011121314151617181920CREATE or replace FUNCTIO</p>
         
     
     <p class="article-more-link">
@@ -298,38 +325,13 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格式<
     
      
            <p itemprop="description" >每一个Java类在经过编译后，都会生成.class文件，作为JVM执行的输入。.class文件的结构分析和示例可以参考1，2，3。本文用Java代码分析.class文件的结构，获取类的定义，以及类中每一个域和方法的声明。
-首先，.class文件是Java的字节码文件，需要逐个逐个</p>
+首先，.class文件是Java的字节码文件，需要逐个逐</p>
         
     
     <p class="article-more-link">
       <time datetime="2014-10-18T04:38:00.000Z" itemprop="datePublished">2014-10-18</time>
       
           <a href="/post/201410-java-class-file/">阅读更多&raquo;</a>
-      
-    </p>
-
-  </article>
-</section>
-
-  <section class="post" itemscope itemprop="blogPost">
-  <article>
-    <h1 itemprop="name">
-      
-        <a href="/post/201410-postgres-uuid/" title="PostgreSQL添加UUID扩展" itemprop="url">
-      
-        PostgreSQL添加UUID扩展
-      </a>
-    </h1>
-    
-     
-           <p itemprop="description" >UUID是用于提供全局唯一编码的程序，可以将其添加到PostgreSQL中，这里是UUID的主页。
-下载最新版本uuid-1.6.2.tar.gz的源码，解压，configure，编译安装，与一般的程序安装并无很大差异。也可以使用yum install uuid uuid-dev</p>
-        
-    
-    <p class="article-more-link">
-      <time datetime="2014-10-09T11:53:00.000Z" itemprop="datePublished">2014-10-09</time>
-      
-          <a href="/post/201410-postgres-uuid/">阅读更多&raquo;</a>
       
     </p>
 
@@ -375,7 +377,7 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格式<
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -390,7 +392,7 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格式<
 		
 			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
 		
-			<li><a href="/categories/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
 		
@@ -423,9 +425,9 @@ PostgreSQL的扩展函数可以有“version-0”和“version-1”两种格式<
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>38</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>39</sup></a></li>
 		
-			<li><a href="/tags/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		

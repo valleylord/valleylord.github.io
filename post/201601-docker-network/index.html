@@ -85,7 +85,7 @@
     </p>
   <p class="article-time">
     <time datetime="2016-01-09T07:48:00.000Z" itemprop="datePublished">2016-01-09</time>
-    更新日期:<time datetime="2016-01-10T05:20:37.401Z" itemprop="dateModified">2016-01-10</time>
+    更新日期:<time datetime="2016-01-12T12:02:21.566Z" itemprop="dateModified">2016-01-12</time>
     
   </p>
 </header>
@@ -108,7 +108,7 @@
 <h2>增加路由规则</h2>
 <p>不同宿主机之间的容器不通的原因是因为不知道如何去寻找路由，因此，需要增加路由规则。在<code>192.168.2.201</code>(Ubuntu，以下简称<code>201</code>)和<code>192.168.2.202</code>(Centos，以下简称<code>202</code>)上分别增加路由规则如下，</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Ubuntu 192.168.2.201</span></div><div class="line"># root<span class="keyword">@Ubuntu</span>-Asus [<span class="number">192.168</span>.2.201] <span class="keyword">in</span> ~ [<span class="number">13</span>:<span class="number">57</span>:<span class="number">25</span>]</div><div class="line">$ route add -net <span class="number">172.18</span>.0.0/<span class="number">16</span> gw <span class="number">192.168</span>.2.202 </div><div class="line"></div><div class="line"><span class="comment">// Centos 192.168.2.202</span></div><div class="line">[root<span class="keyword">@Centos</span>-L410 arnes]# route add -net <span class="number">172.17</span>.0.0/<span class="number">16</span> gw <span class="number">192.168</span>.2.201</div></pre></td></tr></table></figure></p>
-<p>增加路由规则后，<code>202</code>上的容器到<code>201</code>上的容器可以ping通，但是反过来仍然不能ping通。原因是防火墙规则导致的阻挡，<code>202</code>上需要增加防火墙规则，如下，</p>
+<p>增加路由规则后，<code>202</code>上的容器到<code>201</code>上的容器可以ping通，但是反过来仍然不能ping通。原因是防火墙规则导致的阻挡，<code>202</code>上需要清空防火墙规则，如下，</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line">// Centos <span class="number">192.168</span>.<span class="number">2.202</span></div><div class="line">[root@Centos-L410 arnes]# iptables -L</div><div class="line">Chain INPUT (policy ACCEPT)</div><div class="line">target     prot <span class="keyword">opt</span> <span class="keyword">source</span>               destination         </div><div class="line">ACCEPT     <span class="keyword">all</span>  --  anywhere             anywhere             state RELATED,ESTABLISHED</div><div class="line">ACCEPT     icmp --  anywhere             anywhere            </div><div class="line">ACCEPT     <span class="keyword">all</span>  --  anywhere             anywhere            </div><div class="line">ACCEPT     tcp  --  anywhere             anywhere             state NEW tcp <span class="keyword">dp</span><span class="variable">t:ssh</span></div><div class="line">REJECT     <span class="keyword">all</span>  --  anywhere             anywhere             reject-with icmp-host-prohibited</div><div class="line"></div><div class="line">Chain FORWARD (policy ACCEPT)</div><div class="line">target     prot <span class="keyword">opt</span> <span class="keyword">source</span>               destination         </div><div class="line">DOCKER     <span class="keyword">all</span>  --  anywhere             anywhere            </div><div class="line">ACCEPT     <span class="keyword">all</span>  --  anywhere             anywhere             ctstate RELATED,ESTABLISHED</div><div class="line">ACCEPT     <span class="keyword">all</span>  --  anywhere             anywhere            </div><div class="line">REJECT     <span class="keyword">all</span>  --  anywhere             anywhere             reject-with icmp-host-prohibited</div><div class="line">DROP       <span class="keyword">all</span>  --  anywhere             anywhere            </div><div class="line"></div><div class="line">Chain OUTPUT (policy ACCEPT)</div><div class="line">target     prot <span class="keyword">opt</span> <span class="keyword">source</span>               destination         </div><div class="line"></div><div class="line">Chain DOCKER (<span class="number">1</span> references)</div><div class="line">target     prot <span class="keyword">opt</span> <span class="keyword">source</span>               destination         </div><div class="line">[root@Centos-L410 arnes]# iptables -F</div><div class="line">[root@Centos-L410 arnes]# iptables -<span class="keyword">t</span> nat -F</div><div class="line">[root@Centos-L410 arnes]# iptables -L</div><div class="line">Chain INPUT (policy ACCEPT)</div><div class="line">target     prot <span class="keyword">opt</span> <span class="keyword">source</span>               destination         </div><div class="line"></div><div class="line">Chain FORWARD (policy ACCEPT)</div><div class="line">target     prot <span class="keyword">opt</span> <span class="keyword">source</span>               destination         </div><div class="line"></div><div class="line">Chain OUTPUT (policy ACCEPT)</div><div class="line">target     prot <span class="keyword">opt</span> <span class="keyword">source</span>               destination         </div><div class="line"></div><div class="line">Chain DOCKER (<span class="number">0</span> references)</div><div class="line">target     prot <span class="keyword">opt</span> <span class="keyword">source</span>               destination</div></pre></td></tr></table></figure></p>
 <p>完成之后，双方容器之间双向都可以ping通。</p>
 <h2>抓包查看结果</h2>
@@ -154,6 +154,14 @@
 	
 <nav class="article-nav clearfix">
  
+ <div class="prev" >
+ <a href="/post/201601-docker-network-ovs/" title="Docker容器间网络互联（使用OVS）">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  Docker容器间网络互联（使用OVS）</span>
+</a>
+</div>
+
 
 <div class="next">
 <a href="/post/201601-mycat-install/"  title="MyCAT安装与部署">
@@ -205,7 +213,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -220,7 +228,7 @@
 		
 			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
 		
-			<li><a href="/categories/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
 		
@@ -253,9 +261,9 @@
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
 		
-			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>38</sup></a></li>
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>39</sup></a></li>
 		
-			<li><a href="/tags/Docker/" title="Docker">Docker<sup>5</sup></a></li>
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>6</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		
