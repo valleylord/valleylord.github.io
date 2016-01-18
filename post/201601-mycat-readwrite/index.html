@@ -88,7 +88,7 @@
     </p>
   <p class="article-time">
     <time datetime="2016-01-16T07:14:00.000Z" itemprop="datePublished">2016-01-16</time>
-    更新日期:<time datetime="2016-01-16T12:34:00.456Z" itemprop="dateModified">2016-01-16</time>
+    更新日期:<time datetime="2016-01-18T12:23:59.693Z" itemprop="dateModified">2016-01-18</time>
     
   </p>
 </header>
@@ -97,7 +97,7 @@
 		
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">文章目录</strong>
-		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">安装Mysql主从复制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">MyCAT配置主从复制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">测试MyCAT主从复制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">MyCAT自动切换</span></a></li></ol>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">安装Mysql主从复制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">MyCAT配置主从复制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">测试MyCAT主从复制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">MyCAT自动切换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">关于分库和分表</span></a></li></ol>
 		</div>
 		
 		<p>MyCAT的一个典型应用是用于数据库的读写分离，本文以Mysql为例，展示读写分离的MyCAT应用场景。本次操作使用的是Ubuntu14.04。</p>
@@ -172,6 +172,10 @@
 <p>与之前的查询完全相同，运行<code>insert into company(id, name) values (300, 'def');</code>，log如下，</p>
 <p><img src="/images/201601-mycat-readwrite/mycat-readwrite-fail-3.png"></p>
 <p>此时的插入语句已经自动转到hostS上，说明此时的从Mysql已经取代主Mysql。此时，恢复主Mysql，发现所有的查询和插入也仍然是从hostS上走，相当于主Mysql没有在集群中。这种配置虽然简单，但系统的可靠性很差，建议使用多个主Mysql的集群，如Galera。</p>
+<h2>关于分库和分表</h2>
+<p>MyCAT主要完成了Mysql集群的水平分库问题。其中水平分库是说，把一个大表按行进行拆分，放在多个数据库中，比如，id为1~100万的在A库，100w~200w的在B库，以此类推。将大表进行水平拆分还有一种方法是水平分表，指的是，仍然按行进行拆分，但是放在一个数据库的多个表中，比如，id为1~100万的在A表，100w~200w的在B表，以此类推。表的水平拆分大致是这两种方法。</p>
+<p>水平分表拆分的优点是，仍然是一个数据库，管理成本较低，集群方案等都与单库无差异，而且事务特性支持好，没有跨库的分布式事务问题；缺点是，由于本质上仍然是单个数据库，无法突破单个数据库实例上的CPU、内存、IO等硬件资源限制，性能提升并不会很明显。虽然，Oracle可以通过设置多个表空间来达到突破IO瓶颈的问题，Mysql也逐渐开始支持表空间特性，但是，CPU、内存仍然局限在一台服务器上，无法获得扩展。</p>
+<p>水平分库拆分的优点是，引入了多个数据库，这些数据库可以放在多台服务器上，硬件资源扩展性理论上是无限的，性能提升会比较显著。缺点是，由于引入了多个数据库，管理成本提高，需要引入自动化工具，而且，事务特性会比较受限，因为多个数据库之间必然会存在分布式事务问题，这个问题一般都很难解决，也很难做到与单库上完全一致的事务特性，或者限制开发中分布式事务的使用，这对业务实现也不利。</p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -216,7 +220,7 @@
       
   <div id="toc" class="toc-aside">
   <strong class="toc-title">文章目录</strong>
-  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">安装Mysql主从复制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">MyCAT配置主从复制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">测试MyCAT主从复制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">MyCAT自动切换</span></a></li></ol>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">安装Mysql主从复制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">MyCAT配置主从复制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">测试MyCAT主从复制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">MyCAT自动切换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">关于分库和分表</span></a></li></ol>
   </div>
 
 <div id="asidepart">

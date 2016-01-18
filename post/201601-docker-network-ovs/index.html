@@ -11,7 +11,7 @@
     
     <meta name="description" content="OVS（Open vSwitch）是一款优秀的虚拟交换机工具，广泛运用在虚拟机、容器等虚拟化领域。本文使用OVS来连接不同宿主机上的docker容器，原理上是使用OVS的gre隧道来完成连接，搭建环境与之前一篇文章《Docker容器间网络互联》相同。
 安装OVS
-先安装OVS，在Ubuntu上安装的">
+先安装OVS，在Ubuntu上安">
     
     
     
@@ -87,7 +87,7 @@
     </p>
   <p class="article-time">
     <time datetime="2016-01-16T01:39:00.000Z" itemprop="datePublished">2016-01-16</time>
-    更新日期:<time datetime="2016-01-16T06:37:15.541Z" itemprop="dateModified">2016-01-16</time>
+    更新日期:<time datetime="2016-01-16T06:37:15.000Z" itemprop="dateModified">2016-01-16</time>
     
   </p>
 </header>
@@ -117,9 +117,9 @@
 <h2>配置OVS</h2>
 <p>默认情况，如果不做任何设置，两个宿主机上的容器是无法ping到对方的。下面使用OVS的gre隧道打通两个容器间的连接，先进行Ubuntu（<code>192.168.2.201</code>）上的配置，如下，</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="preprocessor"># root@Ubuntu-Asus [192.168.2.201] in /var/lib/docker [11:36:18]</span></div><div class="line">$ ip link <span class="keyword">set</span> docker0 down</div><div class="line"></div><div class="line"><span class="preprocessor">## 删除docker0网桥</span></div><div class="line"><span class="preprocessor">## 删除OVS的br0网桥</span></div><div class="line"><span class="preprocessor">## 增加docker0网桥</span></div><div class="line"><span class="preprocessor">## 给新增的docker0网桥分配ip地址</span></div><div class="line"><span class="preprocessor">## 将docker0网桥启用</span></div><div class="line"><span class="preprocessor">## 新增OVS的br0网桥</span></div><div class="line"><span class="preprocessor">## 配置br0网桥的gre隧道，远端地址是192.168.2.202</span></div><div class="line"><span class="preprocessor">## 将OVS网桥br0连接到网桥docker0上</span></div><div class="line"><span class="preprocessor">## 重启docker后台进程</span></div><div class="line"><span class="preprocessor">## 启用br0网桥</span></div></pre></td></tr></table></figure></p>
-<p><img src="/images/201601-docker-network-ovs/docker-network-ovs-ubuntu-setup.png"></p>
+<p><img src="/images/201601-docker-network-ovs/docker-network-ovs-ubuntu-setup.png" alt=""></p>
 <p>然后配置Centos（<code>192.168.2.202</code>），如下</p>
-<p><img src="/images/201601-docker-network-ovs/docker-network-ovs-centos-setup.png"></p>
+<p><img src="/images/201601-docker-network-ovs/docker-network-ovs-centos-setup.png" alt=""></p>
 <p>两边的配置差不多，以Centos为例说明一下，</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## Centos7  192.168.2.202</span></div><div class="line"><span class="comment">## 关闭docker0网桥</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># ip link set docker0 down</span></div><div class="line"><span class="comment">## 删除docker0网桥</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># brctl delbr docker0</span></div><div class="line"><span class="comment">## 删除OVS的br0网桥</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># ovs-vsctl del-br br0</span></div><div class="line"><span class="comment">## 增加docker0网桥</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># brctl addbr docker0</span></div><div class="line"><span class="comment">## 给新增的docker0网桥分配ip地址</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># ip a add 172.17.1.1/24 dev docker0</span></div><div class="line"><span class="comment">## 将docker0网桥启用</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># ip link set docker0 up</span></div><div class="line"><span class="comment">## 新增OVS的br0网桥</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># ovs-vsctl add-br br0</span></div><div class="line"><span class="comment">## 配置br0网桥的gre隧道，远端地址是192.168.2.201</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># ovs-vsctl add-port br0 gre0 -- set interface gre0 type=gre options:remote_ip=192.168.2.201</span></div><div class="line"><span class="comment">## 将OVS网桥br0连接到网桥docker0上</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># brctl addif docker0 br0</span></div><div class="line"><span class="comment">## 启用br0网桥</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># ip link set br0 up</span></div><div class="line"><span class="comment">## 重启docker后台进程</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># service docker restart</span></div><div class="line">Redirecting to /bin/systemctl restart  docker.service</div><div class="line"><span class="comment">## 清除所有iptables规则</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># iptables -t nat -F;iptables -F</span></div><div class="line"><span class="comment">## 增加docker0的路由地址172.17.0.0/16</span></div><div class="line">[root<span class="variable">@Centos</span>-L41<span class="number">0</span> download]<span class="comment"># ip route add 172.17.0.0/16 dev docker0</span></div></pre></td></tr></table></figure></p>
 <p>以上的配置，最重要的几个是，</p>
@@ -131,14 +131,14 @@
 <p>这几个配置表明了，OVS用一个更大的逻辑网络<code>172.x.x.x/24</code>将两个容器连接在一起，而实际网络是通过<code>172.17.x.x/16</code>来连接的，打通逻辑网络和实际网络的方法就是用gre。</p>
 <h2>测试OVS连接</h2>
 <p>配置完成之后，就可以互相ping通了，如下，</p>
-<p><img src="/images/201601-docker-network-ovs/docker-network-ovs-ubuntu-ping.png"></p>
-<p><img src="/images/201601-docker-network-ovs/docker-network-ovs-centos-ping.png"></p>
+<p><img src="/images/201601-docker-network-ovs/docker-network-ovs-ubuntu-ping.png" alt=""></p>
+<p><img src="/images/201601-docker-network-ovs/docker-network-ovs-centos-ping.png" alt=""></p>
 <p>还可以用wireshark查看包，如下，</p>
-<p><img src="/images/201601-docker-network-ovs/docker-network-ovs-ubuntu-tshark.png"></p>
+<p><img src="/images/201601-docker-network-ovs/docker-network-ovs-ubuntu-tshark.png" alt=""></p>
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://www.linuxidc.com/Linux/2014-12/110272.htm" target="_blank" rel="external">http://www.linuxidc.com/Linux/2014-12/110272.htm</a><a href="#fnref1">↩</a></p></li>
+<li id="fn1"><p><a href="http://www.linuxidc.com/Linux/2014-12/110272.htm" class="uri" target="_blank" rel="external">http://www.linuxidc.com/Linux/2014-12/110272.htm</a><a href="#fnref1">↩</a></p></li>
 </ol>
 </div>
   
