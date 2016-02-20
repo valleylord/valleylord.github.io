@@ -4,7 +4,7 @@
   <subtitle><![CDATA[我想写一些东西]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://valleylord.github.io/"/>
-  <updated>2016-02-14T04:57:36.093Z</updated>
+  <updated>2016-02-20T08:06:42.998Z</updated>
   <id>http://valleylord.github.io/</id>
   
   <author>
@@ -13,6 +13,54 @@
   </author>
   
   <generator uri="http://zespia.tw/hexo/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[Kubernetes 原理简介（续）]]></title>
+    <link href="http://valleylord.github.io/post/201602-kubernetes-concepts2/"/>
+    <id>http://valleylord.github.io/post/201602-kubernetes-concepts2/</id>
+    <published>2016-02-20T06:51:08.000Z</published>
+    <updated>2016-02-20T08:05:15.579Z</updated>
+    <content type="html"><![CDATA[<h2>Kubernetes 的调度流程</h2>
+<p>Controller Manager 是集群内部的管理控制中心，负责集群内的 Node、Pod副本、Endpoint、Namespace、Service Account、Resource Quota 等的管理，并执行自动化修复流程，以确保集群处于预期的工作状态。</p>
+<p>Controller Manager 内部包含，Replication Controller、Node Controller、ResourceQuota Controller、Namespace Controller、ServiceAccount Controller、Token Controller、Service Controller、Endpoint Controller 等。Controller Manager 通过这些子控制器通过 API Server 监控系统的共享状态，并不断修正系统的状态，直到系统处于设定的“预期状态”。这些控制器的具体作用如下：</p>
+<ul>
+<li>Replication Controller 的作用是确保集群中一个 RC 所关联的 Pod 都保持一定数量的 Pod 副本处于正常运行状态。如果 Pod 副本数过多，则销毁一些 Pod 副本；反之，则添加 Pod 副本。</li>
+<li>Node Controller 负责发现、管理和监控集群中的各个 Node 节点。Kuberlet 在启动时通过 API Server 注册节点信息，并定时向 API Server 发送节点信息。Node Controller 通过 API Server 定期读取这些信息，并予以处理。</li>
+<li>ResourceQuota Controller 确保指定的对象在额定的系统资源内工资，不会超量占用，避免某些业务进程的设计实现导致整个系统宕机。</li>
+<li>Namespace Controller 通过 API Server 定时读取 Namespace 的信息，并删除标记为“Terminating”的 Namespace，同时，删除该 Namespace 下的 ServiceAccount、RC、Pod、Secret、ResourceQuota 等资源。</li>
+<li>ServiceAccount Controller 与 Token Controller 是与安全相关的，主要负责默认账户的创建、私钥的管理、证书和 Token 的管理等。</li>
+<li>Service Controller 监控 Service 的变化，确保外部 LoadBalancer 被更新。</li>
+<li>Endpoint Controller 监控 Service 和 Pod 的变化。如果 Service 被删除，则删除和 Service 对应的 Endpoint 对象。</li>
+</ul>
+<h2>Pod、RC和Service的关系</h2>
+<p>Pod 是一组容器的一个“单一集合体”，Kubernetes 中的最小任务调度单元。Pod 可以被调度到任意 Node 上恢复，同一个 Pod 里的所有容器共享资源（网络、Volumes 等）。</p>
+<p>RC（Replication Controller）是 Pod 的副本控制器，用于限定某种 Pod 的实例个数，属于服务集群的控制范畴。</p>
+<p>Service 可以看做一组相同作用的 Pod 对外访问的接口。</p>
+<p>可见，Service 管理的是 Pod 组成的集群，以集群的方式来提供服务。在集群中，Pod 可能被 RC 销毁并再次创建，因此 RC 是用来控制 Service 内的 Pod 数量，是处于 Service 和 Pod 之间的一个管理层。</p>
+<h2>Service 的 Cluster IP 和 NodePort</h2>
+<p>Pod 的 IP 地址是 Docker 分配的，相对而言并不固定，由于 Pod 的生命周期比较短暂，可能被 RC 重新创建，因此新的 Pod 的 IP 也可能会变化。但是， Service 的 Cluster IP 相对固定，是由 Kubernetes 系统动态分配的，在Service 被关闭之前不会再变化。</p>
+<p>Node 是 Kubernetes 集群中的实际节点，NodePort 是节点上的实际端口，通过访问这个端口，就能访问内部的 Service 了。</p>
+<h2>Kubernetes 集群的优势</h2>
+<p>Kubernetes 集群的优势主要在于以下一些地方，</p>
+<ol>
+<li>可以很容易的开发和部署分布式系统。</li>
+<li>Kubernetes 是为微服务架构提供了很好的支持。将一个复杂的应用分解成多个互相连接的微服务，这就是微服务的思想。</li>
+<li>可以无缝迁移到云服务。</li>
+<li>横向扩展能力强。一个微服务背后可能有多个副本在支持，副本的多少可以随负载的情况来调整，可伸缩性大大加强。</li>
+</ol>
+]]></content>
+    <summary type="html">
+    <![CDATA[<h2>Kubernetes 的调度流程</h2>
+<p>Controller Manager 是集群内部的管理控制中心，负责集群内的 Node、Pod副本、Endpoint、Namespace、Service Account、Resource Quota 等的管理，并执行自动化]]>
+    </summary>
+    
+      <category term="Kubernetes" scheme="http://valleylord.github.io/tags/Kubernetes/"/>
+    
+      <category term="Dataguru" scheme="http://valleylord.github.io/tags/Dataguru/"/>
+    
+      <category term="Kubernetes" scheme="http://valleylord.github.io/categories/Kubernetes/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[MyCAT多节点sql]]></title>
@@ -1838,49 +1886,6 @@
     <summary type="html">
     <![CDATA[<p>pgCluu是一款PostgreSQL的新能监控和审计工具，遵循PostgreSQL Licence，近似与BSD和MIT的一个Licence，对商业使用友好。本文将从源码编译安装pgCluu，并试用该工具做PostgreSQL的性能监控。</p>
 <p>pgCluu的托]]>
-    </summary>
-    
-      <category term="Postgres" scheme="http://valleylord.github.io/tags/Postgres/"/>
-    
-      <category term="Dataguru" scheme="http://valleylord.github.io/tags/Dataguru/"/>
-    
-      <category term="Postgres" scheme="http://valleylord.github.io/categories/Postgres/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[PostgreSQL的rpm打包]]></title>
-    <link href="http://valleylord.github.io/post/201411-postgres-rpm/"/>
-    <id>http://valleylord.github.io/post/201411-postgres-rpm/</id>
-    <published>2014-11-30T07:58:00.000Z</published>
-    <updated>2014-12-03T01:16:58.000Z</updated>
-    <content type="html"><![CDATA[<p>如果要发布个人修改的PostgreSQL，就需要使用rpm打包工具。</p>
-<p>先将修改后的代码打包，假设代码的目录在<code>mypostgresql</code></p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">[postgres@anzhy pg9.<span class="number">3.4</span>]$ tar -zcf mypostgresql.tar.gz mypostgresql/</div><div class="line">[postgres@anzhy pg9.<span class="number">3.4</span>]$ ls</div><div class="line">my_extension  mypostgresql  mypostgresql.tar.gz  postgresql</div><div class="line">[postgres@anzhy pg9.<span class="number">3.4</span>]$</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201411-postgres-rpm/rpm-tar.png" alt=""></p>
-<p>将打包好的源码包文件放到<code>$HOME/rpmbuild/SOURCES/</code>目录下，然后编辑描述rpm包的spec文件，spec文件内容如下，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">Summary:   test mypostgresql </div><div class="line">Name:      mypostgresql </div><div class="line">Version:   <span class="number">1.0</span><span class="number">.0</span></div><div class="line">Release:   <span class="number">1</span></div><div class="line">License:   MIT</div><div class="line">Group:     Applications/Databases </div><div class="line">Source:    mypostgresql.tar.gz</div><div class="line">BuildRoot: <span class="variable">%{_tmppath}</span>/<span class="variable">%{name}</span>-<span class="variable">%{version}</span>-<span class="variable">%{release}</span>-root</div><div class="line">Url:       http:<span class="comment">//www.test.com</span></div><div class="line">Packager:  test</div><div class="line">Prefix:    <span class="variable">%{_prefix}</span></div><div class="line">Prefix:    <span class="variable">%{_sysconfdir}</span></div><div class="line"><span class="variable">%define</span>    userpath /home/mypostgresql</div><div class="line"></div><div class="line"><span class="variable">%description</span></div><div class="line">test mypostgresql. </div><div class="line"></div><div class="line"><span class="variable">%prep</span></div><div class="line"><span class="variable">%setup</span> -c</div><div class="line"><span class="variable">%install</span></div><div class="line">install -d <span class="variable">$RPM_BUILD_ROOT</span><span class="variable">%{userpath}</span></div><div class="line">cp -a <span class="variable">%{name}</span>* <span class="variable">$RPM_BUILD_ROOT</span><span class="variable">%{userpath}</span></div><div class="line"></div><div class="line"><span class="variable">%clean</span></div><div class="line">rm -rf <span class="variable">$RPM_BUILD_ROOT</span></div><div class="line">rm -rf <span class="variable">$RPM_BUILD_DIR</span>/<span class="variable">%{name}</span>-<span class="variable">%{version}</span></div><div class="line"></div><div class="line"><span class="variable">%files</span></div><div class="line"><span class="variable">%defattr</span>(-,root,root)</div><div class="line"><span class="variable">%{userpath}</span></div></pre></td></tr></table></figure></p>
-<p><img src="/images/201411-postgres-rpm/rpm-spec.png" alt=""></p>
-<p>由于需要用rpmbuild来打包，所以需要先安装rpmbuild。</p>
-<p><img src="/images/201411-postgres-rpm/rpm-install-rpmbuild.png" alt=""></p>
-<p>然后运行<code>rpmbuild -ba mypostgresql.spec</code>来打包，打包过程有很长的输出，如下，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">Checking for unpackaged file(s): /usr/lib/rpm/check-files /home/postgres/rpmbuild/BUILDROOT/mypostgresql-1.0.0-1.x86_64</div><div class="line">Wrote: /home/postgres/rpmbuild/SRPMS/mypostgresql-1.0.0-1.src.rpm</div><div class="line">Wrote: /home/postgres/rpmbuild/RPMS/x86_64/mypostgresql-1.0.0-1.x86_64.rpm</div><div class="line">Executing(%clean): /bin/sh -e /var/tmp/rpm-tmp.MdWKRJ</div><div class="line"><span class="addition">+ umask 022</span></div><div class="line"><span class="addition">+ cd /home/postgres/rpmbuild/BUILD</span></div><div class="line"><span class="addition">+ cd mypostgresql-1.0.0</span></div><div class="line"><span class="addition">+ rm -rf /home/postgres/rpmbuild/BUILDROOT/mypostgresql-1.0.0-1.x86_64</span></div><div class="line"><span class="addition">+ rm -rf /home/postgres/rpmbuild/BUILD/mypostgresql-1.0.0</span></div><div class="line"><span class="addition">+ exit 0</span></div><div class="line">[postgres@anzhy pg9.3.4]$</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201411-postgres-rpm/rpm-pack.png" alt=""></p>
-<p>看到以上结果，就可以认为打包成功。进一步的确认可以查看生成的打包文件，目录在<code>$HOME/rpmbuild/RPMS/x86_64/</code>下，是程序包文件；还有一个是源码包文件，在<code>$HOME/rpmbuild/SRPMS/</code>下。</p>
-<p><img src="/images/201411-postgres-rpm/rpm-file.png" alt=""></p>
-<p>本文参考了<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>，<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>。</p>
-<div class="footnotes">
-<hr>
-<ol>
-<li id="fn1"><p><a href="http://blog.chinaunix.net/uid-24347760-id-1989580.html" class="uri" target="_blank" rel="external">http://blog.chinaunix.net/uid-24347760-id-1989580.html</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://blog.chinaunix.net/uid-7530389-id-2050100.html" class="uri" target="_blank" rel="external">http://blog.chinaunix.net/uid-7530389-id-2050100.html</a><a href="#fnref2">↩</a></p></li>
-</ol>
-</div>
-]]></content>
-    <summary type="html">
-    <![CDATA[<p>如果要发布个人修改的PostgreSQL，就需要使用rpm打包工具。</p>
-<p>先将修改后的代码打包，假设代码的目录在<code>mypostgresql</code></p>
-<p><figure class="highlight bash"><table><tr]]>
     </summary>
     
       <category term="Postgres" scheme="http://valleylord.github.io/tags/Postgres/"/>

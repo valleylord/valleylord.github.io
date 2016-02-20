@@ -4,14 +4,14 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>PL/Python安装和使用 | 褚哥说|</title>
+    <title>Kubernetes 原理简介（续） | 褚哥说|</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
     
     <meta name="author" content="Valleylord">
     
-    <meta name="description" content="PostgreSQL可以支持多种存储过程语言，官方支持的除了PL/pgSQL，还有TCL，Perl，Python。
-本文使用源码安装PL/Python过程语言支持，并简介PL/Python的一些简单的入门。如果是使用安装包安装的话，可以参考1。
-参考PostgreSQL的官方文档，使用源码安装的">
+    <meta name="description" content="Kubernetes 的调度流程
+Controller Manager 是集群内部的管理控制中心，负责集群内的 Node、Pod副本、Endpoint、Namespace、Service Account、Resource Quota 等的管理，并执行自动化修复流程，以确保集群处于预期的工作状态。
+C">
     
     
     
@@ -79,15 +79,15 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/post/201410-postgres-plpython-install/" title="PL/Python安装和使用" itemprop="url">PL/Python安装和使用</a>
+      <a href="/post/201602-kubernetes-concepts2/" title="Kubernetes 原理简介（续）" itemprop="url">Kubernetes 原理简介（续）</a>
   </h1>
   <p class="article-author">By
     
       <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
     </p>
   <p class="article-time">
-    <time datetime="2014-10-25T12:39:00.000Z" itemprop="datePublished">2014-10-25</time>
-    更新日期:<time datetime="2014-12-03T01:16:47.000Z" itemprop="dateModified">2014-12-03</time>
+    <time datetime="2016-02-20T06:51:08.000Z" itemprop="datePublished">2016-02-20</time>
+    更新日期:<time datetime="2016-02-20T08:05:15.579Z" itemprop="dateModified">2016-02-20</time>
     
   </p>
 </header>
@@ -96,72 +96,57 @@
 		
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">文章目录</strong>
-		
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">Kubernetes 的调度流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">Pod、RC和Service的关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">Service 的 Cluster IP 和 NodePort</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">Kubernetes 集群的优势</span></a></li></ol>
 		</div>
 		
-		<p>PostgreSQL可以支持多种存储过程语言，官方支持的除了PL/pgSQL，还有TCL，Perl，Python。</p>
-<p>本文使用源码安装PL/Python过程语言支持，并简介PL/Python的一些简单的入门。如果是使用安装包安装的话，可以参考<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>。</p>
-<p>参考PostgreSQL的官方文档，使用源码安装的时候，需要在之前编译的时候就启用<code>--with-python</code>选项。</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Note: Users <span class="operator">of</span> source packages must specially enable <span class="operator">the</span> build <span class="operator">of</span> PL/Python during <span class="operator">the</span> installation <span class="built_in">process</span>. (Refer <span class="built_in">to</span> <span class="operator">the</span> installation instructions <span class="keyword">for</span> more information.) Users <span class="operator">of</span> binary packages might find PL/Python <span class="operator">in</span> <span class="operator">a</span> separate subpackage.</div><div class="line"></div><div class="line">注意: 使用源码包的用户必须在安装过程中声明打开 PL/Python 的制作。 （请参考安装指导获取更多信息。）二进制包的用户可能会在独立的子包中找到 PL/Python。</div></pre></td></tr></table></figure></p>
-<p>PostgreSQL的编译安装可以参考我之前的博客，<a href="http://valleylord.sinaapp.com/post/201408-postgresql-install" target="_blank" rel="external">这里</a>和<a href="http://valleylord.sinaapp.com/post/201408-postgresql-dev-env" target="_blank" rel="external">这里</a>。先做PostgreSQL的configure，</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">[postgres@anzhy postgresql]$ ./configure --prefix=<span class="variable">$HOME</span>/postgres --enable-depend --enable-cassert --enable-debug --with-python</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-configure-error.png" alt=""></p>
-<p>运行结果提示有错，找不到Python.h，需要安装python-devel。</p>
-<p><img src="/images/201410-postgres-plpython-install/python-devel-install.png" alt=""></p>
-<p>之后再<code>configure</code>就正常了，之后的步骤就是一般的用源码安装PostgreSQL的步骤，不再赘述。</p>
-<p>安装之后启动PostgreSQL，然后需要注册plpythonu这个语言扩展，根据官方文档，可以用以下两种等价的方法。一种是在命令行下运行<code>createlang</code></p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">[postgres@anzhy ~]$ createlang plpythonu test</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-createlang.png" alt=""></p>
-<p>上面的<code>test</code>参数表示数据库名，即在<code>test</code>数据库上启用plpythonu。还有一种是用psql登陆数据库之后运行<code>create extension</code>，</p>
-<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">test=# <span class="operator"><span class="keyword">create</span> extension plpythonu;</span></div></pre></td></tr></table></figure></p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-create-extension.png" alt=""></p>
-<p>由于Python有Python2和Python3两个版本，以上是使用默认的Python，也就是Python2。如果需要指明是哪个Python版本，可以将上述命令中的<code>plpythonu</code>替换成<code>plpython2u</code>或<code>plpython3u</code>。</p>
-<p>然后可以在psql中创建PL/Python的存储过程，如下</p>
-<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">FUNCTION</span> pyfib(n <span class="built_in">bigint</span>)</span></div><div class="line"> <span class="keyword">RETURNS</span> SETOF <span class="built_in">bigint</span></div><div class="line"> <span class="keyword">AS</span> $$</div><div class="line">  a, b = <span class="number">0</span>, <span class="number">1</span></div><div class="line">  fibnum = []</div><div class="line">  while b &lt; n:</div><div class="line">   fibnum.append(b)</div><div class="line">   a, b = b, a+b</div><div class="line">  <span class="keyword">return</span> fibnum</div><div class="line"> $$ <span class="keyword">LANGUAGE</span> plpythonu;</div></pre></td></tr></table></figure></p>
-<p>如果之前的操作都正确，可以看到提示成功，</p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-create-function.png" alt=""></p>
-<p>如果有问题的话，可以看到提示错误，<code>plpythonu</code>语言找不到，需要重新检查之前的操作，</p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-create-function-error.png" alt=""></p>
-<p>创建的函数是用于计算fibonacci序列，可以试着运行一下，</p>
-<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">test=# <span class="operator"><span class="keyword">select</span> pyfib(<span class="number">3</span>) <span class="keyword">as</span> i;</span></div><div class="line"> i</div><div class="line"><span class="comment">---</span></div><div class="line"> 1</div><div class="line"> 1</div><div class="line"> 2</div><div class="line">(3 rows)</div></pre></td></tr></table></figure></p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-function-test.png" alt=""></p>
-<p>如果不需要PL/Python了，可以将这个扩展drop掉，</p>
-<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">test=# <span class="operator"><span class="keyword">drop</span> extension plpythonu;</span></div></pre></td></tr></table></figure></p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-drop-extension-error.png" alt=""></p>
-<p>可以看到提示，已经有function依赖了这个扩展，需要先将function先drop掉，或者使用<code>DROP...CASCADE</code>选项。如果drop function的话，需要注意，要把function的参数也加上，否则会报错，因为PostgreSQL是可以重载函数的，不同的参数但是拥有相同的函数名是合法的，被认为是不同的函数。drop所有的PL/Python的过程之后，就可以成功drop extension了。</p>
-<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">test=# <span class="operator"><span class="keyword">drop</span> <span class="keyword">function</span> pyfib(<span class="built_in">bigint</span>);</span></div></pre></td></tr></table></figure></p>
-<p><img src="/images/201410-postgres-plpython-install/plpython-drop-function.png" alt=""></p>
-<p>以上是PL/Python的安装和使用基础。本文参考了<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>，还有PostgreSQL 9.3官方文档<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>，<a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a>，以及8.1中文版文档<a href="#fn5" class="footnoteRef" id="fnref5"><sup>5</sup></a>的对应章节。</p>
-<div class="footnotes">
-<hr>
+		<h2>Kubernetes 的调度流程</h2>
+<p>Controller Manager 是集群内部的管理控制中心，负责集群内的 Node、Pod副本、Endpoint、Namespace、Service Account、Resource Quota 等的管理，并执行自动化修复流程，以确保集群处于预期的工作状态。</p>
+<p>Controller Manager 内部包含，Replication Controller、Node Controller、ResourceQuota Controller、Namespace Controller、ServiceAccount Controller、Token Controller、Service Controller、Endpoint Controller 等。Controller Manager 通过这些子控制器通过 API Server 监控系统的共享状态，并不断修正系统的状态，直到系统处于设定的“预期状态”。这些控制器的具体作用如下：</p>
+<ul>
+<li>Replication Controller 的作用是确保集群中一个 RC 所关联的 Pod 都保持一定数量的 Pod 副本处于正常运行状态。如果 Pod 副本数过多，则销毁一些 Pod 副本；反之，则添加 Pod 副本。</li>
+<li>Node Controller 负责发现、管理和监控集群中的各个 Node 节点。Kuberlet 在启动时通过 API Server 注册节点信息，并定时向 API Server 发送节点信息。Node Controller 通过 API Server 定期读取这些信息，并予以处理。</li>
+<li>ResourceQuota Controller 确保指定的对象在额定的系统资源内工资，不会超量占用，避免某些业务进程的设计实现导致整个系统宕机。</li>
+<li>Namespace Controller 通过 API Server 定时读取 Namespace 的信息，并删除标记为“Terminating”的 Namespace，同时，删除该 Namespace 下的 ServiceAccount、RC、Pod、Secret、ResourceQuota 等资源。</li>
+<li>ServiceAccount Controller 与 Token Controller 是与安全相关的，主要负责默认账户的创建、私钥的管理、证书和 Token 的管理等。</li>
+<li>Service Controller 监控 Service 的变化，确保外部 LoadBalancer 被更新。</li>
+<li>Endpoint Controller 监控 Service 和 Pod 的变化。如果 Service 被删除，则删除和 Service 对应的 Endpoint 对象。</li>
+</ul>
+<h2>Pod、RC和Service的关系</h2>
+<p>Pod 是一组容器的一个“单一集合体”，Kubernetes 中的最小任务调度单元。Pod 可以被调度到任意 Node 上恢复，同一个 Pod 里的所有容器共享资源（网络、Volumes 等）。</p>
+<p>RC（Replication Controller）是 Pod 的副本控制器，用于限定某种 Pod 的实例个数，属于服务集群的控制范畴。</p>
+<p>Service 可以看做一组相同作用的 Pod 对外访问的接口。</p>
+<p>可见，Service 管理的是 Pod 组成的集群，以集群的方式来提供服务。在集群中，Pod 可能被 RC 销毁并再次创建，因此 RC 是用来控制 Service 内的 Pod 数量，是处于 Service 和 Pod 之间的一个管理层。</p>
+<h2>Service 的 Cluster IP 和 NodePort</h2>
+<p>Pod 的 IP 地址是 Docker 分配的，相对而言并不固定，由于 Pod 的生命周期比较短暂，可能被 RC 重新创建，因此新的 Pod 的 IP 也可能会变化。但是， Service 的 Cluster IP 相对固定，是由 Kubernetes 系统动态分配的，在Service 被关闭之前不会再变化。</p>
+<p>Node 是 Kubernetes 集群中的实际节点，NodePort 是节点上的实际端口，通过访问这个端口，就能访问内部的 Service 了。</p>
+<h2>Kubernetes 集群的优势</h2>
+<p>Kubernetes 集群的优势主要在于以下一些地方，</p>
 <ol>
-<li id="fn1"><p><a href="http://zhenghaoju700.blog.163.com/blog/static/1358595182012418104619386/" class="uri" target="_blank" rel="external">http://zhenghaoju700.blog.163.com/blog/static/1358595182012418104619386/</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://zhenghaoju700.blog.163.com/blog/static/1358595182012418104619386/" class="uri" target="_blank" rel="external">http://zhenghaoju700.blog.163.com/blog/static/1358595182012418104619386/</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="http://www.postgresql.org/docs/9.3/interactive/trigger-example.html" class="uri" target="_blank" rel="external">http://www.postgresql.org/docs/9.3/interactive/trigger-example.html</a><a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p><a href="http://www.postgresql.org/docs/9.3/interactive/install-procedure.html" class="uri" target="_blank" rel="external">http://www.postgresql.org/docs/9.3/interactive/install-procedure.html</a><a href="#fnref4">↩</a></p></li>
-<li id="fn5"><p><a href="http://www.php100.com/manual/PostgreSQL8/" class="uri" target="_blank" rel="external">http://www.php100.com/manual/PostgreSQL8/</a><a href="#fnref5">↩</a></p></li>
+<li>可以很容易的开发和部署分布式系统。</li>
+<li>Kubernetes 是为微服务架构提供了很好的支持。将一个复杂的应用分解成多个互相连接的微服务，这就是微服务的思想。</li>
+<li>可以无缝迁移到云服务。</li>
+<li>横向扩展能力强。一个微服务背后可能有多个副本在支持，副本的多少可以随负载的情况来调整，可伸缩性大大加强。</li>
 </ol>
-</div>
   
 	</div>
 		<footer class="article-footer clearfix">
 
   <div class="article-tags">
   
-  <span></span> <a href="/tags/Postgres/">Postgres</a><a href="/tags/Dataguru/">Dataguru</a>
+  <span></span> <a href="/tags/Kubernetes/">Kubernetes</a><a href="/tags/Dataguru/">Dataguru</a>
   </div>
 
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/Postgres/">Postgres</a>
+  <a class="article-category-link" href="/categories/Kubernetes/">Kubernetes</a>
 </div>
 
 
 
 <div class="article-share" id="share">
 
-  <div data-url="http://valleylord.github.io/post/201410-postgres-plpython-install/" data-title="PL/Python安装和使用 | 褚哥说|" data-tsina="null" class="share clearfix">
+  <div data-url="http://valleylord.github.io/post/201602-kubernetes-concepts2/" data-title="Kubernetes 原理简介（续） | 褚哥说|" data-tsina="null" class="share clearfix">
   </div>
 
 </div>
@@ -170,19 +155,11 @@
 	
 <nav class="article-nav clearfix">
  
- <div class="prev" >
- <a href="/post/201410-postgres-trigger-example/" title="PostgreSQL扩展函数和触发器">
-  <strong>PREVIOUS:</strong><br/>
-  <span>
-  PostgreSQL扩展函数和触发器</span>
-</a>
-</div>
-
 
 <div class="next">
-<a href="/post/201410-postgres-plpgsql-intro/"  title="PL/pgSQL使用入门">
+<a href="/post/201602-mycat-multinode-sql/"  title="MyCAT多节点sql">
  <strong>NEXT:</strong><br/> 
- <span>PL/pgSQL使用入门
+ <span>MyCAT多节点sql
 </span>
 </a>
 </div>
@@ -194,7 +171,7 @@
       
   <div id="toc" class="toc-aside">
   <strong class="toc-title">文章目录</strong>
-  
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">Kubernetes 的调度流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">Pod、RC和Service的关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">Service 的 Cluster IP 和 NodePort</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">Kubernetes 集群的优势</span></a></li></ol>
   </div>
 
 <div id="asidepart">
