@@ -1,0 +1,547 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>MyCAT 性能测试 | 褚哥说|</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Valleylord">
+    
+    <meta name="description" content="MyCAT 的性能测试主要是通过使用 MyCAT 自带的性能测试工具 testtool 来完成。本文将介绍该工具的使用。
+环境介绍
+数据库服务 mysql 运行在 192.168.2.201 （host：workstation）机器上，操作系统 Ubuntu 14.04；MyCAT 服务运行在 19">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="褚哥说|" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/author.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/author.jpg">
+    
+
+	
+	<link href="http://cdn.bootcss.com/highlight.js/8.2/styles/monokai.min.css" rel="stylesheet">
+	<script src="http://cdn.bootcss.com/highlight.js/8.2/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+	
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="褚哥说|">褚哥说|</a></h1>
+				<h2 class="blog-motto">我想写一些东西</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul><li> <a href="/atom.xml">RSS</a> </li>
+                    <ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/tags">标签</a></li>
+					
+						<li><a href="/links">链接</a></li>
+					
+						<li><a href="http://www.cnblogs.com/valleylord/">旧文</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					</li>
+                <li><div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div></li>
+
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container" class="clearfix">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/post/201603-mycat-perf-test/" title="MyCAT 性能测试" itemprop="url">MyCAT 性能测试</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-03-06T00:47:04.000Z" itemprop="datePublished">2016-03-06</time>
+    更新日期:<time datetime="2016-03-06T11:05:54.546Z" itemprop="dateModified">2016-03-06</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">环境介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">建立测试表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">testtool 介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">测试脚本和监控工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">监控结果</span></a></li></ol>
+		</div>
+		
+		<p>MyCAT 的性能测试主要是通过使用 MyCAT 自带的性能测试工具 testtool 来完成。本文将介绍该工具的使用。</p>
+<h2>环境介绍</h2>
+<p>数据库服务 mysql 运行在 192.168.2.201 （host：workstation）机器上，操作系统 Ubuntu 14.04；MyCAT 服务运行在 192.168.2.202 （host：reg-server）机器上，操作系统 Centos 7；testtool 运行在一台虚拟机上，虚拟机的主机是 192.168.2.201。</p>
+<p>由于 Centos 7 上使用了 iptables 防火墙，在安装完成之后，还需要使用 <code>iptables -F</code> 清空一下防火墙规则，防止 MyCAT 的 8806 端口被阻挡。</p>
+<h2>建立测试表</h2>
+<p>测试表的表结构描述如下，</p>
+<blockquote>
+person表：
+<ul>
+<li>Id，主键，Mycat自增主键</li>
+<li>name,字符串，16字节最长</li>
+<li>school,毕业学校，数字，1-1000范围，是学校编号</li>
+<li>age，年龄，18-60</li>
+<li>addr,地址，32字节，建议为 gz-tianhe（城市-地区两级 枚举的仿真数据）</li>
+<li>zcode,邮编，</li>
+<li>birth，生日，为日期类型， 1980到2010年之间随机的日期</li>
+<li>score，得分，0-100分</li>
+</ul>
+</blockquote>
+<p>建表语句如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">create</span> <span class="keyword">table</span> person (</span></div><div class="line">id <span class="built_in">bigint</span> <span class="keyword">not</span> <span class="literal">null</span> <span class="keyword">primary</span> <span class="keyword">key</span>, </div><div class="line">name <span class="built_in">varchar</span>(<span class="number">16</span>), </div><div class="line">school <span class="built_in">smallint</span>, </div><div class="line">age tinyint, </div><div class="line">addr <span class="built_in">varchar</span>(<span class="number">32</span>), </div><div class="line">zcode <span class="built_in">varchar</span>(<span class="number">6</span>), </div><div class="line">birth <span class="built_in">DATE</span>, </div><div class="line">score tinyint);</div></pre></td></tr></table></figure></p>
+<p>MyCAT 中也需要配置，<code>schema.xml</code> 配置采用 murmur 分片算法，该算法默认在3个分片中采用一致性哈希的方法分片，如下</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&lt;table <span class="variable">name=</span><span class="string">"person"</span> <span class="variable">primaryKey=</span><span class="string">"ID"</span> <span class="variable">autoIncrement=</span><span class="string">"true"</span> <span class="variable">dataNode=</span><span class="string">"dn1,dn2,dn3"</span></div><div class="line">	<span class="variable">rule=</span><span class="string">"sharding-by-murmur"</span> /&gt;</div></pre></td></tr></table></figure></p>
+<p>注意，person 表启用了自增主键<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>，需要配置 MyCAT sequence。在 <code>server.xml</code> 中配置使用表的方式来管理 MyCAT sequence，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;<span class="keyword">property</span> <span class="property">name</span>=<span class="string">"sequnceHandlerType"</span>&gt;<span class="number">1</span>&lt;/<span class="keyword">property</span>&gt;</div></pre></td></tr></table></figure></p>
+<p>在 <code>sequence_db_conf.properties</code> 中增加一行，表示 person 表的 sequence 管理表是来自 dn1 节点，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="attribute">PERSON</span>=<span class="string">dn1</span></div></pre></td></tr></table></figure></p>
+<p>在 dn1 节点中，新增管理 sequence 需要的相关表和函数，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> MYCAT_SEQUENCE (</span></div><div class="line">NAME <span class="built_in">VARCHAR</span> (<span class="number">50</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</div><div class="line">current_value <span class="built_in">INT</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>,</div><div class="line">increment <span class="built_in">INT</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="number">100</span>,</div><div class="line"><span class="keyword">PRIMARY</span> <span class="keyword">KEY</span> (NAME)</div><div class="line">) <span class="keyword">ENGINE</span> = <span class="keyword">INNODB</span>;</div><div class="line"></div><div class="line"><span class="operator"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> MYCAT_SEQUENCE(name,current_value,increment) <span class="keyword">VALUES</span> (<span class="string">'PERSON'</span>, <span class="number">100000</span>, <span class="number">100</span>);</span></div><div class="line"><span class="operator"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> MYCAT_SEQUENCE(name,current_value,increment) <span class="keyword">VALUES</span> (<span class="string">'GLOBAL'</span>, <span class="number">100000</span>, <span class="number">100</span>);</span></div><div class="line"></div><div class="line"><span class="comment">-- 获取当前sequence的值 (返回当前值,增量)</span></div><div class="line"><span class="operator"><span class="keyword">DROP</span> <span class="keyword">FUNCTION</span> <span class="keyword">IF</span> <span class="keyword">EXISTS</span> mycat_seq_currval;</span></div><div class="line">DELIMITER</div><div class="line"><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> mycat_seq_currval(seq_name <span class="built_in">VARCHAR</span>(<span class="number">50</span>)) <span class="keyword">RETURNS</span> <span class="built_in">varchar</span>(<span class="number">64</span>) <span class="keyword">CHARSET</span> utf-<span class="number">8</span></span></div><div class="line">DETERMINISTIC</div><div class="line"><span class="keyword">BEGIN</span></div><div class="line"><span class="keyword">DECLARE</span> retval <span class="built_in">VARCHAR</span>(<span class="number">64</span>);</div><div class="line"><span class="operator"><span class="keyword">SET</span> retval=<span class="string">"-999999999,null"</span>;</span></div><div class="line"><span class="operator"><span class="keyword">SELECT</span> <span class="keyword">concat</span>(<span class="keyword">CAST</span>(current_value <span class="keyword">AS</span> <span class="built_in">CHAR</span>),<span class="string">","</span>,<span class="keyword">CAST</span>(increment <span class="keyword">AS</span> <span class="built_in">CHAR</span>)) <span class="keyword">INTO</span> retval <span class="keyword">FROM</span> MYCAT_SEQUENCE <span class="keyword">WHERE</span> name = seq_name;</span></div><div class="line">RETURN retval;</div><div class="line"><span class="operator"><span class="keyword">END</span></span></div><div class="line">DELIMITER;</div><div class="line"><span class="comment">-- 设置sequence值</span></div><div class="line"><span class="operator"><span class="keyword">DROP</span> <span class="keyword">FUNCTION</span> <span class="keyword">IF</span> <span class="keyword">EXISTS</span> mycat_seq_setval;</span></div><div class="line">DELIMITER</div><div class="line"><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> mycat_seq_setval(seq_name <span class="built_in">VARCHAR</span>(<span class="number">50</span>),<span class="keyword">value</span> <span class="built_in">INTEGER</span>) <span class="keyword">RETURNS</span> <span class="built_in">varchar</span>(<span class="number">64</span>) <span class="keyword">CHARSET</span> utf-<span class="number">8</span></span></div><div class="line">DETERMINISTIC</div><div class="line"><span class="keyword">BEGIN</span></div><div class="line"><span class="keyword">UPDATE</span> MYCAT_SEQUENCE</div><div class="line"><span class="keyword">SET</span> current_value = <span class="keyword">value</span></div><div class="line"><span class="keyword">WHERE</span> name = seq_name;</div><div class="line">RETURN mycat_seq_currval(seq_name);</div><div class="line"><span class="operator"><span class="keyword">END</span></span></div><div class="line">DELIMITER;</div><div class="line"><span class="comment">-- 获取下一个sequence值</span></div><div class="line"><span class="operator"><span class="keyword">DROP</span> <span class="keyword">FUNCTION</span> <span class="keyword">IF</span> <span class="keyword">EXISTS</span> mycat_seq_nextval;</span></div><div class="line">DELIMITER</div><div class="line"><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> mycat_seq_nextval(seq_name <span class="built_in">VARCHAR</span>(<span class="number">50</span>)) <span class="keyword">RETURNS</span> <span class="built_in">varchar</span>(<span class="number">64</span>) <span class="keyword">CHARSET</span> utf-<span class="number">8</span></span></div><div class="line">DETERMINISTIC</div><div class="line"><span class="keyword">BEGIN</span></div><div class="line"><span class="keyword">UPDATE</span> MYCAT_SEQUENCE</div><div class="line"><span class="keyword">SET</span> current_value = current_value + increment <span class="keyword">WHERE</span> name = seq_name;</div><div class="line">RETURN mycat_seq_currval(seq_name);</div><div class="line"><span class="operator"><span class="keyword">END</span></span></div><div class="line">DELIMITER;</div></pre></td></tr></table></figure></p>
+<p>其他采用默认配置即可。配置完成之后，重启 mycat 进程。如果配置成功，那么以下 sql 可以在 mycat 上运行成功，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">insert</span> <span class="keyword">into</span> person(name, school, age, addr, zcode, birth, score)</span></div><div class="line"><span class="keyword">values</span>(<span class="string">'qwertyuioasdfg'</span>, <span class="number">1000</span>, <span class="number">60</span>, <span class="string">'gz-tianhe'</span>, <span class="number">123323</span>, <span class="string">'20000131'</span>, <span class="number">100</span>);</div></pre></td></tr></table></figure></p>
+<h2>testtool 介绍</h2>
+<p>testtool 主要包含以下工具，</p>
+<ol>
+<li>test_globaltable_insert_perf.sh，全局表插入测试</li>
+<li>test_stand_merge_sel_perf.sh，分片表聚合查询测试</li>
+<li>test_stand_update_perf.sh，标准单表更新测试</li>
+<li>test_stand_insert_perf.sh，标准单表插入测试</li>
+<li>test_stand_select_perf.sh，标准单表查询测试</li>
+</ol>
+<p>本次测试主要使用的是单表测试工具，使用 testtool 需要先建立仿真测试文件，<code>person-insert.sql</code> 文件内容如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">total=4000</div><div class="line">sql=<span class="operator"><span class="keyword">insert</span> <span class="keyword">into</span> person(name, school, age, addr, zcode, birth, score) <span class="keyword">values</span>(<span class="string">'${char([a-f,0-9]8:10)}'</span>, ${<span class="built_in">int</span>(<span class="number">1</span>-<span class="number">1000</span>)}, ${</span></div><div class="line"><span class="built_in">int</span>(<span class="number">18</span>-<span class="number">60</span>)}, <span class="string">'${char([a-f]2:2)}-${char([a-f]4:29)}'</span>, ${<span class="built_in">int</span>(<span class="number">100000</span>-<span class="number">999999</span>)}, <span class="string">'${date(yyyyMMdd-[2000-2001]y)}'</span>, ${<span class="built_in">int</span>(<span class="number">0</span>-<span class="number">10</span></div><div class="line"><span class="number">0</span>)})</div></pre></td></tr></table></figure></p>
+<p>可以简单运行一下 testtool 予以验证，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./test_stand_insert_perf.sh <span class="symbol">jdbc:</span><span class="symbol">mysql:</span>/<span class="regexp">/workstation:8066/</span><span class="constant">TESTDB</span> test test  <span class="variable">$p</span>  <span class="string">"file=person-insert.sql"</span></div></pre></td></tr></table></figure></p>
+<p>如果运行不报错，说明测试工具可以正常使用。</p>
+<h2>测试脚本和监控工具</h2>
+<p>为了比对 mysql 单表和 mycat 分片不同情况下的对比，因此为此次测试编写了测试脚本，脚本如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="shebang">#!/bin/bash</span></div><div class="line"></div><div class="line"><span class="keyword">for</span> p <span class="keyword">in</span> $*;</div><div class="line"><span class="keyword">do</span> </div><div class="line"></div><div class="line">    <span class="built_in">echo</span> <span class="string">"========================================================================"</span></div><div class="line">    <span class="built_in">echo</span> <span class="string">"Step Size: <span class="variable">$p</span>"</span>;</div><div class="line"></div><div class="line">	mysql -hworkstation -Ddb1 -uroot -P3306 -p111111 <span class="operator">-e</span> <span class="string">"update MYCAT_SEQUENCE set increment = <span class="variable">$p</span> where name = 'PERSON';"</span></div><div class="line"></div><div class="line">	mysql -hreg-server -utest -DTESTDB -P8066 -ptest <span class="operator">-e</span> <span class="string">'create table person (</span></div><div class="line">	id bigint not null primary key, </div><div class="line">	name varchar(16), </div><div class="line">	school smallint, </div><div class="line">	age tinyint, </div><div class="line">	addr varchar(32), </div><div class="line">	zcode varchar(6), </div><div class="line">	birth DATE, </div><div class="line">	score tinyint);'</div><div class="line">	./test_stand_insert_perf.sh jdbc:mysql://reg-server:<span class="number">8066</span>/TESTDB test test  <span class="number">5</span>  <span class="string">"file=person-insert.sql"</span></div><div class="line">	mysql -hreg-server -utest -DTESTDB -P8066 -ptest <span class="operator">-e</span> <span class="string">'drop table person'</span></div><div class="line">	sleep <span class="number">5</span></div><div class="line"></div><div class="line"><span class="keyword">done</span></div></pre></td></tr></table></figure></p>
+<p>以上脚本放在 mycat 的 bin 目录下，可以如下使用，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./mycat-perf-test.sh <span class="number">10</span> <span class="number">100</span>  <span class="number">100010000</span> &gt; <span class="literal">result</span>.txt</div></pre></td></tr></table></figure></p>
+<p>表示，分别按10、100、1000、10000 为步长增加主键，并 mycat 进行插入数据测试，测试的输出写入 result.txt 文件中。每次执行插入之后，暂停5秒。</p>
+<p>监控工具采用Nmon<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>，监控参数如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./nmon_x86_64_ubuntu13 <span class="operator">-s</span> <span class="number">1</span> -c <span class="number">3600</span> <span class="operator">-f</span></div></pre></td></tr></table></figure></p>
+<p>每1秒监控一次，最多监控3600次。监控在安装 mysql 的 Ubuntu 服务器上进行。</p>
+<h2>监控结果</h2>
+<p>最终的 result.txt 内容如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div></pre></td><td class="code"><pre><div class="line">// 省略部分log</div><div class="line">========================================================================</div><div class="line">Step Size: 10</div><div class="line"><span class="operator"><span class="keyword">check</span> JAVA_HOME & java</span></div><div class="line"><span class="comment">---------set HOME_DIR------------</span></div><div class="line"><span class="keyword">create</span> jobs ...</div><div class="line">total record <span class="number">4000</span> batch <span class="keyword">size</span>:<span class="number">100</span> autocomit <span class="literal">false</span></div><div class="line">success ful created connections ,total :<span class="number">5</span></div><div class="line"><span class="keyword">create</span> jobs finished ,<span class="keyword">begin</span> run test...</div><div class="line">success <span class="keyword">create</span> job <span class="keyword">count</span>: <span class="number">5</span> teset threads: <span class="number">5</span></div><div class="line"><span class="number">06</span> <span class="number">15</span>:<span class="number">55</span>:<span class="number">20</span> finished records :<span class="number">0</span> failed:<span class="number">0</span> speed:<span class="number">0.0</span></div><div class="line">......</div><div class="line"><span class="number">06</span> <span class="number">15</span>:<span class="number">56</span>:<span class="number">18</span> finished records :<span class="number">3800</span> failed:<span class="number">0</span> speed:<span class="number">66.5918968176083</span></div><div class="line">finishend:<span class="number">4000</span> failed:<span class="number">0</span></div><div class="line">used <span class="keyword">time</span> total:<span class="number">58</span>seconds</div><div class="line">tps:<span class="number">68.84681583476764</span></div><div class="line">========================================================================</div><div class="line">Step <span class="keyword">Size</span>: <span class="number">100</span></div><div class="line"><span class="keyword">check</span> JAVA_HOME & java</div><div class="line"><span class="comment">---------set HOME_DIR------------</span></div><div class="line"><span class="keyword">create</span> jobs ...</div><div class="line">total record <span class="number">4000</span> batch <span class="keyword">size</span>:<span class="number">100</span> autocomit <span class="literal">false</span></div><div class="line">success ful created connections ,total :<span class="number">5</span></div><div class="line"><span class="keyword">create</span> jobs finished ,<span class="keyword">begin</span> run test...</div><div class="line">success <span class="keyword">create</span> job <span class="keyword">count</span>: <span class="number">5</span> teset threads: <span class="number">5</span></div><div class="line"><span class="number">06</span> <span class="number">15</span>:<span class="number">56</span>:<span class="number">26</span> finished records :<span class="number">0</span> failed:<span class="number">0</span> speed:<span class="number">0.0</span></div><div class="line">......</div><div class="line"><span class="number">06</span> <span class="number">15</span>:<span class="number">56</span>:<span class="number">52</span> finished records :<span class="number">3600</span> failed:<span class="number">0</span> speed:<span class="number">138.24884792626727</span></div><div class="line">finishend:<span class="number">4000</span> failed:<span class="number">0</span></div><div class="line">used <span class="keyword">time</span> total:<span class="number">27</span>seconds</div><div class="line">tps:<span class="number">147.60147601476015</span></div><div class="line">========================================================================</div><div class="line">Step <span class="keyword">Size</span>: <span class="number">1000</span></div><div class="line"><span class="keyword">check</span> JAVA_HOME & java</div><div class="line"><span class="comment">---------set HOME_DIR------------</span></div><div class="line"><span class="keyword">create</span> jobs ...</div><div class="line">total record <span class="number">4000</span> batch <span class="keyword">size</span>:<span class="number">100</span> autocomit <span class="literal">false</span></div><div class="line">success ful created connections ,total :<span class="number">5</span></div><div class="line"><span class="keyword">create</span> jobs finished ,<span class="keyword">begin</span> run test...</div><div class="line">success <span class="keyword">create</span> job <span class="keyword">count</span>: <span class="number">5</span> teset threads: <span class="number">5</span></div><div class="line"><span class="number">06</span> <span class="number">15</span>:<span class="number">57</span>:<span class="number">01</span> finished records :<span class="number">0</span> failed:<span class="number">0</span> speed:<span class="number">0.0</span></div><div class="line">......</div><div class="line"><span class="number">06</span> <span class="number">15</span>:<span class="number">57</span>:<span class="number">11</span> finished records :<span class="number">3500</span> failed:<span class="number">0</span> speed:<span class="number">349.23169028138096</span></div><div class="line">finishend:<span class="number">4000</span> failed:<span class="number">0</span></div><div class="line">used <span class="keyword">time</span> total:<span class="number">11</span>seconds</div><div class="line">tps:<span class="number">360.36036036036035</span></div><div class="line">========================================================================</div><div class="line">Step <span class="keyword">Size</span>: <span class="number">10000</span></div><div class="line"><span class="keyword">check</span> JAVA_HOME & java</div><div class="line"><span class="comment">---------set HOME_DIR------------</span></div><div class="line"><span class="keyword">create</span> jobs ...</div><div class="line">total record <span class="number">4000</span> batch <span class="keyword">size</span>:<span class="number">100</span> autocomit <span class="literal">false</span></div><div class="line">success ful created connections ,total :<span class="number">5</span></div><div class="line"><span class="keyword">create</span> jobs finished ,<span class="keyword">begin</span> run test...</div><div class="line">success <span class="keyword">create</span> job <span class="keyword">count</span>: <span class="number">5</span> teset threads: <span class="number">5</span></div><div class="line"><span class="number">06</span> <span class="number">15</span>:<span class="number">57</span>:<span class="number">19</span> finished records :<span class="number">0</span> failed:<span class="number">0</span> speed:<span class="number">0.0</span></div><div class="line">......</div><div class="line"><span class="number">06</span> <span class="number">15</span>:<span class="number">57</span>:<span class="number">31</span> finished records :<span class="number">3600</span> failed:<span class="number">0</span> speed:<span class="number">299.2269969246114</span></div><div class="line">finishend:<span class="number">4000</span> failed:<span class="number">0</span></div><div class="line">used <span class="keyword">time</span> total:<span class="number">13</span>seconds</div><div class="line">tps:<span class="number">305.3435114503817</span></div></pre></td></tr></table></figure></p>
+<p>可以发现，随着 step 的增大，tps在显著增长；但是在 step 增大到一定范围的时候，tps 不再有显著增长。原因是，由于自增的 sequence 是在表中存放的，每次插入数据的时候，取序号都受到这张表的访问速度限制。所以，在 step 比较小的时候，访问表的次数较多，因此 tps 比较低；在 step 比较大的时候，访问表的次数较少，因此 tps 比较高；在 step 超过一定值之后，访问表的次数已经很少，因此 tps 的值不再有显著变化。</p>
+<div class="footnotes">
+<hr>
+<ol>
+<li id="fn1"><p><a href="http://blog.yemou.net/article/query/info/tytfjhfascvhzxcyt332" target="_blank" rel="external">http://blog.yemou.net/article/query/info/tytfjhfascvhzxcyt332</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://www.2cto.com/os/201412/357145.html" target="_blank" rel="external">http://www.2cto.com/os/201412/357145.html</a><a href="#fnref2">↩</a></p></li>
+</ol>
+</div>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/MyCAT/">MyCAT</a><a href="/tags/Dataguru/">Dataguru</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/MyCAT/">MyCAT</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://valleylord.github.io/post/201603-mycat-perf-test/" data-title="MyCAT 性能测试 | 褚哥说|" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/post/201603-kubernetes-roll/" title="Kubernetes 滚动升级">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  Kubernetes 滚动升级</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/post/201602-kubernetes-install/"  title="Kubernetes 安装（Centos环境）">
+ <strong>NEXT:</strong><br/> 
+ <span>Kubernetes 安装（Centos环境）
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+      
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">环境介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">建立测试表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">testtool 介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">测试脚本和监控工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">监控结果</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	
+	<section class="author-info">
+		
+			<p> 欢迎来到Valleylord的博客！</p>
+		
+		
+			<p>	本博的文章尽量原创。</p>
+		
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/http://weibo.com/valleylord" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/https://github.com/valleylord" target="_blank" title="github"></a>
+		
+		
+	</div>
+</div>
+<aside class="clearfix">
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kubernetes/" title="Kubernetes">Kubernetes<sup>4</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>6</sup></a></li>
+		
+			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>49</sup></a></li>
+		
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>4</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MyCAT/" title="MyCAT">MyCAT<sup>6</sup></a></li>
+		
+			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/tags/Quantmod/" title="Quantmod">Quantmod<sup>3</sup></a></li>
+		
+			<li><a href="/tags/R/" title="R">R<sup>3</sup></a></li>
+		
+			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/SICP/" title="SICP">SICP<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Tomcat/" title="Tomcat">Tomcat<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Translation/" title="Translation">Translation<sup>2</sup></a></li>
+		
+			<li><a href="/tags/boost/" title="boost">boost<sup>1</sup></a></li>
+		
+			<li><a href="/tags/quantlib/" title="quantlib">quantlib<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 12.22px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 15.56px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 16.67px;">JVM</a><a href="/tags/Java/" style="font-size: 17.78px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.33px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 14.44px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.89px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.22px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.22px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.11px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.11px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.11px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
+    </div>
+  </div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <!--
+      <li><a href="http://yangjian.me" target="_blank" title="YangJian">Alimon's Blog</a></li>
+      <li><a href="http://zespia.tw/hexo" target="_blank" title="Hexo">Hexo</a></li>
+      -->
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  //back to top
+  function backToTop(){
+    var buttonHTML = $("<a href=\"#top\" id=\"back-top\">" + "<span>Back to Top</span></a>");
+    buttonHTML.appendTo($("body"));
+    var buttonToTop = $("#back-top");
+    // hide #back-top first
+    buttonToTop.hide();
+
+    // fade in #back-top
+    $(function() {
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                buttonToTop.fadeIn();
+            } else {
+                buttonToTop.fadeOut();
+            }
+        });
+        // scroll body to 0px on click
+        buttonToTop.click(function() {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+            return false;
+        });
+    });
+  }
+  backToTop();
+
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      ta = $('#toc.toc-aside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+
+  var show = true;
+  c.click(function(){
+    if(show == true){
+        a.addClass('fadeOut').css('display', 'none');
+        ta.css('display', 'block').addClass('fadeIn');
+        m.addClass('moveMain');  
+    }else{
+        a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');     
+        ta.css('display', 'none'); 
+        m.removeClass('moveMain');
+        $('#toc.toc-aside').css('display', 'none');
+    }
+    show = !show;
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,240-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>

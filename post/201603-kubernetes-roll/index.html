@@ -1,0 +1,530 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Kubernetes 滚动升级 | 褚哥说|</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Valleylord">
+    
+    <meta name="description" content="本文使用的《Kubernetes 权威指南》中的例子。
+镜像介绍
+本文搭建的系统是一个留言板系统，使用的 docker 镜像是《Kubernetes 权威指南》中提供的，托管在 docker.io 上。如下，
+123456[root@Centos-L410]~arnes/kubernetes# do">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="褚哥说|" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/author.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/author.jpg">
+    
+
+	
+	<link href="http://cdn.bootcss.com/highlight.js/8.2/styles/monokai.min.css" rel="stylesheet">
+	<script src="http://cdn.bootcss.com/highlight.js/8.2/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+	
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="褚哥说|">褚哥说|</a></h1>
+				<h2 class="blog-motto">我想写一些东西</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul><li> <a href="/atom.xml">RSS</a> </li>
+                    <ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/tags">标签</a></li>
+					
+						<li><a href="/links">链接</a></li>
+					
+						<li><a href="http://www.cnblogs.com/valleylord/">旧文</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					</li>
+                <li><div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div></li>
+
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container" class="clearfix">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/post/201603-kubernetes-roll/" title="Kubernetes 滚动升级" itemprop="url">Kubernetes 滚动升级</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-03-06T08:22:26.000Z" itemprop="datePublished">2016-03-06</time>
+    更新日期:<time datetime="2016-03-06T12:13:49.639Z" itemprop="dateModified">2016-03-06</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">镜像介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">Kubernetes 集群搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">Kubernetes 集群搭建验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">Pod 缩放和扩容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">应用的滚动升级</span></a></li></ol>
+		</div>
+		
+		<p>本文使用的《Kubernetes 权威指南》中的例子。</p>
+<h2>镜像介绍</h2>
+<p>本文搭建的系统是一个留言板系统，使用的 docker 镜像是《Kubernetes 权威指南》中提供的，托管在 docker.io 上。如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">[root@Centos-L410]~arnes/kubernetes# docker search kubeguide</div><div class="line">INDEX       NAME                                         DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED</div><div class="line">docker.<span class="built_in">io</span>   docker.<span class="built_in">io</span>/kubeguide/redis-master             redis-master with <span class="string">"Hello World!"</span>                <span class="number">3</span>                    </div><div class="line">docker.<span class="built_in">io</span>   docker.<span class="built_in">io</span>/kubeguide/centos7-ansible          ansible with sshpass tool installed <span class="keyword">and</span> ss...   <span class="number">2</span>                    </div><div class="line">docker.<span class="built_in">io</span>   docker.<span class="built_in">io</span>/kubeguide/guestbook-php-frontend   Guestbook PHP website                           <span class="number">2</span>                    </div><div class="line">docker.<span class="built_in">io</span>   docker.<span class="built_in">io</span>/kubeguide/guestbook-redis-slave    Guestbook redis slave                           <span class="number">2</span></div></pre></td></tr></table></figure></p>
+<p>除了 <code>centos7-ansible</code> 镜像，其他3个镜像会在本例中用到。该留言板系统使用 php 搭建，使用 redis 作为存储，redis 使用一主多备。</p>
+<h2>Kubernetes 集群搭建</h2>
+<p>先定义 redis-master 的 Pod 和 Service，redis-master 的 RC <code>redis-master-rc.yaml</code> 如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">apiVersion: v1</div><div class="line">kind: <span class="type">ReplicationController</span></div><div class="line">metadata:</div><div class="line">  name: redis-master</div><div class="line">  labels:</div><div class="line">    name: redis-master</div><div class="line">spec:</div><div class="line">  replicas: <span class="number">1</span></div><div class="line">  selector:</div><div class="line">    name: redis-master</div><div class="line">    version: v1</div><div class="line">  <span class="keyword">template</span>:</div><div class="line">    metadata:</div><div class="line">      labels:</div><div class="line">        name: redis-master</div><div class="line">        version: v1</div><div class="line">    spec:</div><div class="line">      containers:</div><div class="line">      - name: master</div><div class="line">        image: kubeguide/redis-master:<span class="number">1</span>.<span class="number">0</span></div><div class="line">        ports:</div><div class="line">        - containerPort: <span class="number">6379</span></div></pre></td></tr></table></figure></p>
+<p>redis-master 的 Service <code>redis-master-service.yaml</code> 如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="label">apiVersion:</span> v1</div><div class="line"><span class="label">kind:</span> Service</div><div class="line"><span class="label">metadata:</span></div><div class="line">  name: redis-master</div><div class="line">  labels:</div><div class="line">    name: redis-master</div><div class="line"><span class="label">spec:</span></div><div class="line">  ports:</div><div class="line">  - port: <span class="number">6379</span></div><div class="line">    targetPort: <span class="number">6379</span></div><div class="line">  selector:</div><div class="line">    name: redis-master</div></pre></td></tr></table></figure></p>
+<p>再定义 redis-slave 的 Pod 和 Service，redis-slave 的 RC <code>redis-slave-rc.yaml</code> 如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">apiVersion: v1</div><div class="line">kind: <span class="type">ReplicationController</span></div><div class="line">metadata:</div><div class="line">  name: redis-slave</div><div class="line">  labels:</div><div class="line">    name: redis-slave</div><div class="line">spec:</div><div class="line">  replicas: <span class="number">2</span></div><div class="line">  selector:</div><div class="line">    name: redis-slave</div><div class="line">  <span class="keyword">template</span>:</div><div class="line">    metadata:</div><div class="line">      labels:</div><div class="line">        name: redis-slave</div><div class="line">    spec:</div><div class="line">      containers:</div><div class="line">      - name: slave</div><div class="line">        image: kubeguide/guestbook-redis-slave</div><div class="line">        env:</div><div class="line">        - name: <span class="type">GET_HOSTS_FROM</span></div><div class="line">          value: env</div><div class="line">        ports:</div><div class="line">        - containerPort: <span class="number">6379</span></div></pre></td></tr></table></figure></p>
+<p>redis-slave 的 Service <code>redis-slave-service.yaml</code> 如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="label">apiVersion:</span> v1</div><div class="line"><span class="label">kind:</span> Service</div><div class="line"><span class="label">metadata:</span></div><div class="line">  name: redis-slave</div><div class="line">  labels:</div><div class="line">    name: redis-slave</div><div class="line"><span class="label">spec:</span></div><div class="line">  ports:</div><div class="line">  - port: <span class="number">6379</span></div><div class="line">  selector:</div><div class="line">    name: redis-slave</div></pre></td></tr></table></figure></p>
+<p>最后定义 php 的 Pod 和 Service，php 的 RC <code>frontend-rc.yaml</code> 如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">piVersion: v1</div><div class="line">kind: <span class="type">ReplicationController</span></div><div class="line">metadata:</div><div class="line">  name: frontend</div><div class="line">  labels:</div><div class="line">    name: frontend</div><div class="line">spec:</div><div class="line">  replicas: <span class="number">3</span></div><div class="line">  selector:</div><div class="line">    name: frontend</div><div class="line">  <span class="keyword">template</span>:</div><div class="line">    metadata:</div><div class="line">      labels:</div><div class="line">        name: frontend</div><div class="line">    spec:</div><div class="line">      containers:</div><div class="line">      - name: frontend</div><div class="line">        image: kubeguide/guestbook-php-frontend</div><div class="line">        env:</div><div class="line">        - name: <span class="type">GET_HOSTS_FROM</span></div><div class="line">          value: env</div><div class="line">        ports:</div><div class="line">        - containerPort: <span class="number">80</span></div></pre></td></tr></table></figure></p>
+<p>php 的 Service <code>frontend-service.yaml</code> 如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="label">apiVersion:</span> v1</div><div class="line"><span class="label">kind:</span> Service</div><div class="line"><span class="label">metadata:</span></div><div class="line">  name: frontend</div><div class="line">  labels:</div><div class="line">    name: frontend</div><div class="line"><span class="label">spec:</span></div><div class="line">  type: NodePort</div><div class="line">  ports:</div><div class="line">  - port: <span class="number">80</span></div><div class="line">    nodePort: <span class="number">30001</span></div><div class="line">  selector:</div><div class="line">    name: frontend</div></pre></td></tr></table></figure></p>
+<p>创建这些 Service 和 Pod 只需要依次运行以下命令即可，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">kubectl <span class="operator"><span class="keyword">create</span> -f redis-<span class="keyword">master</span>-rc.yaml</span></div><div class="line">kubectl <span class="keyword">create</span> -f redis-<span class="keyword">master</span>-service.yaml</div><div class="line">kubectl <span class="keyword">create</span> -f redis-<span class="keyword">slave</span>-rc.yaml</div><div class="line">kubectl <span class="keyword">create</span> -f redis-<span class="keyword">slave</span>-service.yaml</div><div class="line">kubectl <span class="keyword">create</span> -f frontend-rc.yaml</div><div class="line">kubectl <span class="keyword">create</span> -f frontend-service.yaml</div></pre></td></tr></table></figure></p>
+<blockquote>
+<p>注意，redis-slave 和 redis-master 镜像的不同主要体现在启动命令的不同，redis-slave 使用 <code>redis-server --slaveof ${REDIS_MASTER_SERVICE_HOST} 6379</code>来启动。</p>
+</blockquote>
+<h2>Kubernetes 集群搭建验证</h2>
+<p>如果搭建正常，可以看到类似以下的输出，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">[root@Centos-L410]~arnes/project/kubernetes-roll<span class="comment"># kubectl get pods                  </span></div><div class="line">NAME                 READY     STATUS    RESTARTS   AGE</div><div class="line">frontend-<span class="number">2</span>qzcj       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">1</span>m</div><div class="line">frontend<span class="operator">-f</span>0cb6       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">1</span>m</div><div class="line">frontend-ubedy       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">1</span>m</div><div class="line">redis-master-<span class="number">28</span>uug   <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">13</span>m</div><div class="line">redis-slave-<span class="number">3</span>etxv    <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">2</span>m</div><div class="line">redis-slave-spf75    <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">2</span>m</div><div class="line">[root@Centos-L410]~arnes/project/kubernetes-roll<span class="comment"># kubectl get services                      </span></div><div class="line">NAME           CLUSTER_IP      EXTERNAL_IP   PORT(S)    SELECTOR            AGE</div><div class="line">frontend       <span class="number">10.254</span>.<span class="number">49.190</span>   nodes         <span class="number">80</span>/TCP     name=frontend       <span class="number">35</span>s</div><div class="line">kubernetes     <span class="number">10.254</span>.<span class="number">0.1</span>      &lt;none&gt;        <span class="number">443</span>/TCP    &lt;none&gt;              <span class="number">7</span>d</div><div class="line">redis-master   <span class="number">10.254</span>.<span class="number">35.174</span>   &lt;none&gt;        <span class="number">6379</span>/TCP   name=redis-master   <span class="number">12</span>m</div><div class="line">redis-slave    <span class="number">10.254</span>.<span class="number">32.178</span>   &lt;none&gt;        <span class="number">6379</span>/TCP   name=redis-slave    <span class="number">2</span>m</div><div class="line">[root@Centos-L410]~arnes/project/kubernetes-roll<span class="comment"># docker ps</span></div><div class="line">CONTAINER ID        IMAGE                                                        COMMAND                  CREATED              STATUS              PORTS               NAMES</div><div class="line"><span class="number">635</span>ea3d0181f        kubeguide/guestbook-php-frontend                             <span class="string">"apache2-foreground"</span>     About a minute ago   Up About a minute                       k8s_frontend.<span class="number">34</span>ee268e_frontend-<span class="number">2</span>qzcj_default_9ce06947<span class="operator">-e</span>384-<span class="number">11</span>e5<span class="operator">-a</span>10f-c80aa9c034dc_ec302c6b</div><div class="line"><span class="number">20</span>a3b593e158        kubeguide/guestbook-php-frontend                             <span class="string">"apache2-foreground"</span>     About a minute ago   Up About a minute                       k8s_frontend.<span class="number">34</span>ee268e_frontend-ubedy_default_9ce06115<span class="operator">-e</span>384-<span class="number">11</span>e5<span class="operator">-a</span>10f-c80aa9c034dc_caf3ba3b</div><div class="line"><span class="number">789</span>a1d419315        kubeguide/guestbook-php-frontend                             <span class="string">"apache2-foreground"</span>     About a minute ago   Up About a minute                       k8s_frontend.<span class="number">34</span>ee268e_frontend<span class="operator">-f</span>0cb6_default_9cdffcd7<span class="operator">-e</span>384-<span class="number">11</span>e5<span class="operator">-a</span>10f-c80aa9c034dc_53183bf4</div><div class="line"><span class="number">627531</span>a72664        registry.access.redhat.com/rhel7/pod-infrastructure:latest   <span class="string">"/pod"</span>                   About a minute ago   Up About a minute                       k8s_POD.c36b0a77_frontend-ubedy_default_9ce06115<span class="operator">-e</span>384-<span class="number">11</span>e5<span class="operator">-a</span>10f-c80aa9c034dc_11c886e6</div><div class="line"><span class="number">217</span>e25b56c9e        registry.access.redhat.com/rhel7/pod-infrastructure:latest   <span class="string">"/pod"</span>                   About a minute ago   Up About a minute                       k8s_POD.c36b0a77_frontend-<span class="number">2</span>qzcj_default_9ce06947<span class="operator">-e</span>384-<span class="number">11</span>e5<span class="operator">-a</span>10f-c80aa9c034dc_89b18d65</div><div class="line"><span class="number">70</span>f93bcc4da7        registry.access.redhat.com/rhel7/pod-infrastructure:latest   <span class="string">"/pod"</span>                   About a minute ago   Up About a minute                       k8s_POD.c36b0a77_frontend<span class="operator">-f</span>0cb6_default_9cdffcd7<span class="operator">-e</span>384-<span class="number">11</span>e5<span class="operator">-a</span>10f-c80aa9c034dc_f3710ab7</div><div class="line"><span class="number">672</span>cdc93fc3f        kubeguide/guestbook-redis-slave                              <span class="string">"/entrypoint.sh /bin/"</span>   <span class="number">2</span> minutes ago        Up <span class="number">2</span> minutes                            k8s_slave.<span class="number">6</span>a232544_redis-slave-<span class="number">3</span>etxv_default_6a74487e<span class="operator">-e</span>384-<span class="number">11</span>e5<span class="operator">-a</span>10f-c80aa9c034dc_69ad2ac7</div><div class="line">ccc447a1c80b        kubeguide/guestbook-redis-slave                              <span class="string">"/entrypoint.sh /bin/"</span>   <span class="number">2</span> minutes ago        Up <span class="number">2</span> minutes                            k8s_slave.<span class="number">6</span>a232544_redis-slave-spf75_default_6a7456a7<span class="operator">-e</span>384-<span class="number">11</span>e5<span class="operator">-a</span>10f-c80aa9c034dc_a937374a</div><div class="line"><span class="number">02</span>e4cc97f365        registry.access.redhat.com/rhel7/pod-infrastructure:latest   <span class="string">"/pod"</span>                   <span class="number">2</span> minutes ago        Up <span class="number">2</span> minutes                            k8s_POD.<span class="number">4</span>f810ae8_redis-slave-<span class="number">3</span>etxv_default_6a74487e<span class="operator">-e</span>384-<span class="number">11</span>e5<span class="operator">-a</span>10f-c80aa9c034dc_d8416c26</div><div class="line"><span class="number">72463</span>f2a2d15        registry.access.redhat.com/rhel7/pod-infrastructure:latest   <span class="string">"/pod"</span>                   <span class="number">2</span> minutes ago        Up <span class="number">2</span> minutes                            k8s_POD.<span class="number">4</span>f810ae8_redis-slave-spf75_default_6a7456a7<span class="operator">-e</span>384-<span class="number">11</span>e5<span class="operator">-a</span>10f-c80aa9c034dc_d9d627a5</div><div class="line">e3f31eaa0164        kubeguide/redis-master:<span class="number">1.0</span>                                   <span class="string">"redis-server /etc/re"</span>   <span class="number">13</span> minutes ago       Up <span class="number">13</span> minutes                           k8s_master.b7750720_redis-master-<span class="number">28</span>uug_default_eb715755<span class="operator">-e</span>382-<span class="number">11</span>e5<span class="operator">-a</span>10f-c80aa9c034dc_b4d36e11</div><div class="line">eaabc381aa3a        registry.access.redhat.com/rhel7/pod-infrastructure:latest   <span class="string">"/pod"</span>                   <span class="number">13</span> minutes ago       Up <span class="number">13</span> minutes                           k8s_POD.<span class="number">4</span>f810ae8_redis-master-<span class="number">28</span>uug_default_eb715755<span class="operator">-e</span>382-<span class="number">11</span>e5<span class="operator">-a</span>10f-c80aa9c034dc_16f151f1</div></pre></td></tr></table></figure></p>
+<p>可以使用 curl 命令来查看是否已经搭建成功，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">$ curl 192.168.2.202:30001 </div><div class="line"><span class="tag">&lt;<span class="title">html</span> <span class="attribute">ng-app</span>=<span class="value">"redis"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="title">head</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="title">title</span>&gt;</span>Guestbook<span class="tag">&lt;/<span class="title">title</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="title">link</span> <span class="attribute">rel</span>=<span class="value">"stylesheet"</span> <span class="attribute">href</span>=<span class="value">"//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"https://ajax.googleapis.com/ajax/libs/angularjs/1.2.12/angular.min.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"controllers.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.13.0/ui-bootstrap-tpls.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="title">head</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="title">body</span> <span class="attribute">ng-controller</span>=<span class="value">"RedisCtrl"</span>&gt;</span></div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>也可以用浏览器登陆 <code>http://192.168.2.202:30001/</code>，可以看到如下网页，</p>
+<p><img src="/images/201603-kubernetes-roll/kubernetes-roll-cluster-test.png"></p>
+<h2>Pod 缩放和扩容</h2>
+<p>可以使用 <code>kubectl scale</code> 命令来控制副本数量，以实现 Pod 的缩放和扩容。例如，要将 redis-slave 的副本数由最初的2更新为1，以节约系统资源，可以如下操作，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">[root<span class="variable">@Centos</span>-L410]~arnes/project/kubernetes-<span class="keyword">roll</span># kubectl <span class="keyword">scale</span> rc redis-slave --replicas=<span class="number">1</span></div><div class="line">replicationcontroller <span class="string">"redis-slave"</span> scaled</div><div class="line">[root<span class="variable">@Centos</span>-L410]~arnes/project/kubernetes-<span class="keyword">roll</span># kubectl get pods                         </div><div class="line">NAME                 READY     STATUS        RESTARTS   AGE</div><div class="line">frontend-<span class="number">2</span>qzcj       <span class="number">1</span>/<span class="number">1</span>       Running       <span class="number">0</span>          <span class="number">17</span>m</div><div class="line">frontend-f0cb6       <span class="number">1</span>/<span class="number">1</span>       Running       <span class="number">0</span>          <span class="number">17</span>m</div><div class="line">frontend-ubedy       <span class="number">1</span>/<span class="number">1</span>       Running       <span class="number">0</span>          <span class="number">17</span>m</div><div class="line">redis-master-<span class="number">28</span>uug   <span class="number">1</span>/<span class="number">1</span>       Running       <span class="number">0</span>          <span class="number">29</span>m</div><div class="line">redis-slave-<span class="number">3</span>etxv    <span class="number">1</span>/<span class="number">1</span>       Running       <span class="number">0</span>          <span class="number">18</span>m</div><div class="line">redis-slave-spf75    <span class="number">1</span>/<span class="number">1</span>       Terminating   <span class="number">0</span>          <span class="number">18</span>m</div><div class="line">[root<span class="variable">@Centos</span>-L410]~arnes/project/kubernetes-<span class="keyword">roll</span># kubectl get pods</div><div class="line">NAME                 READY     STATUS    RESTARTS   AGE</div><div class="line">frontend-<span class="number">2</span>qzcj       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">17</span>m</div><div class="line">frontend-f0cb6       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">17</span>m</div><div class="line">frontend-ubedy       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">17</span>m</div><div class="line">redis-master-<span class="number">28</span>uug   <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">29</span>m</div><div class="line">redis-slave-<span class="number">3</span>etxv    <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">19</span>m</div></pre></td></tr></table></figure></p>
+<p>可以看到，过了一段时间之后，redis-slave 的副本数已经降为1。如果要将 redis-slave 扩容以适应更大的业务需求，例如，将副本数更新为3，可以如下操作，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">[root<span class="variable">@Centos</span>-L410]~arnes/project/kubernetes-<span class="keyword">roll</span># kubectl <span class="keyword">scale</span> rc redis-slave --replicas=<span class="number">3</span></div><div class="line">replicationcontroller <span class="string">"redis-slave"</span> scaled</div><div class="line">[root<span class="variable">@Centos</span>-L410]~arnes/project/kubernetes-<span class="keyword">roll</span># kubectl get pods                         </div><div class="line">NAME                 READY     STATUS    RESTARTS   AGE</div><div class="line">frontend-<span class="number">2</span>qzcj       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">20</span>m</div><div class="line">frontend-f0cb6       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">20</span>m</div><div class="line">frontend-ubedy       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">20</span>m</div><div class="line">redis-master-<span class="number">28</span>uug   <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">32</span>m</div><div class="line">redis-slave-<span class="number">3</span>etxv    <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">22</span>m</div><div class="line">redis-slave-<span class="number">6</span>ib0f    <span class="number">0</span>/<span class="number">1</span>       Pending   <span class="number">0</span>          <span class="number">5</span>s</div><div class="line">redis-slave-bimjq    <span class="number">0</span>/<span class="number">1</span>       Pending   <span class="number">0</span>          <span class="number">5</span>s</div><div class="line">[root<span class="variable">@Centos</span>-L410]~arnes/project/kubernetes-<span class="keyword">roll</span># kubectl get pods</div><div class="line">NAME                 READY     STATUS    RESTARTS   AGE</div><div class="line">frontend-<span class="number">2</span>qzcj       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">21</span>m</div><div class="line">frontend-f0cb6       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">21</span>m</div><div class="line">frontend-ubedy       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">21</span>m</div><div class="line">redis-master-<span class="number">28</span>uug   <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">33</span>m</div><div class="line">redis-slave-<span class="number">3</span>etxv    <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">22</span>m</div><div class="line">redis-slave-<span class="number">6</span>ib0f    <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">24</span>s</div><div class="line">redis-slave-bimjq    <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">24</span>s</div></pre></td></tr></table></figure></p>
+<h2>应用的滚动升级</h2>
+<p>如果系统中的一个服务需要升级，就需要停止该服务的所有 Pod，并用新的镜像创建容器并启动。如果该集群比较大，这个工作量就非常巨大，而且会可能引起服务中断。Kubernetes 提供了滚动升级来解决上述问题。滚动升级可以逐步替换其中的 Pod，并在升级的过程中用新的 Pod 逐步对外提供服务。</p>
+<p>假设上述的 redis-master 发生了更新，新的镜像来自 <code>redis-master:latest</code>，新的 RC 文件 <code>redis-master-rc-v2.yaml</code> 如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">apiVersion: v1</div><div class="line">kind: <span class="type">ReplicationController</span></div><div class="line">metadata:</div><div class="line">  name: redis-master-v2</div><div class="line">  labels:</div><div class="line">    name: redis-master</div><div class="line">    version: v2</div><div class="line">spec:</div><div class="line">  replicas: <span class="number">1</span></div><div class="line">  selector:</div><div class="line">    name: redis-master</div><div class="line">    version: v2</div><div class="line">  <span class="keyword">template</span>:</div><div class="line">    metadata:</div><div class="line">      labels:</div><div class="line">        name: redis-master</div><div class="line">        version: v2</div><div class="line">    spec:</div><div class="line">      containers:</div><div class="line">      - name: master</div><div class="line">        image: kubeguide/redis-master:latest</div><div class="line">        ports:</div><div class="line">        - containerPort: <span class="number">6379</span></div></pre></td></tr></table></figure></p>
+<p>然后，即可开始滚动升级，使用如下命令，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">[root@Centos-L410]~arnes/project/kubernetes-roll<span class="preprocessor"># kubectl rolling-update redis-master -f redis-master-rc-v2.yaml</span></div><div class="line">Created redis-master-v2</div><div class="line">Scaling up redis-master-v2 <span class="keyword">from</span> <span class="number">0</span> <span class="keyword">to</span> <span class="number">1</span>, scaling down redis-master <span class="keyword">from</span> <span class="number">1</span> <span class="keyword">to</span> <span class="number">0</span> (keep <span class="number">1</span> pods available, don<span class="comment">'t exceed 2 pods)</span></div><div class="line">Scaling redis-master-v2 up <span class="keyword">to</span> <span class="number">1</span></div><div class="line">Scaling redis-master down <span class="keyword">to</span> <span class="number">0</span></div><div class="line">Update succeeded. Deleting redis-master</div><div class="line">replicationcontroller <span class="string">"redis-master"</span> rolling updated <span class="keyword">to</span> <span class="string">"redis-master-v2"</span></div><div class="line">[root@Centos-L410]~arnes/project/kubernetes-roll<span class="preprocessor"># kubectl get pods                                              </span></div><div class="line">NAME                    READY     STATUS    RESTARTS   AGE</div><div class="line">frontend-<span class="number">2</span>qzcj          <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">1</span>h</div><div class="line">frontend-f0cb6          <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">1</span>h</div><div class="line">frontend-ubedy          <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">1</span>h</div><div class="line">redis-master-v2-o3pfb   <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">1</span>m</div><div class="line">redis-slave-<span class="number">2</span>gupi       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">1</span>m</div><div class="line">redis-slave-cfj8j       <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">1</span>m</div></pre></td></tr></table></figure></p>
+<p>运行完成之后，可以发现，Pod已经完成替换。实际的替换过程是，先建立一个新的 Pod，然后再删除原先的 Pod，并用新的 Pod 开始提供服务。在运行的过程中发现一个error，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">[root@Centos-L410]~arnes/project/kubernetes-roll# kubectl rolling-<span class="operator"><span class="keyword">update</span> redis-<span class="keyword">master</span> -f redis-<span class="keyword">master</span>-rc-v2.yaml </span></div><div class="line">error: redis-<span class="keyword">master</span>-rc-v2.yaml must specify a matching <span class="keyword">key</span> <span class="keyword">with</span> non-equal <span class="keyword">value</span> <span class="keyword">in</span> Selector <span class="keyword">for</span> redis-<span class="keyword">master</span></div><div class="line">See <span class="string">'kubectl rolling-update -h'</span> <span class="keyword">for</span> <span class="keyword">help</span> <span class="keyword">and</span> examples.</div></pre></td></tr></table></figure></p>
+<p>这个问题从报错信息上看，是因为 redis-master-v2 中的 selector 中的元素与 redis-master 中一致造成的，而实际上，我最初的配置是不一样的，redis-master-v2 中配置的是 <code>name: redis-master   version: v2</code>，两个；redis-master 中配置的是 <code>name: redis-master</code>，只有1个。 因此，不应该认为是一样的。细节上来看，有文章<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>提到了相关代码，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> oldName == newRc.Name {</div><div class="line">	<span class="keyword">return</span> cmdutil.UsageError(cmd, <span class="string">"%s cannot have the same name as the existing ReplicationController %s"</span>,</div><div class="line">		filename, oldName)</div><div class="line">}</div><div class="line"></div><div class="line">updater := kubectl.NewRollingUpdater(newRc.Namespace, client)</div><div class="line"></div><div class="line"><span class="comment">// To successfully pull off a rolling update the new and old rc have to differ</span></div><div class="line"><span class="comment">// by at least one selector. Every new pod should have the selector and every</span></div><div class="line"><span class="comment">// old pod should not have the selector.</span></div><div class="line"><span class="keyword">var</span> hasLabel <span class="typename">bool</span></div><div class="line"><span class="keyword">for</span> key, oldValue := <span class="keyword">range</span> oldRc.Spec.Selector {</div><div class="line">	<span class="keyword">if</span> newValue, ok := newRc.Spec.Selector[key]; ok && newValue != oldValue {</div><div class="line">		hasLabel = <span class="constant">true</span></div><div class="line">		<span class="keyword">break</span></div><div class="line">	}</div><div class="line">}</div><div class="line"><span class="keyword">if</span> !hasLabel {</div><div class="line">	<span class="keyword">return</span> cmdutil.UsageError(cmd, <span class="string">"%s must specify a matching key with non-equal value in Selector for %s"</span>,</div><div class="line">		filename, oldName)</div><div class="line">}</div></pre></td></tr></table></figure></p>
+<p>上述代码在 <code>/pkg/kubectl/cmd/cmd.go</code> 的281~301行，对于新的rc和旧的rc，有2项限制，一个是新旧名字需要不同，另一个是rc的selector中需要至少有一项的值不一样。但是，代码的逻辑只判断了旧的 rc 中的条目，并没有检查新的 rc 多出来的条目，感觉这应该是一个bug。</p>
+<p>也可以使用更简单的命令来升级，只需要指定新的镜像即可，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">[root@Centos-L410]/home/arnes/project/kubernetes-roll<span class="comment"># kubectl rolling-update redis-master --image=kubeguide/redis-master:latest</span></div><div class="line">Created redis-master-<span class="number">48</span>ec5825c021205af16519fb67fa2b1d</div><div class="line">Scaling up redis-master-<span class="number">48</span>ec5825c021205af16519fb67fa2b1d <span class="keyword">from</span> <span class="number">0</span> <span class="keyword">to</span> <span class="number">1</span>, scaling down redis-master <span class="keyword">from</span> <span class="number">1</span> <span class="keyword">to</span> <span class="number">0</span> (keep <span class="number">1</span> pods available, don't exceed <span class="number">2</span> pods)</div><div class="line">Scaling redis-master-<span class="number">48</span>ec5825c021205af16519fb67fa2b1d up <span class="keyword">to</span> <span class="number">1</span></div><div class="line">Scaling redis-master down <span class="keyword">to</span> <span class="number">0</span></div><div class="line">Update succeeded. Deleting old controller: redis-master</div><div class="line">Renaming redis-master-<span class="number">48</span>ec5825c021205af16519fb67fa2b1d <span class="keyword">to</span> redis-master</div><div class="line">replicationcontroller <span class="string">"redis-master"</span> rolling updated</div><div class="line">[root@Centos-L410]/home/arnes/project/kubernetes-roll<span class="comment"># kubectl get pods                                                         </span></div><div class="line">NAME                                                  READY     STATUS    RESTARTS   AGE</div><div class="line">frontend-<span class="number">2</span>qzcj                                        <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">1</span>h</div><div class="line">frontend-f0cb6                                        <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">1</span>h</div><div class="line">frontend-ubedy                                        <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">1</span>h</div><div class="line">redis-master-<span class="number">48</span>ec5825c021205af16519fb67fa2b1d-<span class="number">61</span>kj1   <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">3</span>m</div><div class="line">redis-slave-<span class="number">2</span>gupi                                     <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">37</span>m</div><div class="line">redis-slave-cfj8j                                     <span class="number">1</span>/<span class="number">1</span>       Running   <span class="number">0</span>          <span class="number">37</span>m</div><div class="line">[root@Centos-L410]/home/arnes/project/kubernetes-roll<span class="comment"># kubectl get replicationControllers</span></div><div class="line">CONTROLLER     CONTAINER(S)   IMAGE(S)                           SELECTOR                                                                   REPLICAS   AGE</div><div class="line">frontend       frontend       kubeguide/guestbook-php-frontend   <span class="property">name</span>=frontend                                                              <span class="number">3</span>          <span class="number">1</span>h</div><div class="line">redis-master   master         kubeguide/redis-master:latest      deployment=<span class="number">457221237209715</span>cf35015690e05dfeb,<span class="property">name</span>=redis-master,<span class="property">version</span>=v1   <span class="number">1</span>          <span class="number">3</span>m</div><div class="line">redis-slave    slave          kubeguide/guestbook-redis-slave    <span class="property">name</span>=redis-slave                                                           <span class="number">2</span>          <span class="number">38</span>m</div></pre></td></tr></table></figure></p>
+<p>上述过程仅仅替换了镜像版本，并增加了 selector 中的一个随机条目 deployment，label、selector 等配置都没有改变。</p>
+<div class="footnotes">
+<hr>
+<ol>
+<li id="fn1"><p><a href="http://dockone.io/article/328" target="_blank" rel="external">http://dockone.io/article/328</a><a href="#fnref1">↩</a></p></li>
+</ol>
+</div>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Kubernetes/">Kubernetes</a><a href="/tags/Dataguru/">Dataguru</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Kubernetes/">Kubernetes</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://valleylord.github.io/post/201603-kubernetes-roll/" data-title="Kubernetes 滚动升级 | 褚哥说|" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/post/201603-mycat-perf-test/"  title="MyCAT 性能测试">
+ <strong>NEXT:</strong><br/> 
+ <span>MyCAT 性能测试
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+      
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">镜像介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">Kubernetes 集群搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">Kubernetes 集群搭建验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">Pod 缩放和扩容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">应用的滚动升级</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	
+	<section class="author-info">
+		
+			<p> 欢迎来到Valleylord的博客！</p>
+		
+		
+			<p>	本博的文章尽量原创。</p>
+		
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/http://weibo.com/valleylord" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/https://github.com/valleylord" target="_blank" title="github"></a>
+		
+		
+	</div>
+</div>
+<aside class="clearfix">
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kubernetes/" title="Kubernetes">Kubernetes<sup>4</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>6</sup></a></li>
+		
+			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>49</sup></a></li>
+		
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>4</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MyCAT/" title="MyCAT">MyCAT<sup>6</sup></a></li>
+		
+			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/tags/Quantmod/" title="Quantmod">Quantmod<sup>3</sup></a></li>
+		
+			<li><a href="/tags/R/" title="R">R<sup>3</sup></a></li>
+		
+			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/SICP/" title="SICP">SICP<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Tomcat/" title="Tomcat">Tomcat<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Translation/" title="Translation">Translation<sup>2</sup></a></li>
+		
+			<li><a href="/tags/boost/" title="boost">boost<sup>1</sup></a></li>
+		
+			<li><a href="/tags/quantlib/" title="quantlib">quantlib<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 12.22px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 15.56px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 16.67px;">JVM</a><a href="/tags/Java/" style="font-size: 17.78px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.33px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 14.44px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.89px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.22px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.22px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.11px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.11px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.11px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
+    </div>
+  </div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <!--
+      <li><a href="http://yangjian.me" target="_blank" title="YangJian">Alimon's Blog</a></li>
+      <li><a href="http://zespia.tw/hexo" target="_blank" title="Hexo">Hexo</a></li>
+      -->
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  //back to top
+  function backToTop(){
+    var buttonHTML = $("<a href=\"#top\" id=\"back-top\">" + "<span>Back to Top</span></a>");
+    buttonHTML.appendTo($("body"));
+    var buttonToTop = $("#back-top");
+    // hide #back-top first
+    buttonToTop.hide();
+
+    // fade in #back-top
+    $(function() {
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                buttonToTop.fadeIn();
+            } else {
+                buttonToTop.fadeOut();
+            }
+        });
+        // scroll body to 0px on click
+        buttonToTop.click(function() {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+            return false;
+        });
+    });
+  }
+  backToTop();
+
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      ta = $('#toc.toc-aside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+
+  var show = true;
+  c.click(function(){
+    if(show == true){
+        a.addClass('fadeOut').css('display', 'none');
+        ta.css('display', 'block').addClass('fadeIn');
+        m.addClass('moveMain');  
+    }else{
+        a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');     
+        ta.css('display', 'none'); 
+        m.removeClass('moveMain');
+        $('#toc.toc-aside').css('display', 'none');
+    }
+    show = !show;
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,240-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>
