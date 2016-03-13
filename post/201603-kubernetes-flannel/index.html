@@ -4,20 +4,12 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>Kubernetes原理简介 | 褚哥说|</title>
+    <title>Flannel 网络组件 | 褚哥说|</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
     
     <meta name="author" content="Valleylord">
     
-    <meta name="description" content="Kubernetes是Google开源的容器集群管理系统。它构建Ddocker技术之上，为容器化的应用提供资源调度、部署运行、服务发现、扩容缩容等整一套功能，本质上可看作是基于容器技术的mini-PaaS平台。本文旨在梳理Kubernetes的架构、概念及基本工作流1234。
-
-
-
-英文
-翻译
-
-
-">
+    <meta name="description" content="Flannel是CoreOS团队针对Kubernetes设计的一个网络规划服务，简单来说，它的功能是让集群中的不同节点主机创建的Docker容器都具有全集群唯一的虚拟IP地址。其设计目的就是为集群中的所有节点重新规划IP地址的使用规则，从而使得不同节点上的容器能够获得“同属一个内网”且”不重复的”I">
     
     
     
@@ -85,15 +77,15 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/post/201601-kubernetes-concepts/" title="Kubernetes原理简介" itemprop="url">Kubernetes原理简介</a>
+      <a href="/post/201603-kubernetes-flannel/" title="Flannel 网络组件" itemprop="url">Flannel 网络组件</a>
   </h1>
   <p class="article-author">By
     
       <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
     </p>
   <p class="article-time">
-    <time datetime="2016-01-30T09:58:27.000Z" itemprop="datePublished">2016-01-30</time>
-    更新日期:<time datetime="2016-01-31T13:44:27.698Z" itemprop="dateModified">2016-01-31</time>
+    <time datetime="2016-03-13T05:21:25.000Z" itemprop="datePublished">2016-03-13</time>
+    更新日期:<time datetime="2016-03-13T06:26:08.722Z" itemprop="dateModified">2016-03-13</time>
     
   </p>
 </header>
@@ -102,89 +94,19 @@
 		
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">文章目录</strong>
-		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">操作对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">功能组件</span></a></li></ol>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">Flannel 是否需要在 Master 节点上安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">Flannel 是否控制了容器的 IP 分配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">多节点 Flannel 网络路由</span></a></li></ol>
 		</div>
 		
-		<p>Kubernetes是Google开源的容器集群管理系统。它构建Ddocker技术之上，为容器化的应用提供资源调度、部署运行、服务发现、扩容缩容等整一套功能，本质上可看作是基于容器技术的mini-PaaS平台。本文旨在梳理Kubernetes的架构、概念及基本工作流<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a><a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a><a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a><a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a>。</p>
-<table>
-<thead>
-<tr class="header">
-<th align="left">英文</th>
-<th align="left">翻译</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">Container</td>
-<td align="left">容器</td>
-</tr>
-<tr class="even">
-<td align="left">Pod</td>
-<td align="left">容器组</td>
-</tr>
-<tr class="odd">
-<td align="left">Replication Controller</td>
-<td align="left">复制控制器</td>
-</tr>
-<tr class="even">
-<td align="left">Service</td>
-<td align="left">服务</td>
-</tr>
-<tr class="odd">
-<td align="left">Label</td>
-<td align="left">标签</td>
-</tr>
-<tr class="even">
-<td align="left">proxy</td>
-<td align="left">代理</td>
-</tr>
-<tr class="odd">
-<td align="left">Node</td>
-<td align="left">节点</td>
-</tr>
-<tr class="even">
-<td align="left">Kubernetes Master</td>
-<td align="left">主节点</td>
-</tr>
-</tbody>
-</table>
-<h2>操作对象</h2>
-<p>Kubernetes中，可操作的对象有以下一些：</p>
-<ul>
-<li><p>Container：容器，即是Docker容器，Kubernetes操作的虚拟机。</p></li>
-<li><p>Pod：容器组。是Kubernetes的基本操作单元，把相关的一个或多个容器构成一个Pod，通常Pod里的容器运行相同的应用。Pod包含的容器运行在同一个Minion(Host)上，看作一个统一管理单元，共享相同的volumes和network namespace/IP和Port空间。</p></li>
-<li><p>Service：服务。也是Kubernetes的基本操作单元，是真实应用服务的抽象，每一个服务后面都有很多对应的容器来支持，通过Proxy的port和服务selector决定服务请求传递给后端提供服务的容器，对外表现为一个单一访问接口，外部不需要了解后端如何运行，这给扩展或维护后端带来很大的好处。</p></li>
-<li><p>Replication Controller：复制控制器。是Pod的复制抽象。确保任何时候Kubernetes集群中有指定数量的pod副本(replicas)在运行， 如果少于指定数量的pod副本(replicas)，Replication Controller会启动新的Container，反之会杀死多余的以保证数量不变。Replication Controller使用预先定义的pod模板创建pods，一旦创建成功，pod 模板和创建的pods没有任何关联，可以修改pod 模板而不会对已创建pods有任何影响，也可以直接更新通过Replication Controller创建的pods。对于利用pod 模板创建的pods，Replication Controller根据label selector来关联，通过修改pods的label可以删除对应的pods。</p></li>
-<li><p>Label：标签。用于区分Pod、Service、Replication Controller的key/value键值对，Pod、Service、 Replication Controller可以有多个label，但是每个label的key只能对应一个value。Labels是Service和Replication Controller运行的基础，为了将访问Service的请求转发给后端提供服务的多个容器，正是通过标识容器的labels来选择正确的容器。同样，Replication Controller也使用labels来管理通过pod 模板创建的一组容器，这样Replication Controller可以更加容易，方便地管理多个容器，无论有多少容器。</p></li>
-<li><p>Proxy：代理。是为了解决外部网络能够访问跨机器集群中容器提供的应用服务而设计的。Proxy提供TCP/UDP sockets的proxy，每创建一种Service，Proxy主要从etcd获取Services和Endpoints的配置信息，或者也可以从file获取，然后根据配置信息在Minion上启动一个Proxy的进程并监听相应的服务端口，当外部请求发生时，Proxy会根据Load Balancer将请求分发到后端正确的容器处理。</p></li>
-</ul>
-<h2>功能组件</h2>
-<p>如下图所示是官方文档里的集群架构图，一个典型的master/slave模型。</p>
-<p><img src="/images/201601-kubernetes-concepts/kubernetes-masterslave.png"></p>
-<p>master运行三个组件：</p>
-<ul>
-<li><p>apiserver：作为kubernetes系统的入口，封装了核心对象的增删改查操作，以RESTFul接口方式提供给外部客户和内部组件调用。它维护的REST对象将持久化到etcd（一个分布式强一致性的key/value存储）。</p></li>
-<li><p>scheduler：负责集群的资源调度，为新建的Pod分配机器。这部分工作分出来变成一个组件，意味着可以很方便地替换成其他的调度器。</p></li>
-<li>controller-manager：负责执行各种控制器，目前有两类：</li>
-</ul>
-<ol>
-<li>endpoint-controller：定期关联service和Pod(关联信息由endpoint对象维护)，保证service到Pod的映射总是最新的。</li>
-<li>replication-controller：定期关联replicationController和Pod，保证replicationController定义的复制数量与实际运行Pod的数量总是一致的。</li>
-</ol>
-<p>slave(称作minion)运行两个组件：</p>
-<ul>
-<li><p>kubelet：负责管控docker容器，如启动/停止、监控运行状态等。它会定期从etcd获取分配到本机的Pod，并根据Pod信息启动或停止相应的容器。同时，它也会接收apiserver的HTTP请求，汇报Pod的运行状态。</p></li>
-<li><p>proxy：负责为Pod提供代理。它会定期从etcd获取所有的service，并根据service信息创建代理。当某个客户Pod要访问其他Pod时，访问请求会经过本机proxy做转发。</p></li>
-</ul>
-<div class="footnotes">
-<hr>
-<ol>
-<li id="fn1"><p><a href="http://www.csdn.net/article/2014-10-31/2822393" target="_blank" rel="external">http://www.csdn.net/article/2014-10-31/2822393</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://blog.csdn.net/zhangjun2915/article/details/40598151" target="_blank" rel="external">http://blog.csdn.net/zhangjun2915/article/details/40598151</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="http://www.infoq.com/cn/articles/Kubernetes-system-architecture-introduction" target="_blank" rel="external">http://www.infoq.com/cn/articles/Kubernetes-system-architecture-introduction</a><a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p><a href="http://www.csdn.net/article/2015-06-11/2824933" target="_blank" rel="external">http://www.csdn.net/article/2015-06-11/2824933</a><a href="#fnref4">↩</a></p></li>
-</ol>
-</div>
+		<p>Flannel是CoreOS团队针对Kubernetes设计的一个网络规划服务，简单来说，它的功能是让集群中的不同节点主机创建的Docker容器都具有全集群唯一的虚拟IP地址。其设计目的就是为集群中的所有节点重新规划IP地址的使用规则，从而使得不同节点上的容器能够获得“同属一个内网”且”不重复的”IP地址，并让属于不同节点上的容器能够直接通过内网IP通信。</p>
+<p>Flannel实质上是一种“覆盖网络(overlay network)”，也就是将TCP数据包装在另一种网络包里面进行路由转发和通信，目前已经支持UDP、VxLAN、AWS VPC和GCE路由等数据转发方式。</p>
+<h2>Flannel 是否需要在 Master 节点上安装</h2>
+<p>Flannel 为每个节点分配不同的 IP，在每个几点上的 Docker 使用了不同的地址段，因为Flannel通过Etcd分配了每个节点可用的IP地址段后，偷偷的修改了Docker的启动参数，增加了 <code>-bip</code> 参数，从而，不同节点上的容器被限制在了不同的网段。除了 Flannel 需要一个中央的 Etcd 来记录分配了的 IP 地址段，并不需要其他的中央配置，因此，Master 节点上是不需要安装 Flannel 的。</p>
+<h2>Flannel 是否控制了容器的 IP 分配</h2>
+<p>由于 Flannel 是在 Docker 的启动参数中控制了节点的 IP 地址段，但是并没有控制每一个容器的 IP 的分配。容器的 IP 是由节点上的 Docker Daemon 自动分配的。</p>
+<h2>多节点 Flannel 网络路由</h2>
+<p>在有3个或3个以上节点的网络中，Flannel 网络的优势相比直接路由方式要简洁很多。</p>
+<p>直接路由方式一般会借助 Quagga 来进行配置，Quagga 也是安装在每个节点上，启动之后，会根据本机的 docker0 网卡地址，将这个地址的路由规则加到其他节点的路由表中。也就是说，如果网络中有 N 个节点，那么每个节点上就需要有 N-1 条路由规则，在节点较多的时候，这个路由规则的规模比较庞大。</p>
+<p>而 Flannel 网络路由就不同了，它采用了子网的概念。每个节点 docker0 所在的网络都是 flannel0 网络的子网，因此，当子网的 docker0 有数据发出的时候，数据会自然被发生到 flannel0 网卡上。由于 Flannel 统一分配了节点的子网段，数据被路由到指定的子网 docker0 即可。相对于直接路由方式，Flannel 网络少了很多路由规则的配置，而是由中央的 flannel0 来统一路由。</p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -204,7 +126,7 @@
 
 <div class="article-share" id="share">
 
-  <div data-url="http://valleylord.github.io/post/201601-kubernetes-concepts/" data-title="Kubernetes原理简介 | 褚哥说|" data-tsina="null" class="share clearfix">
+  <div data-url="http://valleylord.github.io/post/201603-kubernetes-flannel/" data-title="Flannel 网络组件 | 褚哥说|" data-tsina="null" class="share clearfix">
   </div>
 
 </div>
@@ -213,19 +135,11 @@
 	
 <nav class="article-nav clearfix">
  
- <div class="prev" >
- <a href="/post/201601-mycat-sharding/" title="MyCAT分片">
-  <strong>PREVIOUS:</strong><br/>
-  <span>
-  MyCAT分片</span>
-</a>
-</div>
-
 
 <div class="next">
-<a href="/post/201601-mycat-log-analysis/"  title="MyCAT 日志分析">
+<a href="/post/201603-mycat-haproxy/"  title="MyCAT + Haproxy 集群">
  <strong>NEXT:</strong><br/> 
- <span>MyCAT 日志分析
+ <span>MyCAT + Haproxy 集群
 </span>
 </a>
 </div>
@@ -237,7 +151,7 @@
       
   <div id="toc" class="toc-aside">
   <strong class="toc-title">文章目录</strong>
-  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">操作对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">功能组件</span></a></li></ol>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">Flannel 是否需要在 Master 节点上安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">Flannel 是否控制了容器的 IP 分配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">多节点 Flannel 网络路由</span></a></li></ol>
   </div>
 
 <div id="asidepart">

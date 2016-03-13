@@ -1,0 +1,514 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>MyCAT + Haproxy 集群 | 褚哥说|</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Valleylord">
+    
+    <meta name="description" content="MyCAT 在生产环境中，需要解决自身的高可用问题。一种常见的做法是使用 MyCAT + Haproxy 高可用集群12，这中做法在 mysql 集群中已经很常见了。对于 MyCAT 集群，其大致架构图如下，
+
+环境介绍
+出于简便考虑，本文的搭建环境在单台服务器上，MyCAT、Haproxy 均安装">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="褚哥说|" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/author.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/author.jpg">
+    
+
+	
+	<link href="http://cdn.bootcss.com/highlight.js/8.2/styles/monokai.min.css" rel="stylesheet">
+	<script src="http://cdn.bootcss.com/highlight.js/8.2/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+	
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="褚哥说|">褚哥说|</a></h1>
+				<h2 class="blog-motto">我想写一些东西</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul><li> <a href="/atom.xml">RSS</a> </li>
+                    <ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/tags">标签</a></li>
+					
+						<li><a href="/links">链接</a></li>
+					
+						<li><a href="http://www.cnblogs.com/valleylord/">旧文</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					</li>
+                <li><div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div></li>
+
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container" class="clearfix">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/post/201603-mycat-haproxy/" title="MyCAT + Haproxy 集群" itemprop="url">MyCAT + Haproxy 集群</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-03-12T05:50:15.000Z" itemprop="datePublished">2016-03-12</time>
+    更新日期:<time datetime="2016-03-13T13:21:18.925Z" itemprop="dateModified">2016-03-13</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">环境介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">MyCAT 配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">安装 Haproxy</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">启动 MyCAT 和 Haproxy</span></a></li></ol>
+		</div>
+		
+		<p>MyCAT 在生产环境中，需要解决自身的高可用问题。一种常见的做法是使用 MyCAT + Haproxy 高可用集群<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a><a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>，这中做法在 mysql 集群中已经很常见了。对于 MyCAT 集群，其大致架构图如下，</p>
+<p><img src="/images/201603-mycat-haproxy/mycat-haproxy-architect.png"></p>
+<h2>环境介绍</h2>
+<p>出于简便考虑，本文的搭建环境在单台服务器上，MyCAT、Haproxy 均安装在这个服务器上，操作系统是 Ubuntu14.04。MyCAT 的 mysql 数据库采用 docker 容器，监听本地端口3306。本机 IP 192.168.2.201，并配置了 hosts 如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">192.168.2.201    ubuntu-haproxy1</div><div class="line">192.168.2.201    ubuntu-haproxy2</div><div class="line"></div><div class="line">192.168.2.201    ubuntu-mycat1</div><div class="line">192.168.2.201    ubuntu-mycat2</div></pre></td></tr></table></figure></p>
+<h2>MyCAT 配置</h2>
+<p>由于两个 MyCAT 装在一台机器上，因此需要修改其中一台的监听端口，修改 <code>server.xml</code> 文件，增加以下内容，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;<span class="keyword">property</span> <span class="property">name</span>=<span class="string">"serverPort"</span>&gt;<span class="number">8067</span>&lt;/<span class="keyword">property</span>&gt; &lt;<span class="keyword">property</span> <span class="property">name</span>=<span class="string">"managerPort"</span>&gt;<span class="number">9067</span>&lt;/<span class="keyword">property</span>&gt;</div></pre></td></tr></table></figure></p>
+<h2>安装 Haproxy</h2>
+<p>先要新增haproxy用户。然后进行下载代码，编译和安装，我用的是 1.6.3 版本，地址在<a href="http://www.haproxy.org/download/1.6/src/haproxy-1.6.3.tar.gz" target="_blank" rel="external">这里</a>。</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$ </span>cd /home/arnes/project/mycat-ha/</div><div class="line"><span class="variable">$ </span>tar xzf haproxy-<span class="number">1.6</span>.<span class="number">3</span>.tar.gz </div><div class="line"><span class="variable">$ </span>cd haproxy-<span class="number">1.6</span>.<span class="number">3</span> </div><div class="line"><span class="variable">$ </span>make <span class="constant">TARGET</span>=linux2628 <span class="constant">PREFIX</span>=<span class="regexp">/home/arnes</span><span class="regexp">/project/mycat</span>-ha/haproxy1.<span class="number">6.3</span>-<span class="number">1</span></div><div class="line"><span class="variable">$ </span>mkdir -p /home/arnes/project/mycat-ha/haproxy1.<span class="number">6.3</span>-<span class="number">1</span></div><div class="line"><span class="variable">$ </span>make install <span class="constant">PREFIX</span>=<span class="regexp">/home/arnes</span><span class="regexp">/project/mycat</span>-ha/haproxy1.<span class="number">6.3</span>-<span class="number">1</span></div></pre></td></tr></table></figure></p>
+<p>具体的编译选项可以参考源码包中的 README 文件。如果需要安装两份，只需要运行两次 <code>make install</code> 即可，注意：这里的 <code>PREFIX</code> 参数不能用环境变量缩写，如 ~ 表示 HOME 目录。</p>
+<p>然后编辑 Haproxy 的配置文件 haproxy.conf，在 <code>/home/arnes/project/mycat-ha/haproxy1.6.3-1</code> 目录下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line"><span class="title">global</span></div><div class="line">    maxconn <span class="number">512</span></div><div class="line">    daemon</div><div class="line">    pidfile /home/arnes/project/mycat-ha/haproxy1.<span class="number">6</span>.<span class="number">3</span>-<span class="number">1</span>/haproxy.pid</div><div class="line">defaults</div><div class="line">     mode tcp</div><div class="line">     option redispatch <span class="comment">#当serverId对应的服务器挂掉后，强制定向到其他健康的服务器  </span></div><div class="line">        option abortonclose <span class="comment">#当服务器负载很高的时候，自动结束掉当前队列处理比较久的链接  </span></div><div class="line">        timeout connect <span class="number">5000ms</span> <span class="comment">#连接超时  </span></div><div class="line">        timeout client <span class="number">30000ms</span> <span class="comment">#客户端超时  </span></div><div class="line">        timeout server <span class="number">30000ms</span> <span class="comment">#服务器超时  </span></div><div class="line">        <span class="comment">#timeout check 2000 #=心跳检测超时  </span></div><div class="line">        balance roundrobin                     <span class="comment">#负载均衡算法  </span></div><div class="line">     log <span class="number">127.0.0.1</span> local0 <span class="built_in">info</span> <span class="comment">#[err warning info debug]  </span></div><div class="line">listen  admin_status</div><div class="line">      bind <span class="number">192.168.2.201:48800</span> <span class="comment">##VIP</span></div><div class="line">      stats uri /admin-status        <span class="comment">##统计页面</span></div><div class="line">      stats auth  admin:admin</div><div class="line">      mode    http</div><div class="line">      option  httplog</div><div class="line">listen    allmycat_service</div><div class="line">      bind <span class="number">192.168.2.201:8096</span> <span class="comment">##转发到mycat的8066端口，即mycat的服务端口</span></div><div class="line">      mode tcp</div><div class="line">      option tcplog</div><div class="line">        option httpchk OPTIONS * HTTP/<span class="number">1</span>.<span class="number">1</span>\r\nHost:\ www</div><div class="line">      balance    roundrobin</div><div class="line">        server    mycat_133 <span class="number">192.168.2.201:8066</span> check port <span class="number">48700</span> inter <span class="number">5s</span> rise <span class="number">2</span> fall <span class="number">3</span></div><div class="line">        server    mycat_134 <span class="number">192.168.2.201:8067</span> check port <span class="number">48700</span> inter <span class="number">5s</span> rise <span class="number">2</span> fall <span class="number">3</span></div><div class="line">listen    allmycat_admin</div><div class="line">      bind <span class="number">192.168.2.201:8097</span> <span class="comment">##转发到mycat的9066端口，及mycat的管理控制台端口</span></div><div class="line">      mode tcp</div><div class="line">      option tcplog</div><div class="line">        option httpchk OPTIONS * HTTP/<span class="number">1</span>.<span class="number">1</span>\r\nHost:\ www</div><div class="line">      balance    roundrobin</div><div class="line">        server    mycat_133 <span class="number">192.168.2.201:9066</span> check port <span class="number">48700</span> inter <span class="number">5s</span> rise <span class="number">2</span> fall <span class="number">3</span></div><div class="line">        server    mycat_134 <span class="number">192.168.2.201:9067</span> check port <span class="number">48700</span> inter <span class="number">5s</span> rise <span class="number">2</span> fall <span class="number">3</span></div></pre></td></tr></table></figure></p>
+<p>对于另一个 Haproxy 的配置比较类似，只要改一下 listen 的端口即可。</p>
+<h2>启动 MyCAT 和 Haproxy</h2>
+<p>MyCAT 的启动没有什么特别之处，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$ ./mycat restart</div><div class="line"><span class="variable">Stopping</span> <span class="variable">Mycat</span>-server...</div><div class="line"><span class="variable">Mycat</span>-server was <span class="keyword">not</span> running.</div><div class="line"><span class="variable">Starting</span> <span class="variable">Mycat</span>-server...</div></pre></td></tr></table></figure></p>
+<p>Haproxy 的启动也比较简单，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ ./sbin/haproxy <span class="operator">-f</span> haproxy.conf</div></pre></td></tr></table></figure></p>
+<p>启动之后就可以登陆了，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">$ mysql -h192<span class="number">.168</span><span class="number">.2</span><span class="number">.201</span> -utest -DTESTDB -P8096 -ptest</div><div class="line">Reading table information <span class="keyword">for</span> completion <span class="keyword">of</span> table <span class="keyword">and</span> column names</div><div class="line">You can turn off this feature <span class="keyword">to</span> <span class="keyword">get</span> a quicker startup <span class="keyword">with</span> -A</div><div class="line"></div><div class="line">Welcome <span class="keyword">to</span> <span class="keyword">the</span> MySQL monitor.  Commands <span class="keyword">end</span> <span class="keyword">with</span> ; <span class="keyword">or</span> \g.</div><div class="line">Your MySQL connection <span class="property">id</span> <span class="keyword">is</span> <span class="number">1</span></div><div class="line">Server <span class="property">version</span>: <span class="number">5.5</span><span class="number">.8</span>-mycat-<span class="number">1.5</span>-RELEASE-<span class="number">20160301083012</span> MyCat Server (OpenCloundDB)</div><div class="line"></div><div class="line">Copyright (c) <span class="number">2000</span>, <span class="number">2015</span>, Oracle <span class="keyword">and</span>/<span class="keyword">or</span> <span class="keyword">its</span> affiliates. All rights reserved.</div><div class="line"></div><div class="line">Oracle <span class="keyword">is</span> a registered trademark <span class="keyword">of</span> Oracle Corporation <span class="keyword">and</span>/<span class="keyword">or</span> <span class="keyword">its</span></div><div class="line">affiliates. Other names may be trademarks <span class="keyword">of</span> their respective</div><div class="line">owners.</div><div class="line"></div><div class="line">Type 'help;' <span class="keyword">or</span> '\h' <span class="keyword">for</span> help. Type '\c' <span class="keyword">to</span> clear <span class="keyword">the</span> current input statement.</div><div class="line"></div><div class="line">mysql&gt; show tables;</div><div class="line">+<span class="comment">------------------+</span></div><div class="line">| Tables <span class="keyword">in</span> TESTDB |</div><div class="line">+<span class="comment">------------------+</span></div><div class="line">| company          |</div><div class="line">| customer         |</div><div class="line">| customer_addr    |</div><div class="line">| employee         |</div><div class="line">| goods            |</div><div class="line">| hotnews          |</div><div class="line">| orders           |</div><div class="line">| order_items      |</div><div class="line">| person           |</div><div class="line">| travelrecord     |</div><div class="line">+<span class="comment">------------------+</span></div><div class="line"><span class="number">10</span> rows <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</div></pre></td></tr></table></figure></p>
+<p><img src="/images/201603-mycat-haproxy/mycat-haproxy-connection.png"></p>
+<p>如果真正在生产环境中，MyCAT 和 Haproxy 会部署在不同的服务器上，而且 Haproxy 还需要与 keepalived 一起部署，还需要进一步研究，在此不再赘述。</p>
+<div class="footnotes">
+<hr>
+<ol>
+<li id="fn1"><p><a href="http://www.mycat.io/document/Mycat_V1.6.0.pdf" target="_blank" rel="external">http://www.mycat.io/document/Mycat_V1.6.0.pdf</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://blog.csdn.net/wdw1206/article/details/44201331" target="_blank" rel="external">http://blog.csdn.net/wdw1206/article/details/44201331</a><a href="#fnref2">↩</a></p></li>
+</ol>
+</div>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/MyCAT/">MyCAT</a><a href="/tags/Dataguru/">Dataguru</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/MyCAT/">MyCAT</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://valleylord.github.io/post/201603-mycat-haproxy/" data-title="MyCAT + Haproxy 集群 | 褚哥说|" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/post/201603-kubernetes-flannel/" title="Flannel 网络组件">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  Flannel 网络组件</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/post/201603-kubernetes-roll/"  title="Kubernetes 滚动升级">
+ <strong>NEXT:</strong><br/> 
+ <span>Kubernetes 滚动升级
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+      
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">环境介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">MyCAT 配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">安装 Haproxy</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">启动 MyCAT 和 Haproxy</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	
+	<section class="author-info">
+		
+			<p> 欢迎来到Valleylord的博客！</p>
+		
+		
+			<p>	本博的文章尽量原创。</p>
+		
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/http://weibo.com/valleylord" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/https://github.com/valleylord" target="_blank" title="github"></a>
+		
+		
+	</div>
+</div>
+<aside class="clearfix">
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kubernetes/" title="Kubernetes">Kubernetes<sup>5</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>51</sup></a></li>
+		
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>5</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MyCAT/" title="MyCAT">MyCAT<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/tags/Quantmod/" title="Quantmod">Quantmod<sup>3</sup></a></li>
+		
+			<li><a href="/tags/R/" title="R">R<sup>3</sup></a></li>
+		
+			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/SICP/" title="SICP">SICP<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Tomcat/" title="Tomcat">Tomcat<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Translation/" title="Translation">Translation<sup>2</sup></a></li>
+		
+			<li><a href="/tags/boost/" title="boost">boost<sup>1</sup></a></li>
+		
+			<li><a href="/tags/quantlib/" title="quantlib">quantlib<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 12.50px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 15.00px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 16.25px;">JVM</a><a href="/tags/Java/" style="font-size: 17.50px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.75px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 15.00px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.75px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.50px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.50px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.25px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.25px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.25px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
+    </div>
+  </div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <!--
+      <li><a href="http://yangjian.me" target="_blank" title="YangJian">Alimon's Blog</a></li>
+      <li><a href="http://zespia.tw/hexo" target="_blank" title="Hexo">Hexo</a></li>
+      -->
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  //back to top
+  function backToTop(){
+    var buttonHTML = $("<a href=\"#top\" id=\"back-top\">" + "<span>Back to Top</span></a>");
+    buttonHTML.appendTo($("body"));
+    var buttonToTop = $("#back-top");
+    // hide #back-top first
+    buttonToTop.hide();
+
+    // fade in #back-top
+    $(function() {
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                buttonToTop.fadeIn();
+            } else {
+                buttonToTop.fadeOut();
+            }
+        });
+        // scroll body to 0px on click
+        buttonToTop.click(function() {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+            return false;
+        });
+    });
+  }
+  backToTop();
+
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      ta = $('#toc.toc-aside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+
+  var show = true;
+  c.click(function(){
+    if(show == true){
+        a.addClass('fadeOut').css('display', 'none');
+        ta.css('display', 'block').addClass('fadeIn');
+        m.addClass('moveMain');  
+    }else{
+        a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');     
+        ta.css('display', 'none'); 
+        m.removeClass('moveMain');
+        $('#toc.toc-aside').css('display', 'none');
+    }
+    show = !show;
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,240-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>
