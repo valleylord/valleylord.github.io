@@ -1,0 +1,503 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Kubernetes 日志 | 褚哥说|</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Valleylord">
+    
+    <meta name="description" content="iptables在kubernetes proxy中的作用
+当service有了port和nodePort之后，就可以对内/外提供服务。那么其具体是通过什么原理来实现的呢？奥妙就在kube-proxy在本地node上创建的iptables规则。
+Kubernetes为每个service分配一个clu">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="褚哥说|" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/author.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/author.jpg">
+    
+
+	
+	<link href="http://cdn.bootcss.com/highlight.js/8.2/styles/monokai.min.css" rel="stylesheet">
+	<script src="http://cdn.bootcss.com/highlight.js/8.2/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+	
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="褚哥说|">褚哥说|</a></h1>
+				<h2 class="blog-motto">我想写一些东西</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul><li> <a href="/atom.xml">RSS</a> </li>
+                    <ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/tags">标签</a></li>
+					
+						<li><a href="/links">链接</a></li>
+					
+						<li><a href="http://www.cnblogs.com/valleylord/">旧文</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					</li>
+                <li><div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div></li>
+
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container" class="clearfix">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/post/201603-kubernetes-log/" title="Kubernetes 日志" itemprop="url">Kubernetes 日志</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-03-20T03:35:51.000Z" itemprop="datePublished">2016-03-20</time>
+    更新日期:<time datetime="2016-03-20T07:23:59.173Z" itemprop="dateModified">2016-03-20</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">iptables在kubernetes proxy中的作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">kubernetes 日志分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">kubernetes 的客户端负载均衡方式</span></a></li></ol>
+		</div>
+		
+		<h2>iptables在kubernetes proxy中的作用</h2>
+<p>当service有了port和nodePort之后，就可以对内/外提供服务。那么其具体是通过什么原理来实现的呢？奥妙就在kube-proxy在本地node上创建的iptables规则。</p>
+<p>Kubernetes为每个service分配一个clusterIP（虚拟ip）。不同的service用不同的ip，所以端口也不会冲突。Kubernetes的虚拟ip是通过iptables机制实现的。每个service定义的端口，kube-proxy都会监听一个随机端口对应，然后通过iptables nat规则做转发。比如Kubernetes上有个dns服务，clusterIP:10.254.0.10，端口:53。应用对10.254.0.10:53的请求会被转发到该node的kube-proxy监听的随机端口上，然后再转发给对应的pod。如果该服务的pod不在当前node上，会先在kube-proxy之间进行转发。该转发完全通过iptables实现。</p>
+<p>Kube-Proxy 通过配置 DNAT 规则（从容器出来的访问，从本地主机出来的访问两方面），将到这个服务地址的访问映射到本地的kube-proxy端口（随机端口）。然后 Kube-Proxy 会监听在本地的对应端口，将到这个端口的访问给代理到远端真实的 pod 地址上去。</p>
+<h2>kubernetes 日志分析</h2>
+<p>如果 kubernetes 的启动参数中有 <code>--logtostderr=true</code> 表示使用 systemd 接管 kubernetes 的输出，可以用 journalctl 查看，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">[root@Centos-L410 project]# journalctl -u kube-controller-manager | tail</div><div class="line"><span class="number">3</span>月 <span class="number">20</span> <span class="number">11</span>:<span class="number">50</span>:<span class="number">01</span> Centos-L410 kube-controller-manager[<span class="number">9359</span>]: W0320 <span class="number">11</span>:<span class="number">50</span>:<span class="number">01.599523</span>    <span class="number">9359</span> reflector.go:<span class="number">224</span>] /usr/lib/golang/src/runtime/asm_amd64.s:<span class="number">2232</span>: watch <span class="keyword">of</span> *api.PersistentVolume ended <span class="keyword">with</span>: <span class="number">502</span>:  (unhandled http status [OK] <span class="keyword">with</span> body [<span class="keyword">nil</span>]) [<span class="number">0</span>]</div><div class="line"><span class="number">3</span>月 <span class="number">20</span> <span class="number">11</span>:<span class="number">50</span>:<span class="number">01</span> Centos-L410 kube-controller-manager[<span class="number">9359</span>]: E0320 <span class="number">11</span>:<span class="number">50</span>:<span class="number">01.912642</span>    <span class="number">9359</span> reflector.go:<span class="number">206</span>] /usr/lib/golang/src/runtime/asm_amd64.s:<span class="number">2232</span>: Failed <span class="keyword">to</span> watch *api.Pod: Internal error occurred: too <span class="keyword">old</span> resource version: <span class="number">7704</span> (<span class="number">8379</span>)</div><div class="line"><span class="number">3</span>月 <span class="number">20</span> <span class="number">11</span>:<span class="number">50</span>:<span class="number">01</span> Centos-L410 kube-controller-manager[<span class="number">9359</span>]: E0320 <span class="number">11</span>:<span class="number">50</span>:<span class="number">01.914766</span>    <span class="number">9359</span> reflector.go:<span class="number">206</span>] /usr/lib/golang/src/runtime/asm_amd64.s:<span class="number">2232</span>: Failed <span class="keyword">to</span> watch *api.Pod: Internal error occurred: too <span class="keyword">old</span> resource version: <span class="number">7704</span> (<span class="number">8379</span>)</div><div class="line"><span class="number">3</span>月 <span class="number">20</span> <span class="number">11</span>:<span class="number">50</span>:<span class="number">01</span> Centos-L410 kube-controller-manager[<span class="number">9359</span>]: E0320 <span class="number">11</span>:<span class="number">50</span>:<span class="number">01.915664</span>    <span class="number">9359</span> reflector.go:<span class="number">206</span>] /usr/lib/golang/src/runtime/asm_amd64.s:<span class="number">2232</span>: Failed <span class="keyword">to</span> watch *api.Pod: Internal error occurred: too <span class="keyword">old</span> resource version: <span class="number">7704</span> (<span class="number">8379</span>)</div><div class="line"><span class="number">3</span>月 <span class="number">20</span> <span class="number">11</span>:<span class="number">50</span>:<span class="number">01</span> Centos-L410 kube-controller-manager[<span class="number">9359</span>]: W0320 <span class="number">11</span>:<span class="number">50</span>:<span class="number">01.967267</span>    <span class="number">9359</span> reflector.go:<span class="number">224</span>] /usr/lib/golang/src/runtime/asm_amd64.s:<span class="number">2232</span>: watch <span class="keyword">of</span> *api.<span class="keyword">Namespace</span> ended <span class="keyword">with</span>: <span class="number">502</span>:  (unhandled http status [OK] <span class="keyword">with</span> body [<span class="keyword">nil</span>]) [<span class="number">0</span>]</div><div class="line"><span class="number">3</span>月 <span class="number">20</span> <span class="number">12</span>:<span class="number">59</span>:<span class="number">06</span> Centos-L410 kube-controller-manager[<span class="number">9359</span>]: I0320 <span class="number">12</span>:<span class="number">59</span>:<span class="number">06.597924</span>    <span class="number">9359</span> replication_controller.go:<span class="number">409</span>] Replication Controller <span class="keyword">has</span> been deleted <span class="keyword">default</span>/redis-master</div><div class="line"><span class="number">3</span>月 <span class="number">20</span> <span class="number">12</span>:<span class="number">59</span>:<span class="number">08</span> Centos-L410 kube-controller-manager[<span class="number">9359</span>]: I0320 <span class="number">12</span>:<span class="number">59</span>:<span class="number">08.708102</span>    <span class="number">9359</span> replication_controller.go:<span class="number">409</span>] Replication Controller <span class="keyword">has</span> been deleted <span class="keyword">default</span>/redis-slave</div><div class="line"><span class="number">3</span>月 <span class="number">20</span> <span class="number">12</span>:<span class="number">59</span>:<span class="number">10</span> Centos-L410 kube-controller-manager[<span class="number">9359</span>]: I0320 <span class="number">12</span>:<span class="number">59</span>:<span class="number">10.770278</span>    <span class="number">9359</span> replication_controller.go:<span class="number">409</span>] Replication Controller <span class="keyword">has</span> been deleted <span class="keyword">default</span>/frontend</div><div class="line"><span class="number">3</span>月 <span class="number">20</span> <span class="number">12</span>:<span class="number">59</span>:<span class="number">41</span> Centos-L410 kube-controller-manager[<span class="number">9359</span>]: I0320 <span class="number">12</span>:<span class="number">59</span>:<span class="number">41.859582</span>    <span class="number">9359</span> <span class="keyword">event</span>.go:<span class="number">216</span>] <span class="keyword">Event</span>(api.ObjectReference<span class="comment">{Kind:"ReplicationController", Namespace:"default", Name:"redis-master", UID:"8e5fcf11-ee58-11e5-a10f-c80aa9c034dc", APIVersion:"v1", ResourceVersion:"8904", FieldPath:""}</span>): reason: <span class="string">'SuccessfulCreate'</span> Created pod: redis-master-xuv93</div></pre></td></tr></table></figure></p>
+<p>从 log 中可以发现，刚刚创建了一个 redis-master-xuv93 的 Pod，这个 Pod 中运行了一个 redis。通过 <code>docker ps</code> 可以查看到对应的容器，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">[root@Centos-L410 project]# docker ps</div><div class="line">CONTAINER ID        IMAGE                                                        COMMAND                  CREATED             STATUS              PORTS               NAMES</div><div class="line"><span class="number">56</span>f58c6fb142        kubeguide/redis-master:<span class="number">1.0</span>                                   <span class="string">"redis-server /etc/re"</span>   About an <span class="built_in">hour</span> ago   Up About an <span class="built_in">hour</span>                        k8s_master.b7750720_redis-master-xuv93_default_8e614b60-ee58-<span class="number">11e5</span>-a10f-c80aa9c034dc_bb2168d8</div><div class="line">d377dcefdbc5        registry.access.redhat.com/rhel7/pod-infrastructure:latest   <span class="string">"/pod"</span>                   About an <span class="built_in">hour</span> ago   Up About an <span class="built_in">hour</span>                        k8s_POD<span class="number">.4</span>f810ae8_redis-master-xuv93_default_8e614b60-ee58-<span class="number">11e5</span>-a10f-c80aa9c034dc_270230ab</div></pre></td></tr></table></figure></p>
+<p>可以发现，当前有2个容器在运行，56f58c6fb142 就是 redis-master-xuv93 这个 Pod 对应的容器；另一个是 kubernetes 的控制节点，是 Pod 网络访问代理。可以用 <code>docker inspect</code> 查看这两个节点的 IP ，</p>
+<p><img src="/images/201603-kubernetes-log/kubernetes-docker-inspect.png"></p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">[root@<span class="variable">Centos</span>-<span class="variable">L410</span> arnes]# docker inspect  <span class="number">56</span>f58c6fb142</div><div class="line">......</div><div class="line">        <span class="string">"Env"</span>: [</div><div class="line">            <span class="string">"KUBERNETES_SERVICE_HOST=10.254.0.1"</span>,</div><div class="line">            <span class="string">"KUBERNETES_SERVICE_PORT=443"</span>,</div><div class="line">            <span class="string">"KUBERNETES_PORT=tcp://10.254.0.1:443"</span>,</div><div class="line">            <span class="string">"REDIS_MASTER_SERVICE_HOST=10.254.225.16"</span>,</div><div class="line">            <span class="string">"REDIS_MASTER_PORT_6379_TCP_PROTO=tcp"</span>,</div><div class="line">            <span class="string">"KUBERNETES_PORT_443_TCP_PROTO=tcp"</span>,</div><div class="line">            <span class="string">"KUBERNETES_PORT_443_TCP_PORT=443"</span>,</div><div class="line">            <span class="string">"REDIS_MASTER_SERVICE_PORT=6379"</span>,</div><div class="line">            <span class="string">"REDIS_MASTER_PORT=tcp://10.254.225.16:6379"</span>,</div><div class="line">            <span class="string">"REDIS_MASTER_PORT_6379_TCP=tcp://10.254.225.16:6379"</span>,</div><div class="line">            <span class="string">"REDIS_MASTER_PORT_6379_TCP_PORT=6379"</span>,</div><div class="line">            <span class="string">"REDIS_MASTER_PORT_6379_TCP_ADDR=10.254.225.16"</span>,</div><div class="line">            <span class="string">"KUBERNETES_SERVICE_PORT_HTTPS=443"</span>,</div><div class="line">            <span class="string">"KUBERNETES_PORT_443_TCP=tcp://10.254.0.1:443"</span>,</div><div class="line">            <span class="string">"KUBERNETES_PORT_443_TCP_ADDR=10.254.0.1"</span>,</div><div class="line">            <span class="string">"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"</span>,</div><div class="line">            <span class="string">"HOME=/root"</span></div><div class="line">        ],</div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>从容器的信息上来看，redis 容器 56f58c6fb142 本身并没有 IP 地址，但是，通过容器内部互联，监听了 <code>10.254.225.16:6379</code> 这个 虚拟IP+端口，因此，直接访问 10.254.225.16:6379 即可，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">[root@Centos-L410 project]<span class="comment"># telnet 10.254.225.16 6379</span></div><div class="line">Trying <span class="number">10.254</span><span class="number">.225</span><span class="number">.16</span><span class="keyword">...</span></div><div class="line">Connected to <span class="number">10.254</span><span class="number">.225</span><span class="number">.16</span>.</div><div class="line">Escape character is <span class="string">'^]'</span>.</div><div class="line">^]</div><div class="line"></div><div class="line">telnet&gt; q</div><div class="line">Connection closed.</div></pre></td></tr></table></figure></p>
+<p>另外，由于 d377dcefdbc5 是 redis 的访问代理，因此，访问这个地址的6379端口，也是可以通的，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">[root@Centos-L410 project]<span class="comment"># telnet 172.17.1.22 6379</span></div><div class="line">Trying <span class="number">172.17</span><span class="number">.1</span><span class="number">.22</span><span class="keyword">...</span></div><div class="line">Connected to <span class="number">172.17</span><span class="number">.1</span><span class="number">.22</span>.</div><div class="line">Escape character is <span class="string">'^]'</span>.</div><div class="line">^]</div><div class="line"></div><div class="line">telnet&gt; q</div><div class="line">Connection closed.</div></pre></td></tr></table></figure></p>
+<p>可以验证，这个 redis 服务的确是在监听 <code>10.254.225.16:6379</code>，只不过这个是 kubernetes service 的虚拟 IP，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="input"><span class="prompt">[root@Centos-L410 project]# kubectl get services</span></span></div><div class="line">NAME           CLUSTER_IP      EXTERNAL_IP   PORT(S)    SELECTOR            AGE</div><div class="line">kubernetes     10.254.0.1      &lt;none&gt;        <span class="number">443</span>/<span class="constant">TCP</span>    &lt;none&gt;              <span class="number">20</span>d</div><div class="line"><span class="input"><span class="prompt">redis-master   10.254.225.16   &lt;none&gt;</span>        <span class="number">6379</span>/<span class="constant">TCP</span>   name=redis-master   <span class="number">1</span>h</span></div></pre></td></tr></table></figure></p>
+<h2>kubernetes 的客户端负载均衡方式</h2>
+<p>通常情况下，kubernetes 的负载均衡方式是如下进行，</p>
+<p><img src="/images/201603-kubernetes-log/kubernetes-loadbalance.png"></p>
+<p>由 kube-proxy 进程负责将请求转发到每个工作 Pod 上，好处是对客户端透明，坏处是多了一次转发，性能上有所损耗。另一种办法是采用客户端负载均衡方式，如下，</p>
+<p><img src="/images/201603-kubernetes-log/kubernetes-client-loadbalance.png"></p>
+<p>客户端先去向 apiserver 询问可以服务的工作 Pod 的地址，然后直接访问该地址，这样的好处是少了一次转发，坏处是客户端需要做一些逻辑判断。</p>
+<p>如果使用客户端负载均衡的方式，那么就可以用类似上述的方法来获取服务真正的监听端口。如果需要直接访问该 IP 的话，需要在访问端增加路由规则，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">root@Ubuntu-Asus <span class="number">192.168</span><span class="number">.2</span><span class="number">.201</span> <span class="number">15</span>:<span class="number">12</span>:<span class="number">53</span> ~</div><div class="line"><span class="comment"># route add -net 172.17.1.0 netmask 255.255.255.0 gw 192.168.2.202</span></div><div class="line"></div><div class="line">root@Ubuntu-Asus <span class="number">192.168</span><span class="number">.2</span><span class="number">.201</span> <span class="number">15</span>:<span class="number">13</span>:<span class="number">54</span> ~</div><div class="line"><span class="comment"># ip rout</span></div><div class="line">default via <span class="number">192.168</span><span class="number">.2</span><span class="number">.1</span> dev wlan0  proto static </div><div class="line"><span class="number">172.17</span><span class="number">.0</span><span class="number">.0</span>/<span class="number">16</span> dev docker0  proto kernel  scope link  src <span class="number">172.17</span><span class="number">.0</span><span class="number">.1</span> </div><div class="line"><span class="number">172.17</span><span class="number">.1</span><span class="number">.0</span>/<span class="number">24</span> via <span class="number">192.168</span><span class="number">.2</span><span class="number">.202</span> dev wlan0 </div><div class="line"><span class="number">192.168</span><span class="number">.2</span><span class="number">.0</span>/<span class="number">24</span> dev wlan0  proto kernel  scope link  src <span class="number">192.168</span><span class="number">.2</span><span class="number">.201</span>  metric <span class="number">9</span> </div><div class="line"></div><div class="line">root@Ubuntu-Asus <span class="number">192.168</span><span class="number">.2</span><span class="number">.201</span> <span class="number">15</span>:<span class="number">13</span>:<span class="number">56</span> ~</div><div class="line"><span class="comment"># telnet 172.17.1.22 6379</span></div><div class="line">Trying <span class="number">172.17</span><span class="number">.1</span><span class="number">.22</span><span class="keyword">...</span></div><div class="line">Connected to <span class="number">172.17</span><span class="number">.1</span><span class="number">.22</span>.</div><div class="line">Escape character is <span class="string">'^]'</span>.</div><div class="line">^]q</div><div class="line"></div><div class="line">telnet&gt; q</div><div class="line">Connection closed.</div></pre></td></tr></table></figure></p>
+<p>也可以使用 redis client 来访问，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="input"><span class="prompt"># arnes@Ubuntu-Asus [192.168.2.201] in ~/download/redis-3.0.5/src [15:16:49]</span></span></div><div class="line">$ ./redis-cli -h 172.17.1.22 -p 6379</div><div class="line">172.17.1.22:6379&gt; scan <span class="number">0</span> count <span class="number">100</span></div><div class="line"><span class="input"><span class="prompt">1) "0"</span></span></div><div class="line">2) 1) "messages"</div><div class="line">172.17.1.22:6379&gt; get messages</div><div class="line"><span class="string">"Hello World!"</span></div></pre></td></tr></table></figure></p>
+<p>这样，外部系统就可以直接访问 Pod。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Kubernetes/">Kubernetes</a><a href="/tags/Dataguru/">Dataguru</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Kubernetes/">Kubernetes</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://valleylord.github.io/post/201603-kubernetes-log/" data-title="Kubernetes 日志 | 褚哥说|" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/post/201603-mycat-migration/"  title="MyCAT 数据迁移测试">
+ <strong>NEXT:</strong><br/> 
+ <span>MyCAT 数据迁移测试
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+      
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">iptables在kubernetes proxy中的作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">kubernetes 日志分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">kubernetes 的客户端负载均衡方式</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	
+	<section class="author-info">
+		
+			<p> 欢迎来到Valleylord的博客！</p>
+		
+		
+			<p>	本博的文章尽量原创。</p>
+		
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/http://weibo.com/valleylord" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/https://github.com/valleylord" target="_blank" title="github"></a>
+		
+		
+	</div>
+</div>
+<aside class="clearfix">
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kubernetes/" title="Kubernetes">Kubernetes<sup>6</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>8</sup></a></li>
+		
+			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>53</sup></a></li>
+		
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>6</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MyCAT/" title="MyCAT">MyCAT<sup>8</sup></a></li>
+		
+			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/tags/Quantmod/" title="Quantmod">Quantmod<sup>3</sup></a></li>
+		
+			<li><a href="/tags/R/" title="R">R<sup>3</sup></a></li>
+		
+			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/SICP/" title="SICP">SICP<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Tomcat/" title="Tomcat">Tomcat<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Translation/" title="Translation">Translation<sup>2</sup></a></li>
+		
+			<li><a href="/tags/boost/" title="boost">boost<sup>1</sup></a></li>
+		
+			<li><a href="/tags/quantlib/" title="quantlib">quantlib<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 12.22px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.44px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 16.67px;">JVM</a><a href="/tags/Java/" style="font-size: 17.78px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.33px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 15.56px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.89px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.22px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.22px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.11px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.11px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.11px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
+    </div>
+  </div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <!--
+      <li><a href="http://yangjian.me" target="_blank" title="YangJian">Alimon's Blog</a></li>
+      <li><a href="http://zespia.tw/hexo" target="_blank" title="Hexo">Hexo</a></li>
+      -->
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  //back to top
+  function backToTop(){
+    var buttonHTML = $("<a href=\"#top\" id=\"back-top\">" + "<span>Back to Top</span></a>");
+    buttonHTML.appendTo($("body"));
+    var buttonToTop = $("#back-top");
+    // hide #back-top first
+    buttonToTop.hide();
+
+    // fade in #back-top
+    $(function() {
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                buttonToTop.fadeIn();
+            } else {
+                buttonToTop.fadeOut();
+            }
+        });
+        // scroll body to 0px on click
+        buttonToTop.click(function() {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+            return false;
+        });
+    });
+  }
+  backToTop();
+
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      ta = $('#toc.toc-aside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+
+  var show = true;
+  c.click(function(){
+    if(show == true){
+        a.addClass('fadeOut').css('display', 'none');
+        ta.css('display', 'block').addClass('fadeIn');
+        m.addClass('moveMain');  
+    }else{
+        a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');     
+        ta.css('display', 'none'); 
+        m.removeClass('moveMain');
+        $('#toc.toc-aside').css('display', 'none');
+    }
+    show = !show;
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,240-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>

@@ -1,0 +1,514 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>MyCAT 数据迁移测试 | 褚哥说|</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Valleylord">
+    
+    <meta name="description" content="MyCAT 在使用过程中可能出现性能不足，需要添加服务器的情况，在增加服务器过程中，需要做数据迁移，难免出现业务中断等情况。本文实现一个最简单的 MyCAT 数据迁移步骤。
+步骤总览
+假定 travelrecord 表共有10个分片，分布在一台mysql的10个数据库中（dbtest0~dbtest">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="褚哥说|" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/author.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/author.jpg">
+    
+
+	
+	<link href="http://cdn.bootcss.com/highlight.js/8.2/styles/monokai.min.css" rel="stylesheet">
+	<script src="http://cdn.bootcss.com/highlight.js/8.2/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+	
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="褚哥说|">褚哥说|</a></h1>
+				<h2 class="blog-motto">我想写一些东西</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul><li> <a href="/atom.xml">RSS</a> </li>
+                    <ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/tags">标签</a></li>
+					
+						<li><a href="/links">链接</a></li>
+					
+						<li><a href="http://www.cnblogs.com/valleylord/">旧文</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					</li>
+                <li><div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div></li>
+
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container" class="clearfix">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/post/201603-mycat-migration/" title="MyCAT 数据迁移测试" itemprop="url">MyCAT 数据迁移测试</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-03-20T01:08:56.000Z" itemprop="datePublished">2016-03-20</time>
+    更新日期:<time datetime="2016-03-20T03:32:28.886Z" itemprop="dateModified">2016-03-20</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">步骤总览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">设置数据库只读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">导出和导入数据库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">修改 MyCAT 配置文件</span></a></li></ol>
+		</div>
+		
+		<p>MyCAT 在使用过程中可能出现性能不足，需要添加服务器的情况，在增加服务器过程中，需要做数据迁移，难免出现业务中断等情况。本文实现一个最简单的 MyCAT 数据迁移步骤。</p>
+<h2>步骤总览</h2>
+<p>假定 travelrecord 表共有10个分片，分布在一台mysql的10个数据库中（dbtest0~dbtest9），需要将10个分片中的2个分片（dbtest0、dbtest1）转移到第二台MySQL上。大致步骤如下，</p>
+<ol>
+<li>将需要迁移的2个分片设置为只读</li>
+<li>将2个分片的数据导出，并在新增的数据库上将数据导入；</li>
+<li>修改相应的 MyCAT 配置，并重新加载；</li>
+</ol>
+<p>当然，这样的步骤，业务中断时间会比较长，主要时间浪费在数据导出导入的过程中。实际使用中，应该使用主从复制的方式将数据同步到从数据库中，再以从数据库中的数据为基础，启动第二台 mysql，这样，中断时间会短很多。</p>
+<p>假定 travelrecord 表中共有10万条数据，每个分片上1万条，再假定这10个分片数据库中，每个数据库都只有这一个表。</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="header">mysql&gt; explain select * from travelrecord limit 10;</span></div><div class="line">+-----------+-------------------------------------+</div><div class="line"><span class="header">| DATA_NODE | SQL                                 |</span></div><div class="line">+-----------+-------------------------------------+</div><div class="line">| dn0       | SELECT * FROM travelrecord LIMIT 10 |</div><div class="line">| dn1       | SELECT * FROM travelrecord LIMIT 10 |</div><div class="line">| dn2       | SELECT * FROM travelrecord LIMIT 10 |</div><div class="line">| dn3       | SELECT * FROM travelrecord LIMIT 10 |</div><div class="line">| dn4       | SELECT * FROM travelrecord LIMIT 10 |</div><div class="line">| dn5       | SELECT * FROM travelrecord LIMIT 10 |</div><div class="line">| dn6       | SELECT * FROM travelrecord LIMIT 10 |</div><div class="line">| dn7       | SELECT * FROM travelrecord LIMIT 10 |</div><div class="line">| dn8       | SELECT * FROM travelrecord LIMIT 10 |</div><div class="line"><span class="header">| dn9       | SELECT * FROM travelrecord LIMIT 10 |</span></div><div class="line">+-----------+-------------------------------------+</div><div class="line">10 rows in set (0.01 sec)</div><div class="line"></div><div class="line"><span class="header">mysql&gt; select count(*) from travelrecord;</span></div><div class="line">+--------+</div><div class="line"><span class="header">| COUNT0 |</span></div><div class="line">+--------+</div><div class="line"><span class="header">| 100000 |</span></div><div class="line">+--------+</div><div class="line">1 row in set (0.03 sec)</div></pre></td></tr></table></figure></p>
+<h2>设置数据库只读</h2>
+<p>先设置 dbtest0 为只读，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">FLUSH</span> <span class="keyword">TABLES</span> <span class="keyword">WITH</span> <span class="keyword">READ</span> <span class="keyword">LOCK</span>;</span></div><div class="line"><span class="operator"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> read_only = <span class="number">1</span>;</span></div></pre></td></tr></table></figure></p>
+<p>设置只读之后，数据库的写操作将被阻塞。如果发现数据迁移的过程中发生错误，可以放弃迁移，恢复数据库可写，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> read_only = <span class="number">0</span>;</span></div><div class="line"><span class="operator"><span class="keyword">UNLOCK</span> <span class="keyword">TABLES</span>;</span></div></pre></td></tr></table></figure></p>
+<p>此时，如果 MyCAT 再有数据插入，就会阻塞，直到超时，如下，</p>
+<p><img src="/images/201603-mycat-migration/mycat-migration-blocked.png"></p>
+<h2>导出和导入数据库</h2>
+<p>通常情况下，mysql 数据库可以使用 mysqldump 做导入导出，做全量备份。如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="input"><span class="prompt">mysqldump -hworkstation -uroot -P3306 -p111111 dbtest0 &gt;</span> dbtest<span class="number">0</span>.sql</span></div></pre></td></tr></table></figure></p>
+<p>再将数据导入到目标数据库中，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="title">mysql</span> -hworkstation -uroot -P3316 -p111111 dbtest0 &lt; dbtest0.sql</div></pre></td></tr></table></figure></p>
+<p>可以验证一下数据库中的数据是否已经导入成功。</p>
+<h2>修改 MyCAT 配置文件</h2>
+<p>原先，travelrecord 的分片是如下配置的，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">......</div><div class="line">	&lt;schema <span class="variable">name=</span><span class="string">"TESTDB"</span> <span class="variable">checkSQLschema=</span><span class="string">"false"</span> <span class="variable">sqlMaxLimit=</span><span class="string">"100"</span>&gt;</div><div class="line">		&lt;table <span class="variable">name=</span><span class="string">"travelrecord"</span> <span class="variable">dataNode=</span><span class="string">"dn0,dn1,dn2,dn3,dn4,dn5,dn6,dn7,dn8,dn9"</span> <span class="variable">rule=</span><span class="string">"mod-10"</span> /&gt;</div><div class="line">	&lt;/schema&gt;</div><div class="line"></div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn0"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest0"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn1"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest1"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn2"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest2"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn3"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest3"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn4"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest4"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn5"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest5"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn6"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest6"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn7"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest7"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn8"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest8"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn9"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest9"</span> /&gt;</div><div class="line"></div><div class="line">	&lt;dataHost <span class="variable">name=</span><span class="string">"localhost1"</span> <span class="variable">maxCon=</span><span class="string">"1000"</span> <span class="variable">minCon=</span><span class="string">"10"</span> <span class="variable">balance=</span><span class="string">"0"</span></div><div class="line">		<span class="variable">writeType=</span><span class="string">"0"</span> <span class="variable">dbType=</span><span class="string">"mysql"</span> <span class="variable">dbDriver=</span><span class="string">"native"</span> <span class="variable">switchType=</span><span class="string">"1"</span>  <span class="variable">slaveThreshold=</span><span class="string">"100"</span>&gt;</div><div class="line">		&lt;heartbeat&gt;select user()&lt;/heartbeat&gt;</div><div class="line">		&lt;writeHost <span class="variable">host=</span><span class="string">"hostM1"</span> <span class="variable">url=</span><span class="string">"workstation:3306"</span> <span class="variable">user=</span><span class="string">"root"</span></div><div class="line">			<span class="variable">password=</span><span class="string">"111111"</span>&gt;</div><div class="line">		&lt;/writeHost&gt;</div><div class="line">	&lt;/dataHost&gt;</div></pre></td></tr></table></figure></p>
+<p>只有一个数据库服务器，上面有10个数据库，实现了10个分片，采用的是 <code>mod-10</code> 算法（按10取余数），如果新增加了数据库服务器，就需要修改配置。修改后的配置如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">......</div><div class="line">	&lt;schema <span class="variable">name=</span><span class="string">"TESTDB"</span> <span class="variable">checkSQLschema=</span><span class="string">"false"</span> <span class="variable">sqlMaxLimit=</span><span class="string">"100"</span>&gt;</div><div class="line">		&lt;table <span class="variable">name=</span><span class="string">"travelrecord"</span> <span class="variable">dataNode=</span><span class="string">"dn0,dn1,dn2,dn3,dn4,dn5,dn6,dn7,dn8,dn9"</span> <span class="variable">rule=</span><span class="string">"mod-10"</span> /&gt;</div><div class="line">	&lt;/schema&gt;</div><div class="line"></div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn0"</span> <span class="variable">dataHost=</span><span class="string">"localhost2"</span> <span class="variable">database=</span><span class="string">"dbtest0"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn1"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest1"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn2"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest2"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn3"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest3"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn4"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest4"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn5"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest5"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn6"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest6"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn7"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest7"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn8"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest8"</span> /&gt;</div><div class="line">	&lt;dataNode <span class="variable">name=</span><span class="string">"dn9"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest9"</span> /&gt;</div><div class="line"></div><div class="line">	&lt;dataHost <span class="variable">name=</span><span class="string">"localhost1"</span> <span class="variable">maxCon=</span><span class="string">"1000"</span> <span class="variable">minCon=</span><span class="string">"10"</span> <span class="variable">balance=</span><span class="string">"0"</span></div><div class="line">		<span class="variable">writeType=</span><span class="string">"0"</span> <span class="variable">dbType=</span><span class="string">"mysql"</span> <span class="variable">dbDriver=</span><span class="string">"native"</span> <span class="variable">switchType=</span><span class="string">"1"</span>  <span class="variable">slaveThreshold=</span><span class="string">"100"</span>&gt;</div><div class="line">		&lt;heartbeat&gt;select user()&lt;/heartbeat&gt;</div><div class="line">		&lt;writeHost <span class="variable">host=</span><span class="string">"hostM1"</span> <span class="variable">url=</span><span class="string">"workstation:3306"</span> <span class="variable">user=</span><span class="string">"root"</span></div><div class="line">			<span class="variable">password=</span><span class="string">"111111"</span>&gt;</div><div class="line">		&lt;/writeHost&gt;</div><div class="line">	&lt;/dataHost&gt;</div><div class="line">	&lt;dataHost <span class="variable">name=</span><span class="string">"localhost2"</span> <span class="variable">maxCon=</span><span class="string">"1000"</span> <span class="variable">minCon=</span><span class="string">"10"</span> <span class="variable">balance=</span><span class="string">"0"</span></div><div class="line">		<span class="variable">writeType=</span><span class="string">"0"</span> <span class="variable">dbType=</span><span class="string">"mysql"</span> <span class="variable">dbDriver=</span><span class="string">"native"</span> <span class="variable">switchType=</span><span class="string">"1"</span>  <span class="variable">slaveThreshold=</span><span class="string">"100"</span>&gt;</div><div class="line">		&lt;heartbeat&gt;select user()&lt;/heartbeat&gt;</div><div class="line">		&lt;writeHost <span class="variable">host=</span><span class="string">"hostM1"</span> <span class="variable">url=</span><span class="string">"workstation:3316"</span> <span class="variable">user=</span><span class="string">"root"</span></div><div class="line">			<span class="variable">password=</span><span class="string">"111111"</span>&gt;</div><div class="line">		&lt;/writeHost&gt;</div><div class="line">	&lt;/dataHost&gt;</div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>修改完配置，使用 MyCAT 管理端登陆，重新加载配置，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">$ mysql -hworkstation -utest -DTESTDB -P9066 -ptest</div><div class="line">Welcome to the MySQL monitor.  Commands <span class="operator"><span class="keyword">end</span> <span class="keyword">with</span> ;</span> or \g.</div><div class="line">Your MySQL connection id is 4</div><div class="line">Server version: 5.5.8-mycat-1.5-<span class="operator"><span class="keyword">RELEASE</span>-<span class="number">20160301083012</span> MyCat <span class="keyword">Server</span> (monitor)</span></div><div class="line"></div><div class="line">Copyright (c) <span class="number">2000</span>, <span class="number">2015</span>, Oracle <span class="keyword">and</span>/<span class="keyword">or</span> its affiliates. <span class="keyword">All</span> rights reserved.</div><div class="line"></div><div class="line">Oracle <span class="keyword">is</span> a registered trademark <span class="keyword">of</span> Oracle Corporation <span class="keyword">and</span>/<span class="keyword">or</span> its</div><div class="line">affiliates. Other <span class="keyword">names</span> may be trademarks <span class="keyword">of</span> their respective</div><div class="line">owners.</div><div class="line"></div><div class="line">Type <span class="string">'help;'</span> <span class="keyword">or</span> <span class="string">'\h'</span> <span class="keyword">for</span> <span class="keyword">help</span>. Type <span class="string">'\c'</span> <span class="keyword">to</span> clear the <span class="keyword">current</span> <span class="keyword">input</span> statement.</div><div class="line"></div><div class="line">mysql&gt; reload @@config_all;</div><div class="line">Query OK, 1 row affected (0.43 sec)</div><div class="line">Reload config success</div></pre></td></tr></table></figure></p>
+<p>此时，再去做插入数据，发现已经是在向新的数据库做插入了。用以上同样的步骤，可以迁移 dbtest1 的数据，在此不再赘述。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/MyCAT/">MyCAT</a><a href="/tags/Dataguru/">Dataguru</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/MyCAT/">MyCAT</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://valleylord.github.io/post/201603-mycat-migration/" data-title="MyCAT 数据迁移测试 | 褚哥说|" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/post/201603-kubernetes-log/" title="Kubernetes 日志">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  Kubernetes 日志</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/post/201603-kubernetes-flannel/"  title="Flannel 网络组件">
+ <strong>NEXT:</strong><br/> 
+ <span>Flannel 网络组件
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+      
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">步骤总览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">设置数据库只读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">导出和导入数据库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">修改 MyCAT 配置文件</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	
+	<section class="author-info">
+		
+			<p> 欢迎来到Valleylord的博客！</p>
+		
+		
+			<p>	本博的文章尽量原创。</p>
+		
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/http://weibo.com/valleylord" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/https://github.com/valleylord" target="_blank" title="github"></a>
+		
+		
+	</div>
+</div>
+<aside class="clearfix">
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kubernetes/" title="Kubernetes">Kubernetes<sup>6</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>8</sup></a></li>
+		
+			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>53</sup></a></li>
+		
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>6</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MyCAT/" title="MyCAT">MyCAT<sup>8</sup></a></li>
+		
+			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/tags/Quantmod/" title="Quantmod">Quantmod<sup>3</sup></a></li>
+		
+			<li><a href="/tags/R/" title="R">R<sup>3</sup></a></li>
+		
+			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/SICP/" title="SICP">SICP<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Tomcat/" title="Tomcat">Tomcat<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Translation/" title="Translation">Translation<sup>2</sup></a></li>
+		
+			<li><a href="/tags/boost/" title="boost">boost<sup>1</sup></a></li>
+		
+			<li><a href="/tags/quantlib/" title="quantlib">quantlib<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 12.22px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.44px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 16.67px;">JVM</a><a href="/tags/Java/" style="font-size: 17.78px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.33px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 15.56px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.89px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.22px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.22px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.11px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 10.00px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.11px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.11px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
+    </div>
+  </div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <!--
+      <li><a href="http://yangjian.me" target="_blank" title="YangJian">Alimon's Blog</a></li>
+      <li><a href="http://zespia.tw/hexo" target="_blank" title="Hexo">Hexo</a></li>
+      -->
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  //back to top
+  function backToTop(){
+    var buttonHTML = $("<a href=\"#top\" id=\"back-top\">" + "<span>Back to Top</span></a>");
+    buttonHTML.appendTo($("body"));
+    var buttonToTop = $("#back-top");
+    // hide #back-top first
+    buttonToTop.hide();
+
+    // fade in #back-top
+    $(function() {
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                buttonToTop.fadeIn();
+            } else {
+                buttonToTop.fadeOut();
+            }
+        });
+        // scroll body to 0px on click
+        buttonToTop.click(function() {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+            return false;
+        });
+    });
+  }
+  backToTop();
+
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      ta = $('#toc.toc-aside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+
+  var show = true;
+  c.click(function(){
+    if(show == true){
+        a.addClass('fadeOut').css('display', 'none');
+        ta.css('display', 'block').addClass('fadeIn');
+        m.addClass('moveMain');  
+    }else{
+        a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');     
+        ta.css('display', 'none'); 
+        m.removeClass('moveMain');
+        $('#toc.toc-aside').css('display', 'none');
+    }
+    show = !show;
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,240-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>
