@@ -1,0 +1,538 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>使用 MyCAT 的 Oracle 数据迁移 | 褚哥说|</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Valleylord">
+    
+    <meta name="description" content="MyCAT 的应用场景很多，很多应用在数据路由场景，将许多异构的数据库放在一起，使用 MyCAT 做 sql 转发。由于有这样的特性，MyCAT 在去 IOE 中也有比较丰富的应用。例如，将 Oracle 中的数据逐步的迁移到 mysql 中，在逐步迁移的过程中，仍然能保持几乎不间断的对外访问。下面">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="褚哥说|" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/author.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/author.jpg">
+    
+
+	
+	<link href="http://cdn.bootcss.com/highlight.js/8.2/styles/monokai.min.css" rel="stylesheet">
+	<script src="http://cdn.bootcss.com/highlight.js/8.2/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+	
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="褚哥说|">褚哥说|</a></h1>
+				<h2 class="blog-motto">我想写一些东西</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul><li> <a href="/atom.xml">RSS</a> </li>
+                    <ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/tags">标签</a></li>
+					
+						<li><a href="/links">链接</a></li>
+					
+						<li><a href="http://www.cnblogs.com/valleylord/">旧文</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					</li>
+                <li><div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div></li>
+
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container" class="clearfix">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/post/201603-mycat-oracle-migration/" title="使用 MyCAT 的 Oracle 数据迁移" itemprop="url">使用 MyCAT 的 Oracle 数据迁移</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-03-27T01:07:28.000Z" itemprop="datePublished">2016-03-27</time>
+    更新日期:<time datetime="2016-03-27T06:29:02.071Z" itemprop="dateModified">2016-03-27</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">配置 MyCAT 连接 Oracle</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">Oracle 数据导出</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">导入 MyCAT</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">后记</span></a></li></ol>
+		</div>
+		
+		<p>MyCAT 的应用场景很多，很多应用在数据路由场景，将许多异构的数据库放在一起，使用 MyCAT 做 sql 转发。由于有这样的特性，MyCAT 在去 IOE 中也有比较丰富的应用。例如，将 Oracle 中的数据逐步的迁移到 mysql 中，在逐步迁移的过程中，仍然能保持几乎不间断的对外访问。下面距举例说明。</p>
+<h2>配置 MyCAT 连接 Oracle</h2>
+<p>数据迁移的第一步就是使用 MyCAT 作为中间件隔离 Oracle，这其中可能涉及到部分 sql 和应用的改写。配置如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">&lt;dataNode <span class="variable">name=</span><span class="string">"oradn0"</span> <span class="variable">dataHost=</span><span class="string">"oracle1"</span> <span class="variable">database=</span><span class="string">"scott"</span> /&gt;</div><div class="line"></div><div class="line">&lt;dataHost <span class="variable">name=</span><span class="string">"oracle1"</span> <span class="variable">maxCon=</span><span class="string">"1000"</span> <span class="variable">minCon=</span><span class="string">"1"</span> <span class="variable">balance=</span><span class="string">"0"</span> <span class="variable">writeType=</span><span class="string">"0"</span> <span class="variable">dbType=</span><span class="string">"oracle"</span></div><div class="line">		<span class="variable">dbDriver=</span><span class="string">"jdbc"</span>&gt;</div><div class="line">	&lt;heartbeat&gt;select <span class="number">1</span> from dual&lt;/heartbeat&gt;</div><div class="line">	&lt;connectionInitSql&gt;alter session set <span class="variable">nls_date_format=</span>'yyyy-mm-dd hh24:mi:ss'&lt;/connectionInitSql&gt;</div><div class="line">	&lt;writeHost <span class="variable">host=</span><span class="string">"hostM1"</span> <span class="variable">url=</span><span class="string">"jdbc:oracle:thin:@192.168.2.202:1521:orcl"</span> <span class="variable">user=</span><span class="string">"scott"</span> <span class="variable">password=</span><span class="string">"tiger"</span> &gt;</div><div class="line">	&lt;/writeHost&gt;</div><div class="line">&lt;/dataHost&gt;</div></pre></td></tr></table></figure></p>
+<p>完成 MyCAT 的配置之后，应用程序将看不到 Oracle，后续的数据迁移对应用是透明的，此时，架构图如下，</p>
+<p><img src="/images/201603-mycat-oracle-migration/mycat-oracle-migration-architecture.png"></p>
+<p>假设有 Oracle 中有3张表，用户表（c_user）、交易表（c_order）、转账表（c_transfer），需要迁移用户表和交易表到 mysql 中。这3张表在当前的 MyCAT 中可以做如下配置，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;table <span class="variable">name=</span><span class="string">"c_user"</span> <span class="variable">primaryKey=</span><span class="string">"ID"</span> <span class="variable">type=</span><span class="string">"global"</span> <span class="variable">dataNode=</span><span class="string">"oradn0"</span> /&gt;</div><div class="line">&lt;table <span class="variable">name=</span><span class="string">"c_order"</span> <span class="variable">primaryKey=</span><span class="string">"ID"</span> <span class="variable">type=</span><span class="string">"global"</span> <span class="variable">dataNode=</span><span class="string">"oradn0"</span> /&gt;</div><div class="line">&lt;table <span class="variable">name=</span><span class="string">"c_transfer"</span> <span class="variable">primaryKey=</span><span class="string">"ID"</span> <span class="variable">type=</span><span class="string">"global"</span> <span class="variable">dataNode=</span><span class="string">"oradn0"</span> /&gt;</div></pre></td></tr></table></figure></p>
+<h2>Oracle 数据导出</h2>
+<p>假设 Oracle 中，上述3张表的建表语句如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">create</span> <span class="keyword">table</span> c_user(id <span class="built_in">number</span>(<span class="number">20</span>) <span class="keyword">primary</span> <span class="keyword">key</span>, user_name <span class="built_in">varchar</span>(<span class="number">20</span>), passwd <span class="built_in">varchar</span>(<span class="number">20</span>), nick_name <span class="built_in">varchar</span>(<span class="number">40</span>));</span></div><div class="line"><span class="operator"><span class="keyword">create</span> <span class="keyword">table</span> c_order(id <span class="built_in">number</span>(<span class="number">20</span>) <span class="keyword">primary</span> <span class="keyword">key</span>, user_id <span class="built_in">number</span>(<span class="number">20</span>), payment <span class="built_in">number</span>);</span></div><div class="line"><span class="operator"><span class="keyword">create</span> <span class="keyword">table</span> c_transfer(id <span class="built_in">number</span>(<span class="number">20</span>) <span class="keyword">primary</span> <span class="keyword">key</span>, from_user_id <span class="built_in">number</span>(<span class="number">20</span>), to_user_id <span class="built_in">number</span>(<span class="number">20</span>), amount <span class="built_in">number</span>);</span></div></pre></td></tr></table></figure></p>
+<p>为了便于演示，测试数据库中的数据量比较小，每个表只有1000条，不过这不影响操作结果。另外，为了测试迁移中中文编码可能出现的问题，部分字段使用了中文，数据库字符集是 GBK，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line">SQL&gt; <span class="keyword">select</span> count<span class="comment">(*) from c_user;</span></div><div class="line"></div><div class="line">  COUNT(*)</div><div class="line">----------</div><div class="line">      <span class="number">1000</span></div><div class="line"></div><div class="line">SQL&gt; <span class="keyword">select</span> * <span class="keyword">from</span> c_user <span class="keyword">where</span> rownum&lt;=<span class="number">5</span>;</div><div class="line"></div><div class="line">	ID USER_NAME  PASSWD	 NICK_NAME</div><div class="line">---------- ---------- ---------- ----------</div><div class="line">      <span class="number">1000</span> a1000      <span class="number">111111</span>     王</div><div class="line">      <span class="number">1001</span> a1001      <span class="number">111111</span>     王</div><div class="line">      <span class="number">1002</span> a1002      <span class="number">111111</span>     王</div><div class="line">      <span class="number">1003</span> a1003      <span class="number">111111</span>     王</div><div class="line">      <span class="number">1004</span> a1004      <span class="number">111111</span>     王</div><div class="line"></div><div class="line">SQL&gt; <span class="keyword">select</span> count<span class="comment">(*) from c_order;</span></div><div class="line"></div><div class="line">  COUNT(*)</div><div class="line">----------</div><div class="line">      <span class="number">1000</span></div><div class="line"></div><div class="line">SQL&gt; <span class="keyword">select</span> * <span class="keyword">from</span> c_order <span class="keyword">where</span> rownum&lt;=<span class="number">5</span>;</div><div class="line"></div><div class="line">	ID    USER_ID	 PAYMENT</div><div class="line">---------- ---------- ----------</div><div class="line">     <span class="number">10000</span>	 <span class="number">1000</span>	     <span class="number">100</span></div><div class="line">     <span class="number">10001</span>	 <span class="number">1001</span>	     <span class="number">100</span></div><div class="line">     <span class="number">10002</span>	 <span class="number">1002</span>	     <span class="number">100</span></div><div class="line">     <span class="number">10003</span>	 <span class="number">1003</span>	     <span class="number">100</span></div><div class="line">     <span class="number">10004</span>	 <span class="number">1004</span>	     <span class="number">100</span></div><div class="line"></div><div class="line">SQL&gt; <span class="keyword">select</span> * <span class="keyword">from</span> nls_database_parameters <span class="keyword">where</span> parameter = <span class="string">'NLS_CHARACTERSET'</span>;</div><div class="line"></div><div class="line">PARAMETER		  VALUE</div><div class="line">------------------------- --------------------</div><div class="line">NLS_CHARACTERSET	  ZHS16GBK</div></pre></td></tr></table></figure></p>
+<p><img src="/images/201603-mycat-oracle-migration/mycat-oracle-datasize.png"></p>
+<p>在生产环境中，应该小步前进，对于数据比较多的表，逐个迁移（如果 join 的 sql 不多的话）。实验中，我们采用一次迁移两张表的做法。</p>
+<p>将数据从 Oracle 中导出，采用 spool 方法，这主要是方便 MyCAT 后续导入，sqlplus 相关语句如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">SET</span> HEADING OFF  </span></div><div class="line"><span class="keyword">SET</span> ECHO OFF  </div><div class="line"><span class="keyword">SET</span> FEEDBACK OFF  </div><div class="line"><span class="keyword">SET</span> PAGES <span class="number">0</span>  </div><div class="line"><span class="keyword">SET</span> LINESIZE <span class="number">32766</span>  </div><div class="line"><span class="keyword">SET</span> LONG <span class="number">1999999</span>  </div><div class="line"><span class="keyword">SET</span> TRIMOUT <span class="keyword">ON</span></div><div class="line"><span class="keyword">SET</span> TRIMSPOOL <span class="keyword">ON</span>  </div><div class="line"><span class="keyword">SET</span> NEWPAGE NONE  </div><div class="line"><span class="keyword">SET</span> SQLBLANKLINES OFF  </div><div class="line"><span class="keyword">SET</span> TRIMS <span class="keyword">ON</span>  </div><div class="line"><span class="keyword">SET</span> TIMING OFF  </div><div class="line"><span class="keyword">SET</span> SERVEROUTPUT <span class="keyword">ON</span>  </div><div class="line"><span class="keyword">SET</span> VERIFY OFF  </div><div class="line"></div><div class="line">SPOOL c_user.dat    </div><div class="line"><span class="keyword">SELECT</span> <span class="string">'"'</span>||id||<span class="string">'"|"'</span>||user_name||<span class="string">'"|"'</span>||passwd||<span class="string">'"|"'</span>||nick_name||<span class="string">'"'</span> <span class="keyword">FROM</span> c_user;</div><div class="line">spool off  </div><div class="line"></div><div class="line"></div><div class="line">SPOOL c_order.dat  </div><div class="line"><span class="operator"><span class="keyword">SELECT</span> <span class="string">'"'</span>||id||<span class="string">'"|"'</span>||user_id||<span class="string">'"|"'</span>||payment||<span class="string">'"'</span> <span class="keyword">FROM</span> c_order;</span></div><div class="line">spool off</div></pre></td></tr></table></figure></p>
+<p><img src="/images/201603-mycat-oracle-migration/mycat-oracle-spool1.png"></p>
+<p>用这样的方法，导出的数据会比较整齐，而且连字符集也统一处理了（只要 sqlplus 的客户端字符集配置的对），如下，</p>
+<p><img src="/images/201603-mycat-oracle-migration/mycat-oracle-spool2.png"></p>
+<p>同样的方法可以导出另一个表的数据，在此不再赘述。</p>
+<h2>导入 MyCAT</h2>
+<p>首先，先要在 MyCAT 中配置将要导入的数据库和表，假设导入的数据要分片到10个 mysql 数据库中，可以如下配置，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;dataNode <span class="variable">name=</span><span class="string">"dn0"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest0"</span> /&gt;</div><div class="line">&lt;dataNode <span class="variable">name=</span><span class="string">"dn1"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest1"</span> /&gt;</div><div class="line">&lt;dataNode <span class="variable">name=</span><span class="string">"dn2"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest2"</span> /&gt;</div><div class="line">&lt;dataNode <span class="variable">name=</span><span class="string">"dn3"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest3"</span> /&gt;</div><div class="line">&lt;dataNode <span class="variable">name=</span><span class="string">"dn4"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest4"</span> /&gt;</div><div class="line">&lt;dataNode <span class="variable">name=</span><span class="string">"dn5"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest5"</span> /&gt;</div><div class="line">&lt;dataNode <span class="variable">name=</span><span class="string">"dn6"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest6"</span> /&gt;</div><div class="line">&lt;dataNode <span class="variable">name=</span><span class="string">"dn7"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest7"</span> /&gt;</div><div class="line">&lt;dataNode <span class="variable">name=</span><span class="string">"dn8"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest8"</span> /&gt;</div><div class="line">&lt;dataNode <span class="variable">name=</span><span class="string">"dn9"</span> <span class="variable">dataHost=</span><span class="string">"localhost1"</span> <span class="variable">database=</span><span class="string">"dbtest9"</span> /&gt;</div><div class="line"></div><div class="line">&lt;dataHost <span class="variable">name=</span><span class="string">"localhost1"</span> <span class="variable">maxCon=</span><span class="string">"1000"</span> <span class="variable">minCon=</span><span class="string">"10"</span> <span class="variable">balance=</span><span class="string">"0"</span></div><div class="line">	<span class="variable">writeType=</span><span class="string">"0"</span> <span class="variable">dbType=</span><span class="string">"mysql"</span> <span class="variable">dbDriver=</span><span class="string">"native"</span> <span class="variable">switchType=</span><span class="string">"1"</span>  <span class="variable">slaveThreshold=</span><span class="string">"100"</span>&gt;</div><div class="line">	&lt;heartbeat&gt;select user()&lt;/heartbeat&gt;</div><div class="line">	&lt;writeHost <span class="variable">host=</span><span class="string">"hostM1"</span> <span class="variable">url=</span><span class="string">"workstation:3306"</span> <span class="variable">user=</span><span class="string">"root"</span></div><div class="line">		<span class="variable">password=</span><span class="string">"111111"</span>&gt;</div><div class="line">	&lt;/writeHost&gt;</div><div class="line">&lt;/dataHost&gt;</div></pre></td></tr></table></figure></p>
+<p>迁移的2张表采用 id 取余数算法分片，另外的表不做变动，如下配置，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;table <span class="variable">name=</span><span class="string">"c_user"</span> <span class="variable">dataNode=</span><span class="string">"dn0,dn1,dn2,dn3,dn4,dn5,dn6,dn7,dn8,dn9"</span> <span class="variable">rule=</span><span class="string">"mod-10"</span> /&gt;</div><div class="line">&lt;table <span class="variable">name=</span><span class="string">"c_order"</span> <span class="variable">dataNode=</span><span class="string">"dn0,dn1,dn2,dn3,dn4,dn5,dn6,dn7,dn8,dn9"</span> <span class="variable">rule=</span><span class="string">"mod-10"</span> /&gt;</div><div class="line">&lt;table <span class="variable">name=</span><span class="string">"c_transfer"</span> <span class="variable">primaryKey=</span><span class="string">"ID"</span> <span class="variable">type=</span><span class="string">"global"</span> <span class="variable">dataNode=</span><span class="string">"oradn0"</span> /&gt;</div></pre></td></tr></table></figure></p>
+<blockquote>
+<p>注：此处采用简便的分片方法，实际上，这里应该使用ER分片会更好。参考另一篇文章《MyCAT 分片》。</p>
+</blockquote>
+<p>然后，重启 MyCAT，或者使用管理端的 <code>reload @@config_all</code>，使用如下语句建表，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="operator"><span class="keyword">create</span> <span class="keyword">table</span> c_user(id <span class="built_in">bigint</span> <span class="keyword">primary</span> <span class="keyword">key</span>, user_name <span class="built_in">varchar</span>(<span class="number">20</span>), passwd <span class="built_in">varchar</span>(<span class="number">20</span>), nick_name <span class="built_in">varchar</span>(<span class="number">40</span>));</span></div><div class="line"><span class="operator"><span class="keyword">create</span> <span class="keyword">table</span> c_order(id <span class="built_in">bigint</span> <span class="keyword">primary</span> <span class="keyword">key</span>, user_id <span class="built_in">bigint</span>, payment <span class="built_in">decimal</span>);</span></div></pre></td></tr></table></figure></p>
+<p>MyCAT 支持类似 mysql 的 load data，而且支持在导入的过程中完成数据路由，操作如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line">$ mysql -hworkstation -utest -DTESTDB -P8066 -ptest --local-infile=1</div><div class="line"></div><div class="line">mysql&gt; SET NAMES <span class="emphasis">'utf8'</span>;</div><div class="line">Query OK, 0 rows affected (0.00 sec)</div><div class="line"></div><div class="line"><span class="header">mysql&gt; SHOW VARIABLES LIKE 'character%';</span></div><div class="line">+--------------------------+----------------------------+</div><div class="line"><span class="header">| Variable_name            | Value                      |</span></div><div class="line">+--------------------------+----------------------------+</div><div class="line">| character<span class="emphasis">_set_</span>client     | utf8                       |</div><div class="line">| character<span class="emphasis">_set_</span>connection | utf8                       |</div><div class="line">| character<span class="emphasis">_set_</span>database   | utf8                       |</div><div class="line">| character<span class="emphasis">_set_</span>filesystem | binary                     |</div><div class="line">| character<span class="emphasis">_set_</span>results    | utf8                       |</div><div class="line">| character<span class="emphasis">_set_</span>server     | utf8                       |</div><div class="line">| character<span class="emphasis">_set_</span>system     | utf8                       |</div><div class="line"><span class="header">| character_sets_dir       | /usr/share/mysql/charsets/ |</span></div><div class="line">+--------------------------+----------------------------+</div><div class="line">8 rows in set (0.00 sec)</div><div class="line"></div><div class="line">mysql&gt; load DATA local INFILE <span class="emphasis">'/home/arnes/project/c_user.dat'</span> IGNORE INTO TABLE c<span class="emphasis">_user CHARACTER SET 'utf8' FIELDS TERMINATED BY '|' ENCLOSED BY '"' LINES TERMINATED BY '\n' (id, user_</span>name, passwd, nick<span class="emphasis">_name) ;</span></div><div class="line">Query OK, 1000 rows affected (0.16 sec)</div><div class="line">Records: 1000  Deleted: 0  Skipped: 0  Warnings: 0</div><div class="line"></div><div class="line"><span class="header">mysql&gt; select * from c_user limit 5;</span></div><div class="line">+------+-----------+--------+-----------+</div><div class="line"><span class="header">| id   | user_name | passwd | nick_name |</span></div><div class="line">+------+-----------+--------+-----------+</div><div class="line">| 1001 | a1001     | 111111 | 王       |</div><div class="line">| 1011 | a1011     | 111111 | 王       |</div><div class="line">| 1021 | a1021     | 111111 | 王       |</div><div class="line">| 1031 | a1031     | 111111 | 王       |</div><div class="line"><span class="header">| 1041 | a1041     | 111111 | 王       |</span></div><div class="line">+------+-----------+--------+-----------+</div><div class="line">5 rows in set (0.00 sec)</div><div class="line"></div><div class="line"><span class="header">mysql&gt; select count(*) from c_user;</span></div><div class="line">+--------+</div><div class="line"><span class="header">| COUNT0 |</span></div><div class="line">+--------+</div><div class="line"><span class="header">|   1000 |</span></div><div class="line">+--------+</div><div class="line">1 row in set (0.09 sec)</div></pre></td></tr></table></figure></p>
+<p><img src="/images/201603-mycat-oracle-migration/mycat-oracle-loaddata1.png"></p>
+<p>其中，有一些地方需要特别注意。</p>
+<ol>
+<li>load data 命令中的 character set 参数，指定文件的编码，<strong>建议跟 mysql 的编码一致</strong>，否则可能乱码。其中字符集编码必项用单引号，否则会解析出错。因为我用的文件在导出的时候已经完成转码，因此这里选择 ‘utf8’；</li>
+<li>根据 MyCAT 和 mysql 官方文档，如果用 mysql 客户端登陆执行 load data，必须在 mysql 客户端登陆时增加参数 <code>--local-infile=1</code>，否则不能导入，而 jdbc 不需要加这个参数（我估计没人用 jdbc 做这样的操作）；</li>
+<li>MyCAT 的 load data 必须要指定导入的列名放在命令的最后，列名的顺序与数据要一致，而且必须要包含分片字段，如上面的 <code>(id, user_name, passwd, nick_name)</code>；</li>
+<li>登陆 MyCAT 后需要检查 mysql 客户端和服务器端的字符集是否相同，如果不同，使用 <code>SET NAMES 'utf8';</code>，将客户端字符集统一设置成 utf-8，如下，</li>
+</ol>
+<p><img src="/images/201603-mycat-oracle-migration/mycat-oracle-characterset.png"></p>
+<p>与上面相同的方法，可以导入另一张表，如下，</p>
+<p><img src="/images/201603-mycat-oracle-migration/mycat-oracle-loaddata2.png"></p>
+<p><img src="/images/201603-mycat-oracle-migration/mycat-oracle-loaddata3.png"></p>
+<p>每个分片上有100条数据，如下，</p>
+<p><img src="/images/201603-mycat-oracle-migration/mycat-oracle-dbtest0.png"></p>
+<p>至此，MyCAT 已经可以将数据路由到新的 mysql 服务器上，迁移完成。</p>
+<h2>后记</h2>
+<p>如果不常用 mysql 的人，做 load data 应该会碰到挺多问题，在加上 MyCAT，估计一下很难发现问题，比如下面这个问题，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">mysql&gt; load DATA local INFILE <span class="string">'/home/arnes/project/c_user-10.dat'</span> IGNORE INTO TABLE c_user FIELDS TERMINATED BY <span class="string">'|'</span> ENCLOSED BY <span class="string">'"'</span> LINES TERMINATED BY <span class="string">'\n'</span> (id, user_name, passwd, nick_name) ;</div><div class="line">ERROR <span class="number">2027</span> (HY000): Malformed packet</div><div class="line">mysql&gt; load DATA local INFILE <span class="string">'/home/arnes/project/c_user-10.dat'</span> IGNORE INTO TABLE c_user CHARACTER SET <span class="string">'utf8'</span> FIELDS TERMINATED BY <span class="string">'|'</span> ENCLOSED BY <span class="string">'"'</span> LINES TERMINATED BY <span class="string">'\n'</span> (id, user_name, passwd, nick_name) ;</div><div class="line">^CCtrl-C -- sending <span class="string">"KILL QUERY 24"</span> to server <span class="keyword">...</span></div><div class="line">Ctrl-C -- query aborted.</div><div class="line">^CCtrl-C -- sending <span class="string">"KILL 24"</span> to server <span class="keyword">...</span></div><div class="line">Ctrl-C -- query aborted.</div><div class="line">ERROR <span class="number">2013</span> (HY000): Lost connection to MySQL server during query</div></pre></td></tr></table></figure></p>
+<p>从字面上感觉是数据格式出错了，实际上是 mysql 客户端登陆的时候没有加 <code>--local-infile=1</code>参数，而且这个问题会导致 mysql 客户端卡死，并断掉连接。还有，如果导入的时候没有加列名，也会提示很诡异的错误，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">mysql<span class="subst">&gt;</span> load <span class="built_in">DATA</span> <span class="built_in">local</span> INFILE <span class="string">'/home/arnes/project/c_user-10.dat'</span> IGNORE <span class="keyword">INTO</span> TABLE c_user  FIELDS TERMINATED <span class="keyword">BY</span> <span class="string">'|'</span> ENCLOSED <span class="keyword">BY</span> <span class="string">'"'</span> LINES TERMINATED <span class="keyword">BY</span> <span class="string">'\n'</span>;</div><div class="line">ERROR <span class="number">2013</span> (HY000): Lost connection <span class="keyword">to</span> MySQL server during query</div><div class="line">mysql<span class="subst">&gt;</span> load <span class="built_in">DATA</span> <span class="built_in">local</span> INFILE <span class="string">'/home/arnes/project/c_user-10.dat'</span> IGNORE <span class="keyword">INTO</span> TABLE c_user  FIELDS TERMINATED <span class="keyword">BY</span> <span class="string">'|'</span> ENCLOSED <span class="keyword">BY</span> <span class="string">'"'</span> LINES TERMINATED <span class="keyword">BY</span> <span class="string">'\n'</span>;</div><div class="line">ERROR <span class="number">2006</span> (HY000): MySQL server has gone away</div><div class="line">No connection<span class="built_in">.</span> Trying <span class="keyword">to</span> reconnect<span class="attribute">...</span></div><div class="line">Connection id:    <span class="number">40</span></div><div class="line">Current database: TESTDB</div><div class="line"></div><div class="line">ERROR <span class="number">2013</span> (HY000): Lost connection <span class="keyword">to</span> MySQL server during query</div></pre></td></tr></table></figure></p>
+<p>这个错误也会导致断掉客户端连接，甚至还会打印很多类似这样的日志，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">03/27 14:11:55.151   WARN [$_NIOREACTOR-2-RW] (ServerConnection.java:209) -ServerConnection [id=40, schema=TESTDB, host=192.168.2.201, user=test,txIsolation=3, autocommit=true, schema=TESTDB]<span class="comment">/*loaddata*/</span><span class="operator"><span class="keyword">insert</span> <span class="keyword">into</span> C_USER <span class="keyword">values</span> (<span class="string">'1001'</span>,<span class="string">'a1001'</span>,<span class="string">'111111'</span>,<span class="string">'ç'</span>) err:java.<span class="keyword">sql</span>.SQLSyntaxErrorException: <span class="keyword">partition</span> <span class="keyword">table</span>, <span class="keyword">insert</span> must provide ColumnList</span></div><div class="line">java.<span class="keyword">sql</span>.SQLSyntaxErrorException: <span class="keyword">partition</span> <span class="keyword">table</span>, <span class="keyword">insert</span> must provide ColumnList</div><div class="line">	<span class="keyword">at</span> org.opencloudb.parser.druid.impl.DruidInsertParser.statementParse(DruidInsertParser.java:<span class="number">69</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.parser.druid.impl.DefaultDruidParser.parser(DefaultDruidParser.java:<span class="number">63</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.route.impl.DruidMycatRouteStrategy.routeNormalSqlWithAST(DruidMycatRouteStrategy.java:<span class="number">64</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.route.impl.AbstractRouteStrategy.route(AbstractRouteStrategy.java:<span class="number">76</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.route.RouteService.route(RouteService.java:<span class="number">129</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.<span class="keyword">server</span>.ServerConnection.routeSQL(ServerConnection.java:<span class="number">201</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.<span class="keyword">server</span>.<span class="keyword">handler</span>.ServerLoadDataInfileHandler.parseOneLine(ServerLoadDataInfileHandler.java:<span class="number">391</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.<span class="keyword">server</span>.<span class="keyword">handler</span>.ServerLoadDataInfileHandler.<span class="keyword">end</span>(ServerLoadDataInfileHandler.java:<span class="number">646</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.net.FrontendConnection.loadDataInfileEnd(FrontendConnection.java:<span class="number">268</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.net.FrontendConnection.rawHandle(FrontendConnection.java:<span class="number">426</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.net.FrontendConnection.handle(FrontendConnection.java:<span class="number">417</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.net.AbstractConnection.onReadData(AbstractConnection.java:<span class="number">313</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.net.NIOSocketWR.asynRead(NIOSocketWR.java:<span class="number">186</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.net.AbstractConnection.asynRead(AbstractConnection.java:<span class="number">274</span>)</div><div class="line">	<span class="keyword">at</span> org.opencloudb.net.NIOReactor$RW.run(NIOReactor.java:<span class="number">96</span>)</div><div class="line">	<span class="keyword">at</span> java.lang.Thread.run(Thread.java:<span class="number">745</span>)</div></pre></td></tr></table></figure></p>
+<p>如果从日志看的话，可以发现是 sql 里面缺少列名。因此，只有按照 MyCAT 官方文档的步骤，一步一步来，不可逾越。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/MyCAT/">MyCAT</a><a href="/tags/Dataguru/">Dataguru</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/MyCAT/">MyCAT</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://valleylord.github.io/post/201603-mycat-oracle-migration/" data-title="使用 MyCAT 的 Oracle 数据迁移 | 褚哥说|" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/post/201603-tomcat-close-wait/" title="Tomcat 的 CLOSE_WAIT 连接过多问题查询笔记">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  Tomcat 的 CLOSE_WAIT 连接过多问题查询笔记</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/post/201603-kubernetes-log/"  title="Kubernetes 日志">
+ <strong>NEXT:</strong><br/> 
+ <span>Kubernetes 日志
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+      
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">配置 MyCAT 连接 Oracle</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">Oracle 数据导出</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">导入 MyCAT</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">后记</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	
+	<section class="author-info">
+		
+			<p> 欢迎来到Valleylord的博客！</p>
+		
+		
+			<p>	本博的文章尽量原创。</p>
+		
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/http://weibo.com/valleylord" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/https://github.com/valleylord" target="_blank" title="github"></a>
+		
+		
+	</div>
+</div>
+<aside class="clearfix">
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kubernetes/" title="Kubernetes">Kubernetes<sup>6</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>9</sup></a></li>
+		
+			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>1</sup></a></li>
+		
+			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>54</sup></a></li>
+		
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>6</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MyCAT/" title="MyCAT">MyCAT<sup>9</sup></a></li>
+		
+			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/tags/Quantmod/" title="Quantmod">Quantmod<sup>3</sup></a></li>
+		
+			<li><a href="/tags/R/" title="R">R<sup>3</sup></a></li>
+		
+			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/SICP/" title="SICP">SICP<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Tomcat/" title="Tomcat">Tomcat<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Translation/" title="Translation">Translation<sup>2</sup></a></li>
+		
+			<li><a href="/tags/boost/" title="boost">boost<sup>1</sup></a></li>
+		
+			<li><a href="/tags/quantlib/" title="quantlib">quantlib<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 12.22px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.44px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 16.67px;">JVM</a><a href="/tags/Java/" style="font-size: 17.78px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.33px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 15.56px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.89px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.22px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.22px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.11px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 11.11px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.11px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.11px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
+    </div>
+  </div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <!--
+      <li><a href="http://yangjian.me" target="_blank" title="YangJian">Alimon's Blog</a></li>
+      <li><a href="http://zespia.tw/hexo" target="_blank" title="Hexo">Hexo</a></li>
+      -->
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  //back to top
+  function backToTop(){
+    var buttonHTML = $("<a href=\"#top\" id=\"back-top\">" + "<span>Back to Top</span></a>");
+    buttonHTML.appendTo($("body"));
+    var buttonToTop = $("#back-top");
+    // hide #back-top first
+    buttonToTop.hide();
+
+    // fade in #back-top
+    $(function() {
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                buttonToTop.fadeIn();
+            } else {
+                buttonToTop.fadeOut();
+            }
+        });
+        // scroll body to 0px on click
+        buttonToTop.click(function() {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+            return false;
+        });
+    });
+  }
+  backToTop();
+
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      ta = $('#toc.toc-aside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+
+  var show = true;
+  c.click(function(){
+    if(show == true){
+        a.addClass('fadeOut').css('display', 'none');
+        ta.css('display', 'block').addClass('fadeIn');
+        m.addClass('moveMain');  
+    }else{
+        a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');     
+        ta.css('display', 'none'); 
+        m.removeClass('moveMain');
+        $('#toc.toc-aside').css('display', 'none');
+    }
+    show = !show;
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,240-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>
