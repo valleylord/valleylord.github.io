@@ -1,0 +1,510 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Mycat-eye 安装 | 褚哥说|</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Valleylord">
+    
+    <meta name="description" content="Mycat-web 是对mycat-server提供监控服务。功能不局限于对mycat-server使用。他基于jmx对所有JVM监控。通过JDBC连接对Mycat、Mysql 监控。基于snmp协议，监控远程服务器(目前仅限于linux系统)的cpu、内存、网络、磁盘。Mycat-web 最近改名">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="褚哥说|" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/author.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/author.jpg">
+    
+
+	
+	<link href="http://cdn.bootcss.com/highlight.js/8.2/styles/monokai.min.css" rel="stylesheet">
+	<script src="http://cdn.bootcss.com/highlight.js/8.2/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+	
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="褚哥说|">褚哥说|</a></h1>
+				<h2 class="blog-motto">我想写一些东西</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul><li> <a href="/atom.xml">RSS</a> </li>
+                    <ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/tags">标签</a></li>
+					
+						<li><a href="/links">链接</a></li>
+					
+						<li><a href="http://www.cnblogs.com/valleylord/">旧文</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					</li>
+                <li><div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div></li>
+
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container" class="clearfix">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/post/201604-mycat-web-install/" title="Mycat-eye 安装" itemprop="url">Mycat-eye 安装</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-04-10T03:04:11.000Z" itemprop="datePublished">2016-04-10</time>
+    更新日期:<time datetime="2016-04-10T05:51:27.869Z" itemprop="dateModified">2016-04-10</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">安装与配置</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.1.</span> <span class="toc-text">使用 Mycat-eye</span></a></li></ol></li></ol>
+		</div>
+		
+		<p>Mycat-web 是对mycat-server提供监控服务。功能不局限于对mycat-server使用。他基于jmx对所有JVM监控。通过JDBC连接对Mycat、Mysql 监控。基于snmp协议，监控远程服务器(目前仅限于linux系统)的cpu、内存、网络、磁盘。Mycat-web 最近改名 Mycat-eye。</p>
+<h1>安装与配置</h1>
+<p>Mycat-eye 运行过程中需要依赖 zookeeper，因此需要先安装 zookeeper，我安装的是 zookeeper-3.4.8。</p>
+<p>先下载 zookeeper-3.4.8.tar.gz，然后解压，在 <code>conf/</code> 目录下找到 zoo-sample.cfg，将其复制为 zoo.cfg。其内容主要如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="variable">tickTime=</span><span class="number">2000</span></div><div class="line"><span class="variable">initLimit=</span><span class="number">10</span></div><div class="line"><span class="variable">syncLimit=</span><span class="number">5</span></div><div class="line"><span class="variable">dataDir=</span>/tmp/zookeeper</div><div class="line"><span class="variable">clientPort=</span><span class="number">2181</span></div></pre></td></tr></table></figure></p>
+<p>要记得的是端口号2181，启动 Mycat-eye 的时候会用到。然后启动 zookeeper，启动的入口在 <code>bin/</code> 目录下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># arnes@Ubuntu-Asus [192.168.2.201] in ~/project/mycat-web/zookeeper-3.4.8 [11:30:51]</span></div><div class="line">$ bin/zkServer.sh start; bin/zkServer.sh status</div><div class="line">ZooKeeper JMX enabled by default</div><div class="line">Using config: /home/arnes/project/mycat-web/zookeeper-<span class="number">3.4</span><span class="number">.8</span>/bin/../conf/zoo.cfg</div><div class="line">Starting zookeeper <span class="keyword">...</span> STARTED</div><div class="line">ZooKeeper JMX enabled by default</div><div class="line">Using config: /home/arnes/project/mycat-web/zookeeper-<span class="number">3.4</span><span class="number">.8</span>/bin/../conf/zoo.cfg</div><div class="line">Mode: standalone</div></pre></td></tr></table></figure></p>
+<p>可见，在启动的过程中，读取了刚才配置的 zoo.cfg。由于仅仅是实验，我们这里只使用了 zookeeper 的单机（standalone）模式。</p>
+<p>然后安装 Mycat-eye，我安装的是 Mycat-web-1.0-SNAPSHOT-20160331220346-linux.tar.gz，同样需要先解压，解压后得到 mycat-web 目录。Mycat-eye 的配置文件在 <code>mycat-web/WEB-INF/classes/mycat.properties</code>，确认其中配置的 zookeeper 地址正确，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="attribute">zookeeper</span>=<span class="string">localhost:2181</span></div></pre></td></tr></table></figure></p>
+<p>然后可以启动 Mycat-eye，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># arnes<span class="yardoctag">@Ubuntu</span>-Asus [192.168.2.201] in ~/project/mycat-web/mycat-web [12:44:13]</span></div><div class="line"><span class="variable">$ </span>./start.sh </div><div class="line"><span class="symbol">nohup:</span> 忽略输入并把输出追加到<span class="string">"nohup.out"</span></div></pre></td></tr></table></figure></p>
+<h2>使用 Mycat-eye</h2>
+<p>首先要登陆 Mycat-eye，浏览器打开页面 <code>http://localhost:8082/mycat/</code>，即可看到初始界面，</p>
+<p><img src="/images/201604-mycat-web-install/mycat-web1.png"></p>
+<p>登陆之后，可以配置 Mycat 连接，在“mycat服务管理”中点击“新增”，</p>
+<p><img src="/images/201604-mycat-web-install/mycat-web-setting1.png"></p>
+<p>也可以配置 mysql 连接，在“mysql管理”中点击“新增”，</p>
+<p><img src="/images/201604-mycat-web-install/mycat-web-setting2.png"></p>
+<p>还可以查看 Mycat 的系统参数和日志，在“mycat系统参数”和“mycat日志管理”中，</p>
+<p><img src="/images/201604-mycat-web-install/mycat-web-setting3.png"></p>
+<p><img src="/images/201604-mycat-web-install/mycat-web-setting4.png"></p>
+<p>使用之前做压力测试的脚本运行多个类似 <code>select * from travelrecord where id = ?</code> 这样的查询，查看 Mycat-eye 的监控数据。首先是“mycat性能监控”和“mysql性能监控”这两个菜单，</p>
+<p><img src="/images/201604-mycat-web-install/mycat-web-watch1.png"></p>
+<p><img src="/images/201604-mycat-web-install/mycat-web-watch2.png"></p>
+<p>这两个菜单列出了 Mycat 的线程、TPS、内存等信息的时间变化图，以及 mysql 的缓存命中率、数据发送接收速度、线程、关键事件、临时表、恶性表联接等的统计数据。</p>
+<p>还有专门针对 sql 的监控数据，在“SQL统计”、“SQL表分析”、“SQL监控”、“高频SQL”、“慢SQL统计”、“SQL解析”等这几个菜单中。</p>
+<p><img src="/images/201604-mycat-web-install/mycat-web-watch3.png"></p>
+<p><img src="/images/201604-mycat-web-install/mycat-web-watch4.png"></p>
+<p><img src="/images/201604-mycat-web-install/mycat-web-watch5.png"></p>
+<p><img src="/images/201604-mycat-web-install/mycat-web-watch6.png"></p>
+<p><img src="/images/201604-mycat-web-install/mycat-web-watch7.png"></p>
+<p>其中，可能比较有用的有：“SQL表分析”可以列出 sql 的读写比例；“高频SQL”可以列出 sql 的使用频率；“慢SQL统计”可以列出执行时间比较长的 sql。另外，“SQL解析”可以在线分析一个 sql 的执行计划，省去了使用 mysql 客户端的麻烦。</p>
+<p>此外，在“高频SQL”中，点击“分析”，还可以查看某个 sql 的请求数变化情况，如下，</p>
+<p><img src="/images/201604-mycat-web-install/mycat-web-watch8.png"></p>
+<p>总而言之，Mycat-eye 还是一款比较不错的监控工具，上手也比较简单。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/MyCAT/">MyCAT</a><a href="/tags/Dataguru/">Dataguru</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/MyCAT/">MyCAT</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://valleylord.github.io/post/201604-mycat-web-install/" data-title="Mycat-eye 安装 | 褚哥说|" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/post/201604-mycat-performance/"  title="MyCAT 性能监控">
+ <strong>NEXT:</strong><br/> 
+ <span>MyCAT 性能监控
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+      
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">安装与配置</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.1.</span> <span class="toc-text">使用 Mycat-eye</span></a></li></ol></li></ol>
+  </div>
+
+<div id="asidepart">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	
+	<section class="author-info">
+		
+			<p> 欢迎来到Valleylord的博客！</p>
+		
+		
+			<p>	本博的文章尽量原创。</p>
+		
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/http://weibo.com/valleylord" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/https://github.com/valleylord" target="_blank" title="github"></a>
+		
+		
+	</div>
+</div>
+<aside class="clearfix">
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>11</sup></a></li>
+		
+			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>1</sup></a></li>
+		
+			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>57</sup></a></li>
+		
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MyCAT/" title="MyCAT">MyCAT<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/tags/Quantmod/" title="Quantmod">Quantmod<sup>3</sup></a></li>
+		
+			<li><a href="/tags/R/" title="R">R<sup>3</sup></a></li>
+		
+			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/SICP/" title="SICP">SICP<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Tomcat/" title="Tomcat">Tomcat<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Translation/" title="Translation">Translation<sup>2</sup></a></li>
+		
+			<li><a href="/tags/boost/" title="boost">boost<sup>1</sup></a></li>
+		
+			<li><a href="/tags/quantlib/" title="quantlib">quantlib<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
+    </div>
+  </div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <!--
+      <li><a href="http://yangjian.me" target="_blank" title="YangJian">Alimon's Blog</a></li>
+      <li><a href="http://zespia.tw/hexo" target="_blank" title="Hexo">Hexo</a></li>
+      -->
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  //back to top
+  function backToTop(){
+    var buttonHTML = $("<a href=\"#top\" id=\"back-top\">" + "<span>Back to Top</span></a>");
+    buttonHTML.appendTo($("body"));
+    var buttonToTop = $("#back-top");
+    // hide #back-top first
+    buttonToTop.hide();
+
+    // fade in #back-top
+    $(function() {
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                buttonToTop.fadeIn();
+            } else {
+                buttonToTop.fadeOut();
+            }
+        });
+        // scroll body to 0px on click
+        buttonToTop.click(function() {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+            return false;
+        });
+    });
+  }
+  backToTop();
+
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      ta = $('#toc.toc-aside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+
+  var show = true;
+  c.click(function(){
+    if(show == true){
+        a.addClass('fadeOut').css('display', 'none');
+        ta.css('display', 'block').addClass('fadeIn');
+        m.addClass('moveMain');  
+    }else{
+        a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');     
+        ta.css('display', 'none'); 
+        m.removeClass('moveMain');
+        $('#toc.toc-aside').css('display', 'none');
+    }
+    show = !show;
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,240-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>
