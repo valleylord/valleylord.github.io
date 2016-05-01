@@ -1,0 +1,527 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>MyCAT 代码分析 | 褚哥说|</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Valleylord">
+    
+    <meta name="description" content="本文以 MyCAT 2.0-dev 代码为例，分析 MyCAT SQL执行部分的代码。
+系统启动
+系统的入口方法在 io.mycat.MycatStartup 中的 main 方法，主要代码如下两行，
+123MycatServer server = MycatServer.getInstance()">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="褚哥说|" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/author.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/author.jpg">
+    
+
+	
+	<link href="http://cdn.bootcss.com/highlight.js/8.2/styles/monokai.min.css" rel="stylesheet">
+	<script src="http://cdn.bootcss.com/highlight.js/8.2/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+	
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="褚哥说|">褚哥说|</a></h1>
+				<h2 class="blog-motto">我想写一些东西</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul><li> <a href="/atom.xml">RSS</a> </li>
+                    <ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/tags">标签</a></li>
+					
+						<li><a href="/links">链接</a></li>
+					
+						<li><a href="http://www.cnblogs.com/valleylord/">旧文</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					</li>
+                <li><div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div></li>
+
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container" class="clearfix">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/post/201604-mycat-code/" title="MyCAT 代码分析" itemprop="url">MyCAT 代码分析</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-04-30T11:31:06.000Z" itemprop="datePublished">2016-04-30</time>
+    更新日期:<time datetime="2016-05-01T04:12:05.462Z" itemprop="dateModified">2016-05-01</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">系统启动</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">处理网络连接</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">处理 SQL 请求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">SQL 路由</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">SQL 执行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">6.</span> <span class="toc-text">总体结构图</span></a></li></ol>
+		</div>
+		
+		<p>本文以 MyCAT 2.0-dev 代码为例，分析 MyCAT SQL执行部分的代码。</p>
+<h2>系统启动</h2>
+<p>系统的入口方法在 <code>io.mycat.MycatStartup</code> 中的 <code>main</code> 方法，主要代码如下两行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">MycatServer <span class="keyword">server</span> = MycatServer.getInstance();</div><div class="line"></div><div class="line"><span class="keyword">server</span>.startup();</div></pre></td></tr></table></figure></p>
+<p><code>MycatServer</code> 是一个单例类，所以，等于直接调用 <code>MycatServer</code> 中的 <code>startup()</code> 方法。<code>startup()</code> 方法中，除去一些打印 log 的代码，主要初始化了一些系统参数（如网络、datasource）和连接池，重要的代码是以下几行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">NIOReactorPool reactorPool = <span class="keyword">new</span> NIOReactorPool(</div><div class="line">		BufferPool.LOCAL_BUF_THREAD_PREX + <span class="string">"NIOREACTOR"</span>, processorCount);</div><div class="line">NIOConnector connector = <span class="keyword">new</span> NIOConnector(</div><div class="line">		BufferPool.LOCAL_BUF_THREAD_PREX + <span class="string">"NIOConnector"</span>, reactorPool);</div><div class="line">connector.start();</div><div class="line">netSystem.setConnector(connector);</div><div class="line"></div><div class="line">MySQLFrontConnectionFactory frontFactory = <span class="keyword">new</span> MySQLFrontConnectionFactory(</div><div class="line">		<span class="keyword">new</span> MySQLFrontConnectionHandler());</div><div class="line">NIOAcceptor server = <span class="keyword">new</span> NIOAcceptor(BufferPool.LOCAL_BUF_THREAD_PREX</div><div class="line">		+ NAME + <span class="string">"Server"</span>, <span class="built_in">system</span>.getBindIp(), <span class="built_in">system</span>.getServerPort(),</div><div class="line">		frontFactory, reactorPool);</div><div class="line">server.start();</div></pre></td></tr></table></figure></p>
+<p>首先初始化了一个 NIOReactor 的线程池 <code>NIOReactorPool</code> 和一个 MySQL 连接的工厂类 <code>MySQLFrontConnectionFactory</code>，然后以这两个为参数，构造了 <code>NIOAcceptor</code> 类，并在主线程中启动 <code>start()</code>。其中，<code>NIOReactorPool</code> 主要包含一个 <code>NIOReactor</code> 的数组，每个数组都是一个线程对象，处理每一个客户端网络连接，该类在初始化完成的时候，已经调用了 <code>reactor.startup()</code>，启动了所有 <code>NIOReactorPool</code> 中的所有线程。<code>NIOReactorPool</code>、<code>NIOReactorPool</code> 和 <code>NIOReactor</code> 这3个类组成了 MyCAT 处理客户端连接的几乎全部代码。MyCAT 主要使用 NIO （java.nio）网络模型，对高并发请求有更好的处理，但是其程序结构中有很多回调函数的写法，不是很容易理解和掌握。另外，<code>MySQLFrontConnectionFactory</code> 是工厂类，主要用于生成处理连接的 <code>MySQLFrontConnection</code> 类（该类继承自 <code>GenalMySQLConnection</code>，<code>GenalMySQLConnection</code> 继承自 <code>Connection</code>）。这些类都是之后代码分析中非常重要的类。</p>
+<p>至此，主线程已经完成初始化，并启动了 <code>NIOAcceptor</code>，<code>NIOAcceptor</code> 继承了 <code>Thread</code>，下面的代码入口在 <code>NIOAcceptor.run()</code>。</p>
+<h2>处理网络连接</h2>
+<p>处理网络连接的入口在 <code>NIOAcceptor.run()</code>，该方法中启动了一个无限循环，主要调用了该类中的 <code>accept()</code> 方法，方法的主要代码有以下几行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="variable">channel =</span> serverChannel.accept();</div><div class="line">channel.configureBlocking(<span class="constant">false</span>);</div><div class="line">Connection <span class="variable">c =</span> factory.make(channel);</div><div class="line">......</div><div class="line">NIOReactor <span class="variable">reactor =</span> reactorPool.getNextReactor();</div><div class="line">reactor.postRegister(c);</div></pre></td></tr></table></figure></p>
+<p>先是调用 <code>serverChannel.accept()</code>，这是 NIO 的调用，用于接受一个新的连接 <code>channel</code>，然后设置连接为 nonblocking 模式。然后以新连接 <code>channel</code>为参数创建 <code>Connection</code>，然后，从线程池中获取一个 <code>NIOReactor</code> 线程，并调用 <code>postRegister(c)</code>，将 <code>Connection</code> 注册在该线程中，所有连接的请求都调用该 <code>Connection</code> 中的方法来处理。由于 <code>NIOReactor</code> 线程已经启动，所以会直接调用其中的 <code>run()</code> 方法。而实际上，<code>NIOReactor</code> 中有一个内部类 <code>RW</code>，线程调用的是 <code>RW.run()</code>。</p>
+<p>注意，这里通过工厂类创建的 <code>Connection</code> 实际上是 <code>MySQLFrontConnection</code> 类，因为工厂类是传入的 <code>MySQLFrontConnectionFactory</code> 类。严格来说，该工厂类在设计模式上应该属于抽象工厂，其父类 <code>ConnectionFactory</code> 会通过 <code>Connection make(SocketChannel channel)</code> 方法创建 <code>Connection</code>类，该方法代码如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">channel.setOption(<span class="type">StandardSocketOptions</span>.<span class="type">SO_REUSEADDR</span>, <span class="built_in">true</span>);</div><div class="line"><span class="comment">// 子类完成具体连接创建工作</span></div><div class="line"><span class="type">Connection</span> <span class="built_in">c</span> = makeConnection(channel);</div><div class="line"><span class="comment">// 设置连接的参数</span></div><div class="line"><span class="type">NetSystem</span>.getInstance().setSocketParams(<span class="built_in">c</span>,<span class="built_in">true</span>);</div><div class="line"><span class="comment">// 设置NIOHandler</span></div><div class="line"><span class="built_in">c</span>.setHandler(getNIOHandler());</div><div class="line"><span class="keyword">return</span> <span class="built_in">c</span>;</div></pre></td></tr></table></figure></p>
+<p>该方法中，依次调用 <code>makeConnection()</code> 和 <code>setHandler()</code> 这两个抽象方法用于创建连接，并将请求处理类设置为 <code>NIOHandler</code>，而子工厂类中，需要实现这两个方法用于创建连接实例。在 <code>MySQLFrontConnectionFactory</code> 类中，<code>makeConnection()</code> 方法创建了 <code>MySQLFrontConnection</code>，<code>NIOHandler</code> 设置为初始化该工厂类时的 <code>MySQLFrontConnectionHandler</code>。这两个类是处理 sql 请求的主要类，关于这两个类，后文再详细描述。</p>
+<p>在 <code>RW.run()</code> 方法中，主要有一些 NIO 相关的调用，最重要的调用是 <code>con.asynRead();</code>，该方法比较简单，重要代码如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> got = channel.<span class="keyword">read</span>(readBuffer);</div><div class="line">onReadData(got);</div></pre></td></tr></table></figure></p>
+<p>先是将网络数据读入到 <code>readBuffer</code> 中，然后调用 <code>onReadData()</code>。在 <code>onReadData()</code> 方法中，有很多读入字节的代码，重要的代码是调用 <code>handle(readBuffer, offset, length);</code> 方法，实际上是调用 <code>NIOHandler</code> 的 <code>handle()</code> 方法，也就是 <code>MySQLFrontConnectionHandler</code> 类的 <code>handle()</code> 方法。</p>
+<p>至此，MyCAT 处理网络连接部分的代码已经完成，对于网络请求的数据已经完成读入到 Buffer，之后的代码入口在 <code>MySQLFrontConnectionHandler.handle()</code>。</p>
+<h2>处理 SQL 请求</h2>
+<p>处理 SQL 请求的入口在 <code>MySQLFrontConnectionHandler.handle()</code>，其中，根据 Connection 的状态，分别调用了 <code>doConnecting</code> 和 <code>doHandleBusinessMsg</code>，<code>doHandleBusinessMsg</code> 方法主要用来处理 SQL 请求。该方法中，处理一般 SQL 的代码是，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">case</span> MySQLPacket.COM_QUERY:</div><div class="line">	<span class="keyword">source</span>.query(data);</div><div class="line">	<span class="keyword">break</span>;</div></pre></td></tr></table></figure></p>
+<p>其中的 <code>source</code> 是之前的 <code>MySQLFrontConnection</code> 类，也就是执行其中的 <code>query(byte[])</code> 方法，该方法中做了一些字符处理的操作，最主要的应该是 <code>sql = mm.readString(charset);</code> 这一行，用于处理字符集。最后调用了 <code>query(String)</code> ，该方法先执行了 SQL 的检查，最后开始真正执行 SQL，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">......</div><div class="line"><span class="keyword">switch</span> (sqlType) {</div><div class="line"><span class="keyword">case</span> ServerParse.EXPLAIN:</div><div class="line">	ExplainHandler.handle(sql, <span class="keyword">this</span>, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line"><span class="keyword">case</span> ServerParse.SET:</div><div class="line">	SetHandler.handle(sql, <span class="keyword">this</span>, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line"><span class="keyword">case</span> ServerParse.SHOW:</div><div class="line">	ShowHandler.handle(sql, <span class="keyword">this</span>, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line"><span class="keyword">case</span> ServerParse.SELECT:</div><div class="line">	SelectHandler.handle(sql, <span class="keyword">this</span>, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line"><span class="keyword">case</span> ServerParse.START:</div><div class="line">	StartHandler.handle(sql, <span class="keyword">this</span>, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line"><span class="keyword">case</span> ServerParse.BEGIN:</div><div class="line">	BeginHandler.handle(sql, <span class="keyword">this</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line"><span class="keyword">case</span> ServerParse.SAVEPOINT:</div><div class="line">	SavepointHandler.handle(sql, <span class="keyword">this</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>其中，用于执行一般 SQL 查询的是 <code>SelectHandler.handle(sql, this, rs &gt;&gt;&gt; 8);</code>，该方法中，对 SQL 的类型做了一些判断，一般的 SQL 会执行最后一行的 <code>c.execute(stmt, ServerParse.SELECT);</code>（该方法属于 <code>MySQLFrontConnection</code> 类）。该方法中会检查数据库 Schema 的配置，最后调用 <code>routeEndExecuteSQL(sql, type, schema);</code>，该方法对 SQL 进行路由（即寻找执行 SQL 的数据库），然后执行 SQL（PS：我猜测方法名应该是取错了，应该是 <code>routeAndExecuteSQL</code>，而不是 <code>routeEndExecuteSQL</code>）。其中重要的代码如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="constant">rrs</span> = MycatServer</div><div class="line">	.getInstance()</div><div class="line">	.getRouterservice()</div><div class="line">	.route(MycatServer.getInstance().getConfig().getSystem(),</div><div class="line">			schema, type, sql, this.charset, this);</div><div class="line">......</div><div class="line">session.execute(rrs, type);</div></pre></td></tr></table></figure></p>
+<p>前一个调用是将 SQL 路由到数据库，后一个调用是执行解析之后的 SQL，这两部分的代码都比较独立，可以分别解析。其中，<code>session</code> 是 <code>NonBlockingSession</code> 类，该类有两个比较重要的 field，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> MySQLFrontConnection source;</div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> ConcurrentHashMap&lt;RouteResultsetNode, BackendConnection&gt; target;</div></pre></td></tr></table></figure></p>
+<p><code>source</code> 是前端连接，表示 MyCAT 面向客户端的连接，<code>target</code> 是后端连接，表示若干个连接到后端 MySQL 上的连接。</p>
+<h2>SQL 路由</h2>
+<p>SQL 路由的入口在 <code>RouteService.route()</code>，该方法先判断 SQL 路由是否有之前解析的结果，如果有直接使用；否则，开始解析 SQL。解析 SQL 的时候，会先判断该 SQL 有没有 Hint，如果有，按Hint中指定路径进行解析；否则，调用 <code>RouteStrategyFactory.getRouteStrategy().route()</code> 方法寻找合适的路由。<code>RouteStrategyFactory</code> 是一个路由策略的工厂类，目前，MyCAT 中只有一个基于 <code>druidParser</code> 的路由策略，对应 <code>DruidMycatRouteStrategy</code> 类。</p>
+<p>MyCAT 中的 SQL 路由相关的类有：<code>RouteResultset</code> 用于保存路由结果；<code>RouteStrategyFactory</code> 是路由工厂，生成 <code>RouteStrategy</code>；<code>RouteStrategy</code> 是路由类最顶层的接口，其中只有一个 <code>route()</code> 抽象方法；<code>AbstractRouteStrategy</code> 是路由类的抽象类，实现了 <code>RouteStrategy</code>，定义了路由的基本步骤，返回 <code>RouteResultset</code>，其中，最重要的抽象方法是 <code>routeNormalSqlWithAST</code>，基于 AST 树来寻找路由；<code>DruidMycatRouteStrategy</code> 继承了 <code>AbstractRouteStrategy</code>，实现了 <code>AbstractRouteStrategy</code> 中的所有抽象方法。</p>
+<p><code>DruidMycatRouteStrategy</code> 的 <code>routeNormalSqlWithAST</code> 方法中，有以下一些比较重要的调用，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">	<span class="variable">statement =</span> parser.parseStatement();</div><div class="line">          <span class="variable">visitor =</span> new MycatSchemaStatVisitor();</div><div class="line">          		......</div><div class="line">checkUnSupportedStatement(statement);</div><div class="line"></div><div class="line">      DruidParser <span class="variable">druidParser =</span> DruidParserFactory.create(schema,statement,visitor);</div><div class="line">druidParser.parser(schema, rrs, statement, stmt,cachePool,visitor);</div></pre></td></tr></table></figure></p>
+<p>由于 MyCAT 使用的是第三方的 Druid SQL 解析工具，因此要在 Druid 解析器中加入自己的处理，这里，Druid 解析器使用了 visitor 模式，<code>MycatSchemaStatVisitor</code> 类继承 <code>MySqlSchemaStatVisitor</code> 并实现了其中的多个重载的 <code>visit</code> 方法，在调用 <code>druidParser.parser()</code> 的时候进行计算。<code>routeNormalSqlWithAST</code> 方法的最后，解析之后的 SQL 被路由到若干个分片节点上，并保存在 <code>RouteResultset</code> 中，然后返回。</p>
+<h2>SQL 执行</h2>
+<p>SQL 执行的入口在 <code>NonBlockingSession.execute()</code>，该方法主要分两个分支，单节点 SQL 执行和多节点 SQL 执行，分别是 <code>SingleNodeHandler</code> 和 <code>MultiNodeQueryHandler</code> 两个类，在每个分支中，依次调用了 <code>setPrepared()</code> 方法和 <code>execute()</code> 方法。</p>
+<p>对于单节点情况，<code>SingleNodeHandler.execute()</code> 先获取该单节点的 MySQL 后端连接，然后调用 <code>_execute(conn)</code>，在 <code>_execute(conn)</code> 中，主要代码如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">conn<span class="built_in">.</span>setResponseHandler(this);</div><div class="line"><span class="attribute">...</span><span class="attribute">...</span></div><div class="line">	conn<span class="built_in">.</span>execute(node, session<span class="built_in">.</span>getSource(), session<span class="built_in">.</span>getSource()</div><div class="line">			<span class="built_in">.</span>isAutocommit());</div></pre></td></tr></table></figure></p>
+<p>先将 SQL 返回的回调类设为 <code>SingleNodeHandler</code>，也就是自己，然后调用后端连接 <code>BackendConnection</code> 类的 <code>execute</code> 方法，真正的执行 SQL。对于后端是 MySQL 数据库的时候，实际上使用的的是 <code>MySQLBackendConnection</code> 类，该类的 <code>execute</code> 方法调用了 <code>synAndDoExecute</code>，并在 <code>synAndDoExecute</code> 中调用了 <code>sendQueryCmd</code>，向 MySQL 发送 SQL 请求。对于 SQL 的返回，是实现 <code>ResponseHandler</code> 接口来实现的，该接口定义了不同的 SQL 返回处理方法。</p>
+<p>对于多节点的情况，<code>MultiNodeQueryHandler</code> 类的基本流程和 <code>SingleNodeHandler</code> 一样，不同之处有几个地方。一个是，在 <code>execute()</code> 方法中，对每一个节点分别调用 <code>_execute(conn)</code> 执行 SQL；还有一个是，回调的接口实现要更加复杂一些，例如，<code>rowEofResponse</code> 接口的实现中，调用了 <code>DataMergeService</code>，用于合并多个数据库上查询返回的结果。</p>
+<h2>总体结构图</h2>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/MyCAT/">MyCAT</a><a href="/tags/Dataguru/">Dataguru</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/MyCAT/">MyCAT</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://valleylord.github.io/post/201604-mycat-code/" data-title="MyCAT 代码分析 | 褚哥说|" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/post/201605-mycat-catlet/" title="MyCAT Catlet分析">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  MyCAT Catlet分析</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/post/201604-mycat-drawback/"  title="MyCAT 的优缺点">
+ <strong>NEXT:</strong><br/> 
+ <span>MyCAT 的优缺点
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+      
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">系统启动</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">处理网络连接</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">处理 SQL 请求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">SQL 路由</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">SQL 执行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">6.</span> <span class="toc-text">总体结构图</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	
+	<section class="author-info">
+		
+			<p> 欢迎来到Valleylord的博客！</p>
+		
+		
+			<p>	本博的文章尽量原创。</p>
+		
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/http://weibo.com/valleylord" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/https://github.com/valleylord" target="_blank" title="github"></a>
+		
+		
+	</div>
+</div>
+<aside class="clearfix">
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>14</sup></a></li>
+		
+			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>1</sup></a></li>
+		
+			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>60</sup></a></li>
+		
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+		
+			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MyCAT/" title="MyCAT">MyCAT<sup>14</sup></a></li>
+		
+			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/tags/Quantmod/" title="Quantmod">Quantmod<sup>3</sup></a></li>
+		
+			<li><a href="/tags/R/" title="R">R<sup>3</sup></a></li>
+		
+			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/SICP/" title="SICP">SICP<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Tomcat/" title="Tomcat">Tomcat<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Translation/" title="Translation">Translation<sup>2</sup></a></li>
+		
+			<li><a href="/tags/boost/" title="boost">boost<sup>1</sup></a></li>
+		
+			<li><a href="/tags/quantlib/" title="quantlib">quantlib<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 12.50px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 13.75px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.25px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.75px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 17.50px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.75px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.50px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.50px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.25px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 11.25px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.25px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.25px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
+    </div>
+  </div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <!--
+      <li><a href="http://yangjian.me" target="_blank" title="YangJian">Alimon's Blog</a></li>
+      <li><a href="http://zespia.tw/hexo" target="_blank" title="Hexo">Hexo</a></li>
+      -->
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  //back to top
+  function backToTop(){
+    var buttonHTML = $("<a href=\"#top\" id=\"back-top\">" + "<span>Back to Top</span></a>");
+    buttonHTML.appendTo($("body"));
+    var buttonToTop = $("#back-top");
+    // hide #back-top first
+    buttonToTop.hide();
+
+    // fade in #back-top
+    $(function() {
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                buttonToTop.fadeIn();
+            } else {
+                buttonToTop.fadeOut();
+            }
+        });
+        // scroll body to 0px on click
+        buttonToTop.click(function() {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+            return false;
+        });
+    });
+  }
+  backToTop();
+
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      ta = $('#toc.toc-aside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+
+  var show = true;
+  c.click(function(){
+    if(show == true){
+        a.addClass('fadeOut').css('display', 'none');
+        ta.css('display', 'block').addClass('fadeIn');
+        m.addClass('moveMain');  
+    }else{
+        a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');     
+        ta.css('display', 'none'); 
+        m.removeClass('moveMain');
+        $('#toc.toc-aside').css('display', 'none');
+    }
+    show = !show;
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,240-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>

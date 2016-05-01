@@ -4,12 +4,13 @@
 <head>
   <meta charset="UTF-8">
   
-    <title>MyCAT 的优缺点 | 褚哥说|</title>
+    <title>MyCAT Catlet分析 | 褚哥说|</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
     
     <meta name="author" content="Valleylord">
     
-    <meta name="description" content="Mysql 的 proxy 中间件有比较多的工具，例如，mysql-proxy, atlas , cobar, mycat, tddl, tinnydbrouter等等。相比较而言，Mycat并不是最快的，但是功能比较丰富，对读写分离和分库分表都有支持，而且比较易用，对原有的应用系统侵入比较小，系统">
+    <meta name="description" content="Catlet 是 MyCAT 2.0上计划的新功能，预期可以完成多个数据中不同表之间的表连接（JOIN），目前还处于开发阶段。
+Catlet 的入口类是在 HintCatletHandler，该类实现了 HintHandler 接口，可以在 RouteService.route() 中有 Hint ">
     
     
     
@@ -77,15 +78,15 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/post/201604-mycat-drawback/" title="MyCAT 的优缺点" itemprop="url">MyCAT 的优缺点</a>
+      <a href="/post/201605-mycat-catlet/" title="MyCAT Catlet分析" itemprop="url">MyCAT Catlet分析</a>
   </h1>
   <p class="article-author">By
     
       <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
     </p>
   <p class="article-time">
-    <time datetime="2016-04-16T03:00:59.000Z" itemprop="datePublished">2016-04-16</time>
-    更新日期:<time datetime="2016-04-16T03:16:09.895Z" itemprop="dateModified">2016-04-16</time>
+    <time datetime="2016-05-01T04:41:35.000Z" itemprop="datePublished">2016-05-01</time>
+    更新日期:<time datetime="2016-05-01T06:43:53.243Z" itemprop="dateModified">2016-05-01</time>
     
   </p>
 </header>
@@ -97,13 +98,33 @@
 		
 		</div>
 		
-		<p>Mysql 的 proxy 中间件有比较多的工具，例如，mysql-proxy, atlas , cobar, mycat, tddl, tinnydbrouter等等。相比较而言，Mycat并不是最快的，但是功能比较丰富，对读写分离和分库分表都有支持，而且比较易用，对原有的应用系统侵入比较小，系统改造比较易于实现。</p>
-<p>如果说Mycat有一些不足的话，那就是，在整个系统中，Mycat会成为一个单点。因为所有的sql都会通过Mycat来路由，在数据库比较多的情况下，Mycat本身的cpu性能压力就会随之增大。因此，在生产系统中，Mycat不可避免的会需要一些多活的高可用手段。同样，由于Mycat本身需要解析sql，也需要合并各个数据库返回的结果，本身的CPU消耗就会比较高，在数据库较多的情况下，CPU可能不堪重负。</p>
-<p>因此，在数据库比较多的情况下，生产环境的部署可能是这样的，</p>
-<p><img src="/images/201604-mycat-drawback/mycat-drawback.png"></p>
-<p>按之前的讨论，Mycat 会成为系统的单点，性能压力比较大。如果，Mycat 可以开发一个嵌入式 Mycat 系统，将 Mycat 代码嵌入在每个客户端中，这样，原先在 Mycat 上的集中压力就分散到了每个客户端上。当然，这样的架构需要对 Mycat 做一些改造，比如需要引入配置中心概念，将原来的分库分表配置集中管理，这样，每个客户端上的配置就一致了。同时，如果配置发生变化，还需要同步给每个客户端。引入嵌入式 Mycat（Mycat Embeded）之后的系统架构可能如下（图中略去了配置中心部分），</p>
-<p><img src="/images/201604-mycat-drawback/mycat-drawback2.png"></p>
-<p>当然，目前而言，Mycat 的优势还是非常明显的，相比与嵌入式 Mycat，现有的架构对原有系统的侵入非常小，现有架构模拟了 Mysql 数据库的接口，应用系统完全不用引入新的依赖，只需要改写部分 sql 即可。</p>
+		<p>Catlet 是 MyCAT 2.0上计划的新功能，预期可以完成多个数据中不同表之间的表连接（JOIN），目前还处于开发阶段。</p>
+<p>Catlet 的入口类是在 <code>HintCatletHandler</code>，该类实现了 <code>HintHandler</code> 接口，可以在 <code>RouteService.route()</code> 中有 Hint 的时候使用，可见，Catlet 的调用需要使用注释。<code>HintCatletHandler.route()</code> 方法是该类的主要方法，其重要的代码有以下几行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">Catlet catlet = (Catlet) MycatServer.getInstance()</div><div class="line">		.getCatletClassLoader().getInstanceofClass(cateletClass);</div><div class="line">catlet.route(sysConfig, schema, sqlType, realSQL, charset, sc,</div><div class="line">		cachePool);</div><div class="line">catlet.processSQL(realSQL, new EngineCtx(sc.getSession2()));</div></pre></td></tr></table></figure></p>
+<p>先初始化一个 <code>Catlet</code> 类，再依次调用其 <code>route()</code> 和 <code>processSQL()</code> 方法，这两个方法也是 Catlet 的入口方法。实际上，<code>Catlet</code> 是一个接口，有多个实现，<code>route()</code> 和 <code>processSQL()</code> 是其中两个重要的抽象方法。对于跨数据的多表连接，目前只有一个开发中的类 <code>ShareJoin</code>，该类文件中定义了3个类，<code>ShareJoin</code>、<code>ShareDBJoinHandler</code> 和 <code>ShareRowOutPutDataHandler</code>。</p>
+<p><code>Catlet.route()</code> 的代码并不是特别复杂，重要代码是以下几行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">MySqlSelectQueryBlock mysqlSelectQuery = (MySqlSelectQueryBlock)<span class="keyword">st</span>.getSelect().getQuery();</div><div class="line">joinParser=<span class="keyword">new</span> JoinParser(mysqlSelectQuery,realSQL);</div><div class="line">joinParser.parser();</div></pre></td></tr></table></figure></p>
+<p>即调用 <code>JoinParser.parser()</code> 方法来解析 SQL。重要的代码基本都在 <code>Catlet.processSQL()</code> 方法中，这个方法相对复杂一些，调用的层次也比较多，会调用到 <code>ShareDBJoinHandler</code> 和 <code>ShareRowOutPutDataHandler</code>，重要代码有以下几行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">ShareDBJoinHandler joinHandler <span class="subst">=</span> <span class="literal">new</span> ShareDBJoinHandler(this,joinParser<span class="built_in">.</span>getJoinLkey());		</div><div class="line">ctx<span class="built_in">.</span>executeNativeSQLSequnceJob(dataNodes, ssql, joinHandler);</div><div class="line">  		EngineCtx<span class="built_in">.</span>LOGGER<span class="built_in">.</span>info(<span class="string">"Catlet exec:"</span><span class="subst">+</span>getDataNode(getDataNodes())<span class="subst">+</span><span class="string">" sql:"</span> <span class="subst">+</span>ssql);</div><div class="line"></div><div class="line">ctx<span class="built_in">.</span>setAllJobFinishedListener(<span class="literal">new</span> AllJobFinishedListener() {</div><div class="line"><span class="attribute">...</span><span class="attribute">...</span></div></pre></td></tr></table></figure></p>
+<p>以上代码中，先使用之前 <code>route()</code> 方法中 <code>JoinParser</code> 的结果，获取所有用于表连接列（<code>getJoinLkey()</code>），并以此为参数初始化 <code>ShareDBJoinHandler</code> 类；然后把 <code>ShareDBJoinHandler</code> 作为执行 SQL 的回调类，执行 SQL；最后，设置所有工作都完成之后的监听类 <code>AllJobFinishedListener</code>。因此，<code>ShareDBJoinHandler</code> 是处理 JOIN 的关键类，并且，处理的算法与表连接的列有关。</p>
+<p>在 <code>ShareDBJoinHandler</code> 类中，<code>onRowData</code> 方法用于处理收到查询结果，是主要的回调方法，这个方法主要调用了同一个类中的 <code>putDBRow</code> 方法。<code>putDBRow</code> 方法也比较短，主要代码有以下几行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">int batchSize = <span class="number">999</span>;</div><div class="line"><span class="regexp">//</span> 满<span class="number">1000</span>条，发送一个查询请求</div><div class="line"><span class="input"><span class="prompt">if (ids.size() &gt;</span> batchSize) {</span></div><div class="line">	createQryJob(batchSize);</div><div class="line">}</div></pre></td></tr></table></figure></p>
+<p>先设置了一个批处理的大小，999（实际应该是1000，因为使用的是 <code>&gt;</code> 而不是 <code>&gt;=</code>），然后调用 <code>createQryJob</code>。<code>createQryJob</code> 相对复杂一点，先是使用 <code>StringBuilder sb</code> 做了比较长的一段字符串拼接，然后有几行比较重要的代码，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">String</span> sql = <span class="built_in">String</span>.format(joinParser.getChildSQL(), sb);</div><div class="line">  getRoute(sql);</div><div class="line">ctx.executeNativeSQLParallJob(getDataNodes(),sql, <span class="keyword">new</span> ShareRowOutPutDataHandler(<span class="keyword">this</span>,fields,joinindex,joinParser.getJoinRkey(), batchRows));</div></pre></td></tr></table></figure></p>
+<p>先根据之前字符串拼接的结果，生成了一个 SQL，然后就是正常的调用路由并执行，执行的回调类是 <code>ShareRowOutPutDataHandler</code>。如果不求甚解的话，感觉是 ShareJoin 把原有的 SQL 按每 1000 个表连接列的值为大小，生成一些子 SQL，并执行这些子 SQL，但并不清楚是如何拆分的。<code>ShareRowOutPutDataHandler</code> 类的 <code>onRowData</code> 方法，用于处理子 SQL 的返回。这个方法里面的代码没有什么特别，基本就是将处理的数据写回。</p>
+<p>因此，拆分子 SQL 的方法实际上与字符串拼接有关，字符串拼接部分的代码如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span>(Map.Entry&lt;String,String&gt; e: ids.entrySet() ){</div><div class="line">	theId=e.getKey();</div><div class="line">	batchRows.put(theId, rows.remove(theId));</div><div class="line">	<span class="keyword">if</span> (!svalue.equals(e.getValue())){</div><div class="line">		<span class="keyword">if</span>(joinKeyType == Fields.FIELD_TYPE_VAR_STRING </div><div class="line">				|| joinKeyType == Fields.FIELD_TYPE_STRING){ <span class="comment">// joinkey 为varchar</span></div><div class="line">			sb.<span class="keyword">append</span>(<span class="string">"'"</span>).<span class="keyword">append</span>(e.getValue()).<span class="keyword">append</span>(<span class="string">"'"</span>).<span class="keyword">append</span>(<span class="string">','</span>); <span class="comment">// ('digdeep','yuanfang') </span></div><div class="line">		}<span class="keyword">else</span>{ <span class="comment">// 默认joinkey为int/long</span></div><div class="line">			sb.<span class="keyword">append</span>(e.getValue()).<span class="keyword">append</span>(<span class="string">','</span>); <span class="comment">// (1,2,3) </span></div><div class="line">		}</div><div class="line">	}</div><div class="line">	svalue=e.getValue();</div><div class="line">	<span class="keyword">if</span> (<span class="keyword">count</span>++ &gt; batchSize) {</div><div class="line">		<span class="keyword">break</span>;</div><div class="line">	}			</div><div class="line">}</div><div class="line">......</div><div class="line">sb.deleteCharAt(sb.length() - <span class="number">1</span>).<span class="keyword">append</span>(<span class="string">')'</span>);</div></pre></td></tr></table></figure></p>
+<p>实际上也没有特别复杂，就是根据连接列的类型，如果是 String 的话，就拼接为 <code>('a','b','c')</code> 这样；如果是 int/long 类型，就拼接为 <code>(1,2,3)</code> 这样。然后在生成 SQL 的时候，调用 <code>String sql = String.format(joinParser.getChildSQL(), sb);</code>，<code>joinParser.getChildSQL()</code> 的代码是，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">//String sql="<span class="operator"><span class="keyword">select</span> <span class="string">"+joinRkey+"</span>,<span class="string">"+sql+"</span> <span class="keyword">from</span> <span class="string">"+mtable+"</span> <span class="keyword">where</span> <span class="string">"+joinRkey+"</span> <span class="keyword">in</span> <span class="string">";</span></span></div><div class="line">String sql=tableFilter.getTableJoin().getSQL();</div><div class="line">return sql;</div></pre></td></tr></table></figure></p>
+<p>代码并未深究，从注释来看，是在连接的列上加了 <code>in</code>，也就是说，最后拼成的 SQL 会是类似这样，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> XXXXXXX <span class="keyword">from</span> XXXXXXXTABLES <span class="keyword">where</span> joinRkey <span class="keyword">in</span> YYYYYYYY</div></pre></td></tr></table></figure></p>
+<p>其中的 <code>YYYYYYYY</code> 是之前字符拼接的结果。因此，从此可以得知 Catlet 在处理多表连接算法的大致步骤，假设原先的 SQL 是 <code>select a.name, b.dept from tableA a, tableB b where a.id = b.id</code>，流程是，</p>
+<ol>
+<li>先将 SQL 改写为 <code>select a.name, a.id from tableA a</code>，然后在相应节点上执行；</li>
+<li>将1的返回按 <code>a.id</code> 拆分，每 1000 个值生成一个子 SQL，生成的 SQL 大致是 <code>select b.dept, b.id from tableB b where b.id in (YYYYYYYY)</code>，其中，YYYYYYYY 是 <code>a.id</code> 的值每 1000 个拼出来的逗号分割的字符串；</li>
+<li>等待2的返回，并将所有返回的结果拼接，写回；</li>
+</ol>
+<p>以上是 MyCAT Catlet 的大致处理流程。</p>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -123,7 +144,7 @@
 
 <div class="article-share" id="share">
 
-  <div data-url="http://valleylord.github.io/post/201604-mycat-drawback/" data-title="MyCAT 的优缺点 | 褚哥说|" data-tsina="null" class="share clearfix">
+  <div data-url="http://valleylord.github.io/post/201605-mycat-catlet/" data-title="MyCAT Catlet分析 | 褚哥说|" data-tsina="null" class="share clearfix">
   </div>
 
 </div>
@@ -132,19 +153,11 @@
 	
 <nav class="article-nav clearfix">
  
- <div class="prev" >
- <a href="/post/201604-mycat-code/" title="MyCAT 代码分析">
-  <strong>PREVIOUS:</strong><br/>
-  <span>
-  MyCAT 代码分析</span>
-</a>
-</div>
-
 
 <div class="next">
-<a href="/post/201604-mycat-web-install/"  title="Mycat-eye 安装">
+<a href="/post/201604-mycat-code/"  title="MyCAT 代码分析">
  <strong>NEXT:</strong><br/> 
- <span>Mycat-eye 安装
+ <span>MyCAT 代码分析
 </span>
 </a>
 </div>

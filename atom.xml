@@ -4,7 +4,7 @@
   <subtitle><![CDATA[我想写一些东西]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://valleylord.github.io/"/>
-  <updated>2016-04-16T03:17:14.678Z</updated>
+  <updated>2016-05-01T06:44:25.935Z</updated>
   <id>http://valleylord.github.io/</id>
   
   <author>
@@ -13,6 +13,116 @@
   </author>
   
   <generator uri="http://zespia.tw/hexo/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[MyCAT Catlet分析]]></title>
+    <link href="http://valleylord.github.io/post/201605-mycat-catlet/"/>
+    <id>http://valleylord.github.io/post/201605-mycat-catlet/</id>
+    <published>2016-05-01T04:41:35.000Z</published>
+    <updated>2016-05-01T06:43:53.243Z</updated>
+    <content type="html"><![CDATA[<p>Catlet 是 MyCAT 2.0上计划的新功能，预期可以完成多个数据中不同表之间的表连接（JOIN），目前还处于开发阶段。</p>
+<p>Catlet 的入口类是在 <code>HintCatletHandler</code>，该类实现了 <code>HintHandler</code> 接口，可以在 <code>RouteService.route()</code> 中有 Hint 的时候使用，可见，Catlet 的调用需要使用注释。<code>HintCatletHandler.route()</code> 方法是该类的主要方法，其重要的代码有以下几行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">Catlet catlet = (Catlet) MycatServer.getInstance()</div><div class="line">		.getCatletClassLoader().getInstanceofClass(cateletClass);</div><div class="line">catlet.route(sysConfig, schema, sqlType, realSQL, charset, sc,</div><div class="line">		cachePool);</div><div class="line">catlet.processSQL(realSQL, new EngineCtx(sc.getSession2()));</div></pre></td></tr></table></figure></p>
+<p>先初始化一个 <code>Catlet</code> 类，再依次调用其 <code>route()</code> 和 <code>processSQL()</code> 方法，这两个方法也是 Catlet 的入口方法。实际上，<code>Catlet</code> 是一个接口，有多个实现，<code>route()</code> 和 <code>processSQL()</code> 是其中两个重要的抽象方法。对于跨数据的多表连接，目前只有一个开发中的类 <code>ShareJoin</code>，该类文件中定义了3个类，<code>ShareJoin</code>、<code>ShareDBJoinHandler</code> 和 <code>ShareRowOutPutDataHandler</code>。</p>
+<p><code>Catlet.route()</code> 的代码并不是特别复杂，重要代码是以下几行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">MySqlSelectQueryBlock mysqlSelectQuery = (MySqlSelectQueryBlock)<span class="keyword">st</span>.getSelect().getQuery();</div><div class="line">joinParser=<span class="keyword">new</span> JoinParser(mysqlSelectQuery,realSQL);</div><div class="line">joinParser.parser();</div></pre></td></tr></table></figure></p>
+<p>即调用 <code>JoinParser.parser()</code> 方法来解析 SQL。重要的代码基本都在 <code>Catlet.processSQL()</code> 方法中，这个方法相对复杂一些，调用的层次也比较多，会调用到 <code>ShareDBJoinHandler</code> 和 <code>ShareRowOutPutDataHandler</code>，重要代码有以下几行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">ShareDBJoinHandler joinHandler <span class="subst">=</span> <span class="literal">new</span> ShareDBJoinHandler(this,joinParser<span class="built_in">.</span>getJoinLkey());		</div><div class="line">ctx<span class="built_in">.</span>executeNativeSQLSequnceJob(dataNodes, ssql, joinHandler);</div><div class="line">  		EngineCtx<span class="built_in">.</span>LOGGER<span class="built_in">.</span>info(<span class="string">"Catlet exec:"</span><span class="subst">+</span>getDataNode(getDataNodes())<span class="subst">+</span><span class="string">" sql:"</span> <span class="subst">+</span>ssql);</div><div class="line"></div><div class="line">ctx<span class="built_in">.</span>setAllJobFinishedListener(<span class="literal">new</span> AllJobFinishedListener() {</div><div class="line"><span class="attribute">...</span><span class="attribute">...</span></div></pre></td></tr></table></figure></p>
+<p>以上代码中，先使用之前 <code>route()</code> 方法中 <code>JoinParser</code> 的结果，获取所有用于表连接列（<code>getJoinLkey()</code>），并以此为参数初始化 <code>ShareDBJoinHandler</code> 类；然后把 <code>ShareDBJoinHandler</code> 作为执行 SQL 的回调类，执行 SQL；最后，设置所有工作都完成之后的监听类 <code>AllJobFinishedListener</code>。因此，<code>ShareDBJoinHandler</code> 是处理 JOIN 的关键类，并且，处理的算法与表连接的列有关。</p>
+<p>在 <code>ShareDBJoinHandler</code> 类中，<code>onRowData</code> 方法用于处理收到查询结果，是主要的回调方法，这个方法主要调用了同一个类中的 <code>putDBRow</code> 方法。<code>putDBRow</code> 方法也比较短，主要代码有以下几行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">int batchSize = <span class="number">999</span>;</div><div class="line"><span class="regexp">//</span> 满<span class="number">1000</span>条，发送一个查询请求</div><div class="line"><span class="input"><span class="prompt">if (ids.size() &gt;</span> batchSize) {</span></div><div class="line">	createQryJob(batchSize);</div><div class="line">}</div></pre></td></tr></table></figure></p>
+<p>先设置了一个批处理的大小，999（实际应该是1000，因为使用的是 <code>&gt;</code> 而不是 <code>&gt;=</code>），然后调用 <code>createQryJob</code>。<code>createQryJob</code> 相对复杂一点，先是使用 <code>StringBuilder sb</code> 做了比较长的一段字符串拼接，然后有几行比较重要的代码，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">String</span> sql = <span class="built_in">String</span>.format(joinParser.getChildSQL(), sb);</div><div class="line">  getRoute(sql);</div><div class="line">ctx.executeNativeSQLParallJob(getDataNodes(),sql, <span class="keyword">new</span> ShareRowOutPutDataHandler(<span class="keyword">this</span>,fields,joinindex,joinParser.getJoinRkey(), batchRows));</div></pre></td></tr></table></figure></p>
+<p>先根据之前字符串拼接的结果，生成了一个 SQL，然后就是正常的调用路由并执行，执行的回调类是 <code>ShareRowOutPutDataHandler</code>。如果不求甚解的话，感觉是 ShareJoin 把原有的 SQL 按每 1000 个表连接列的值为大小，生成一些子 SQL，并执行这些子 SQL，但并不清楚是如何拆分的。<code>ShareRowOutPutDataHandler</code> 类的 <code>onRowData</code> 方法，用于处理子 SQL 的返回。这个方法里面的代码没有什么特别，基本就是将处理的数据写回。</p>
+<p>因此，拆分子 SQL 的方法实际上与字符串拼接有关，字符串拼接部分的代码如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span>(Map.Entry&lt;String,String&gt; e: ids.entrySet() ){</div><div class="line">	theId=e.getKey();</div><div class="line">	batchRows.put(theId, rows.remove(theId));</div><div class="line">	<span class="keyword">if</span> (!svalue.equals(e.getValue())){</div><div class="line">		<span class="keyword">if</span>(joinKeyType == Fields.FIELD_TYPE_VAR_STRING </div><div class="line">				|| joinKeyType == Fields.FIELD_TYPE_STRING){ <span class="comment">// joinkey 为varchar</span></div><div class="line">			sb.<span class="keyword">append</span>(<span class="string">"'"</span>).<span class="keyword">append</span>(e.getValue()).<span class="keyword">append</span>(<span class="string">"'"</span>).<span class="keyword">append</span>(<span class="string">','</span>); <span class="comment">// ('digdeep','yuanfang') </span></div><div class="line">		}<span class="keyword">else</span>{ <span class="comment">// 默认joinkey为int/long</span></div><div class="line">			sb.<span class="keyword">append</span>(e.getValue()).<span class="keyword">append</span>(<span class="string">','</span>); <span class="comment">// (1,2,3) </span></div><div class="line">		}</div><div class="line">	}</div><div class="line">	svalue=e.getValue();</div><div class="line">	<span class="keyword">if</span> (<span class="keyword">count</span>++ &gt; batchSize) {</div><div class="line">		<span class="keyword">break</span>;</div><div class="line">	}			</div><div class="line">}</div><div class="line">......</div><div class="line">sb.deleteCharAt(sb.length() - <span class="number">1</span>).<span class="keyword">append</span>(<span class="string">')'</span>);</div></pre></td></tr></table></figure></p>
+<p>实际上也没有特别复杂，就是根据连接列的类型，如果是 String 的话，就拼接为 <code>('a','b','c')</code> 这样；如果是 int/long 类型，就拼接为 <code>(1,2,3)</code> 这样。然后在生成 SQL 的时候，调用 <code>String sql = String.format(joinParser.getChildSQL(), sb);</code>，<code>joinParser.getChildSQL()</code> 的代码是，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">//String sql="<span class="operator"><span class="keyword">select</span> <span class="string">"+joinRkey+"</span>,<span class="string">"+sql+"</span> <span class="keyword">from</span> <span class="string">"+mtable+"</span> <span class="keyword">where</span> <span class="string">"+joinRkey+"</span> <span class="keyword">in</span> <span class="string">";</span></span></div><div class="line">String sql=tableFilter.getTableJoin().getSQL();</div><div class="line">return sql;</div></pre></td></tr></table></figure></p>
+<p>代码并未深究，从注释来看，是在连接的列上加了 <code>in</code>，也就是说，最后拼成的 SQL 会是类似这样，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> XXXXXXX <span class="keyword">from</span> XXXXXXXTABLES <span class="keyword">where</span> joinRkey <span class="keyword">in</span> YYYYYYYY</div></pre></td></tr></table></figure></p>
+<p>其中的 <code>YYYYYYYY</code> 是之前字符拼接的结果。因此，从此可以得知 Catlet 在处理多表连接算法的大致步骤，假设原先的 SQL 是 <code>select a.name, b.dept from tableA a, tableB b where a.id = b.id</code>，流程是，</p>
+<ol>
+<li>先将 SQL 改写为 <code>select a.name, a.id from tableA a</code>，然后在相应节点上执行；</li>
+<li>将1的返回按 <code>a.id</code> 拆分，每 1000 个值生成一个子 SQL，生成的 SQL 大致是 <code>select b.dept, b.id from tableB b where b.id in (YYYYYYYY)</code>，其中，YYYYYYYY 是 <code>a.id</code> 的值每 1000 个拼出来的逗号分割的字符串；</li>
+<li>等待2的返回，并将所有返回的结果拼接，写回；</li>
+</ol>
+<p>以上是 MyCAT Catlet 的大致处理流程。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>Catlet 是 MyCAT 2.0上计划的新功能，预期可以完成多个数据中不同表之间的表连接（JOIN），目前还处于开发阶段。</p>
+<p>Catlet 的入口类是在 <code>HintCatletHandler</code>，该类实现了 <code>HintHandl]]>
+    </summary>
+    
+      <category term="MyCAT" scheme="http://valleylord.github.io/tags/MyCAT/"/>
+    
+      <category term="Dataguru" scheme="http://valleylord.github.io/tags/Dataguru/"/>
+    
+      <category term="MyCAT" scheme="http://valleylord.github.io/categories/MyCAT/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[MyCAT 代码分析]]></title>
+    <link href="http://valleylord.github.io/post/201604-mycat-code/"/>
+    <id>http://valleylord.github.io/post/201604-mycat-code/</id>
+    <published>2016-04-30T11:31:06.000Z</published>
+    <updated>2016-05-01T04:12:05.462Z</updated>
+    <content type="html"><![CDATA[<p>本文以 MyCAT 2.0-dev 代码为例，分析 MyCAT SQL执行部分的代码。</p>
+<h2>系统启动</h2>
+<p>系统的入口方法在 <code>io.mycat.MycatStartup</code> 中的 <code>main</code> 方法，主要代码如下两行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">MycatServer <span class="keyword">server</span> = MycatServer.getInstance();</div><div class="line"></div><div class="line"><span class="keyword">server</span>.startup();</div></pre></td></tr></table></figure></p>
+<p><code>MycatServer</code> 是一个单例类，所以，等于直接调用 <code>MycatServer</code> 中的 <code>startup()</code> 方法。<code>startup()</code> 方法中，除去一些打印 log 的代码，主要初始化了一些系统参数（如网络、datasource）和连接池，重要的代码是以下几行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">NIOReactorPool reactorPool = <span class="keyword">new</span> NIOReactorPool(</div><div class="line">		BufferPool.LOCAL_BUF_THREAD_PREX + <span class="string">"NIOREACTOR"</span>, processorCount);</div><div class="line">NIOConnector connector = <span class="keyword">new</span> NIOConnector(</div><div class="line">		BufferPool.LOCAL_BUF_THREAD_PREX + <span class="string">"NIOConnector"</span>, reactorPool);</div><div class="line">connector.start();</div><div class="line">netSystem.setConnector(connector);</div><div class="line"></div><div class="line">MySQLFrontConnectionFactory frontFactory = <span class="keyword">new</span> MySQLFrontConnectionFactory(</div><div class="line">		<span class="keyword">new</span> MySQLFrontConnectionHandler());</div><div class="line">NIOAcceptor server = <span class="keyword">new</span> NIOAcceptor(BufferPool.LOCAL_BUF_THREAD_PREX</div><div class="line">		+ NAME + <span class="string">"Server"</span>, <span class="built_in">system</span>.getBindIp(), <span class="built_in">system</span>.getServerPort(),</div><div class="line">		frontFactory, reactorPool);</div><div class="line">server.start();</div></pre></td></tr></table></figure></p>
+<p>首先初始化了一个 NIOReactor 的线程池 <code>NIOReactorPool</code> 和一个 MySQL 连接的工厂类 <code>MySQLFrontConnectionFactory</code>，然后以这两个为参数，构造了 <code>NIOAcceptor</code> 类，并在主线程中启动 <code>start()</code>。其中，<code>NIOReactorPool</code> 主要包含一个 <code>NIOReactor</code> 的数组，每个数组都是一个线程对象，处理每一个客户端网络连接，该类在初始化完成的时候，已经调用了 <code>reactor.startup()</code>，启动了所有 <code>NIOReactorPool</code> 中的所有线程。<code>NIOReactorPool</code>、<code>NIOReactorPool</code> 和 <code>NIOReactor</code> 这3个类组成了 MyCAT 处理客户端连接的几乎全部代码。MyCAT 主要使用 NIO （java.nio）网络模型，对高并发请求有更好的处理，但是其程序结构中有很多回调函数的写法，不是很容易理解和掌握。另外，<code>MySQLFrontConnectionFactory</code> 是工厂类，主要用于生成处理连接的 <code>MySQLFrontConnection</code> 类（该类继承自 <code>GenalMySQLConnection</code>，<code>GenalMySQLConnection</code> 继承自 <code>Connection</code>）。这些类都是之后代码分析中非常重要的类。</p>
+<p>至此，主线程已经完成初始化，并启动了 <code>NIOAcceptor</code>，<code>NIOAcceptor</code> 继承了 <code>Thread</code>，下面的代码入口在 <code>NIOAcceptor.run()</code>。</p>
+<h2>处理网络连接</h2>
+<p>处理网络连接的入口在 <code>NIOAcceptor.run()</code>，该方法中启动了一个无限循环，主要调用了该类中的 <code>accept()</code> 方法，方法的主要代码有以下几行，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="variable">channel =</span> serverChannel.accept();</div><div class="line">channel.configureBlocking(<span class="constant">false</span>);</div><div class="line">Connection <span class="variable">c =</span> factory.make(channel);</div><div class="line">......</div><div class="line">NIOReactor <span class="variable">reactor =</span> reactorPool.getNextReactor();</div><div class="line">reactor.postRegister(c);</div></pre></td></tr></table></figure></p>
+<p>先是调用 <code>serverChannel.accept()</code>，这是 NIO 的调用，用于接受一个新的连接 <code>channel</code>，然后设置连接为 nonblocking 模式。然后以新连接 <code>channel</code>为参数创建 <code>Connection</code>，然后，从线程池中获取一个 <code>NIOReactor</code> 线程，并调用 <code>postRegister(c)</code>，将 <code>Connection</code> 注册在该线程中，所有连接的请求都调用该 <code>Connection</code> 中的方法来处理。由于 <code>NIOReactor</code> 线程已经启动，所以会直接调用其中的 <code>run()</code> 方法。而实际上，<code>NIOReactor</code> 中有一个内部类 <code>RW</code>，线程调用的是 <code>RW.run()</code>。</p>
+<p>注意，这里通过工厂类创建的 <code>Connection</code> 实际上是 <code>MySQLFrontConnection</code> 类，因为工厂类是传入的 <code>MySQLFrontConnectionFactory</code> 类。严格来说，该工厂类在设计模式上应该属于抽象工厂，其父类 <code>ConnectionFactory</code> 会通过 <code>Connection make(SocketChannel channel)</code> 方法创建 <code>Connection</code>类，该方法代码如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">channel.setOption(<span class="type">StandardSocketOptions</span>.<span class="type">SO_REUSEADDR</span>, <span class="built_in">true</span>);</div><div class="line"><span class="comment">// 子类完成具体连接创建工作</span></div><div class="line"><span class="type">Connection</span> <span class="built_in">c</span> = makeConnection(channel);</div><div class="line"><span class="comment">// 设置连接的参数</span></div><div class="line"><span class="type">NetSystem</span>.getInstance().setSocketParams(<span class="built_in">c</span>,<span class="built_in">true</span>);</div><div class="line"><span class="comment">// 设置NIOHandler</span></div><div class="line"><span class="built_in">c</span>.setHandler(getNIOHandler());</div><div class="line"><span class="keyword">return</span> <span class="built_in">c</span>;</div></pre></td></tr></table></figure></p>
+<p>该方法中，依次调用 <code>makeConnection()</code> 和 <code>setHandler()</code> 这两个抽象方法用于创建连接，并将请求处理类设置为 <code>NIOHandler</code>，而子工厂类中，需要实现这两个方法用于创建连接实例。在 <code>MySQLFrontConnectionFactory</code> 类中，<code>makeConnection()</code> 方法创建了 <code>MySQLFrontConnection</code>，<code>NIOHandler</code> 设置为初始化该工厂类时的 <code>MySQLFrontConnectionHandler</code>。这两个类是处理 sql 请求的主要类，关于这两个类，后文再详细描述。</p>
+<p>在 <code>RW.run()</code> 方法中，主要有一些 NIO 相关的调用，最重要的调用是 <code>con.asynRead();</code>，该方法比较简单，重要代码如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> got = channel.<span class="keyword">read</span>(readBuffer);</div><div class="line">onReadData(got);</div></pre></td></tr></table></figure></p>
+<p>先是将网络数据读入到 <code>readBuffer</code> 中，然后调用 <code>onReadData()</code>。在 <code>onReadData()</code> 方法中，有很多读入字节的代码，重要的代码是调用 <code>handle(readBuffer, offset, length);</code> 方法，实际上是调用 <code>NIOHandler</code> 的 <code>handle()</code> 方法，也就是 <code>MySQLFrontConnectionHandler</code> 类的 <code>handle()</code> 方法。</p>
+<p>至此，MyCAT 处理网络连接部分的代码已经完成，对于网络请求的数据已经完成读入到 Buffer，之后的代码入口在 <code>MySQLFrontConnectionHandler.handle()</code>。</p>
+<h2>处理 SQL 请求</h2>
+<p>处理 SQL 请求的入口在 <code>MySQLFrontConnectionHandler.handle()</code>，其中，根据 Connection 的状态，分别调用了 <code>doConnecting</code> 和 <code>doHandleBusinessMsg</code>，<code>doHandleBusinessMsg</code> 方法主要用来处理 SQL 请求。该方法中，处理一般 SQL 的代码是，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">case</span> MySQLPacket.COM_QUERY:</div><div class="line">	<span class="keyword">source</span>.query(data);</div><div class="line">	<span class="keyword">break</span>;</div></pre></td></tr></table></figure></p>
+<p>其中的 <code>source</code> 是之前的 <code>MySQLFrontConnection</code> 类，也就是执行其中的 <code>query(byte[])</code> 方法，该方法中做了一些字符处理的操作，最主要的应该是 <code>sql = mm.readString(charset);</code> 这一行，用于处理字符集。最后调用了 <code>query(String)</code> ，该方法先执行了 SQL 的检查，最后开始真正执行 SQL，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">......</div><div class="line"><span class="keyword">switch</span> (sqlType) {</div><div class="line"><span class="keyword">case</span> ServerParse.EXPLAIN:</div><div class="line">	ExplainHandler.handle(sql, <span class="keyword">this</span>, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line"><span class="keyword">case</span> ServerParse.SET:</div><div class="line">	SetHandler.handle(sql, <span class="keyword">this</span>, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line"><span class="keyword">case</span> ServerParse.SHOW:</div><div class="line">	ShowHandler.handle(sql, <span class="keyword">this</span>, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line"><span class="keyword">case</span> ServerParse.SELECT:</div><div class="line">	SelectHandler.handle(sql, <span class="keyword">this</span>, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line"><span class="keyword">case</span> ServerParse.START:</div><div class="line">	StartHandler.handle(sql, <span class="keyword">this</span>, rs &gt;&gt;&gt; <span class="number">8</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line"><span class="keyword">case</span> ServerParse.BEGIN:</div><div class="line">	BeginHandler.handle(sql, <span class="keyword">this</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line"><span class="keyword">case</span> ServerParse.SAVEPOINT:</div><div class="line">	SavepointHandler.handle(sql, <span class="keyword">this</span>);</div><div class="line">	<span class="keyword">break</span>;</div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>其中，用于执行一般 SQL 查询的是 <code>SelectHandler.handle(sql, this, rs &gt;&gt;&gt; 8);</code>，该方法中，对 SQL 的类型做了一些判断，一般的 SQL 会执行最后一行的 <code>c.execute(stmt, ServerParse.SELECT);</code>（该方法属于 <code>MySQLFrontConnection</code> 类）。该方法中会检查数据库 Schema 的配置，最后调用 <code>routeEndExecuteSQL(sql, type, schema);</code>，该方法对 SQL 进行路由（即寻找执行 SQL 的数据库），然后执行 SQL（PS：我猜测方法名应该是取错了，应该是 <code>routeAndExecuteSQL</code>，而不是 <code>routeEndExecuteSQL</code>）。其中重要的代码如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="constant">rrs</span> = MycatServer</div><div class="line">	.getInstance()</div><div class="line">	.getRouterservice()</div><div class="line">	.route(MycatServer.getInstance().getConfig().getSystem(),</div><div class="line">			schema, type, sql, this.charset, this);</div><div class="line">......</div><div class="line">session.execute(rrs, type);</div></pre></td></tr></table></figure></p>
+<p>前一个调用是将 SQL 路由到数据库，后一个调用是执行解析之后的 SQL，这两部分的代码都比较独立，可以分别解析。其中，<code>session</code> 是 <code>NonBlockingSession</code> 类，该类有两个比较重要的 field，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> MySQLFrontConnection source;</div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> ConcurrentHashMap&lt;RouteResultsetNode, BackendConnection&gt; target;</div></pre></td></tr></table></figure></p>
+<p><code>source</code> 是前端连接，表示 MyCAT 面向客户端的连接，<code>target</code> 是后端连接，表示若干个连接到后端 MySQL 上的连接。</p>
+<h2>SQL 路由</h2>
+<p>SQL 路由的入口在 <code>RouteService.route()</code>，该方法先判断 SQL 路由是否有之前解析的结果，如果有直接使用；否则，开始解析 SQL。解析 SQL 的时候，会先判断该 SQL 有没有 Hint，如果有，按Hint中指定路径进行解析；否则，调用 <code>RouteStrategyFactory.getRouteStrategy().route()</code> 方法寻找合适的路由。<code>RouteStrategyFactory</code> 是一个路由策略的工厂类，目前，MyCAT 中只有一个基于 <code>druidParser</code> 的路由策略，对应 <code>DruidMycatRouteStrategy</code> 类。</p>
+<p>MyCAT 中的 SQL 路由相关的类有：<code>RouteResultset</code> 用于保存路由结果；<code>RouteStrategyFactory</code> 是路由工厂，生成 <code>RouteStrategy</code>；<code>RouteStrategy</code> 是路由类最顶层的接口，其中只有一个 <code>route()</code> 抽象方法；<code>AbstractRouteStrategy</code> 是路由类的抽象类，实现了 <code>RouteStrategy</code>，定义了路由的基本步骤，返回 <code>RouteResultset</code>，其中，最重要的抽象方法是 <code>routeNormalSqlWithAST</code>，基于 AST 树来寻找路由；<code>DruidMycatRouteStrategy</code> 继承了 <code>AbstractRouteStrategy</code>，实现了 <code>AbstractRouteStrategy</code> 中的所有抽象方法。</p>
+<p><code>DruidMycatRouteStrategy</code> 的 <code>routeNormalSqlWithAST</code> 方法中，有以下一些比较重要的调用，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">	<span class="variable">statement =</span> parser.parseStatement();</div><div class="line">          <span class="variable">visitor =</span> new MycatSchemaStatVisitor();</div><div class="line">          		......</div><div class="line">checkUnSupportedStatement(statement);</div><div class="line"></div><div class="line">      DruidParser <span class="variable">druidParser =</span> DruidParserFactory.create(schema,statement,visitor);</div><div class="line">druidParser.parser(schema, rrs, statement, stmt,cachePool,visitor);</div></pre></td></tr></table></figure></p>
+<p>由于 MyCAT 使用的是第三方的 Druid SQL 解析工具，因此要在 Druid 解析器中加入自己的处理，这里，Druid 解析器使用了 visitor 模式，<code>MycatSchemaStatVisitor</code> 类继承 <code>MySqlSchemaStatVisitor</code> 并实现了其中的多个重载的 <code>visit</code> 方法，在调用 <code>druidParser.parser()</code> 的时候进行计算。<code>routeNormalSqlWithAST</code> 方法的最后，解析之后的 SQL 被路由到若干个分片节点上，并保存在 <code>RouteResultset</code> 中，然后返回。</p>
+<h2>SQL 执行</h2>
+<p>SQL 执行的入口在 <code>NonBlockingSession.execute()</code>，该方法主要分两个分支，单节点 SQL 执行和多节点 SQL 执行，分别是 <code>SingleNodeHandler</code> 和 <code>MultiNodeQueryHandler</code> 两个类，在每个分支中，依次调用了 <code>setPrepared()</code> 方法和 <code>execute()</code> 方法。</p>
+<p>对于单节点情况，<code>SingleNodeHandler.execute()</code> 先获取该单节点的 MySQL 后端连接，然后调用 <code>_execute(conn)</code>，在 <code>_execute(conn)</code> 中，主要代码如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">conn<span class="built_in">.</span>setResponseHandler(this);</div><div class="line"><span class="attribute">...</span><span class="attribute">...</span></div><div class="line">	conn<span class="built_in">.</span>execute(node, session<span class="built_in">.</span>getSource(), session<span class="built_in">.</span>getSource()</div><div class="line">			<span class="built_in">.</span>isAutocommit());</div></pre></td></tr></table></figure></p>
+<p>先将 SQL 返回的回调类设为 <code>SingleNodeHandler</code>，也就是自己，然后调用后端连接 <code>BackendConnection</code> 类的 <code>execute</code> 方法，真正的执行 SQL。对于后端是 MySQL 数据库的时候，实际上使用的的是 <code>MySQLBackendConnection</code> 类，该类的 <code>execute</code> 方法调用了 <code>synAndDoExecute</code>，并在 <code>synAndDoExecute</code> 中调用了 <code>sendQueryCmd</code>，向 MySQL 发送 SQL 请求。对于 SQL 的返回，是实现 <code>ResponseHandler</code> 接口来实现的，该接口定义了不同的 SQL 返回处理方法。</p>
+<p>对于多节点的情况，<code>MultiNodeQueryHandler</code> 类的基本流程和 <code>SingleNodeHandler</code> 一样，不同之处有几个地方。一个是，在 <code>execute()</code> 方法中，对每一个节点分别调用 <code>_execute(conn)</code> 执行 SQL；还有一个是，回调的接口实现要更加复杂一些，例如，<code>rowEofResponse</code> 接口的实现中，调用了 <code>DataMergeService</code>，用于合并多个数据库上查询返回的结果。</p>
+<h2>总体结构图</h2>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>本文以 MyCAT 2.0-dev 代码为例，分析 MyCAT SQL执行部分的代码。</p>
+<h2>系统启动</h2>
+<p>系统的入口方法在 <code>io.mycat.MycatStartup</code> 中的 <code>main</code> 方法，主要代码]]>
+    </summary>
+    
+      <category term="MyCAT" scheme="http://valleylord.github.io/tags/MyCAT/"/>
+    
+      <category term="Dataguru" scheme="http://valleylord.github.io/tags/Dataguru/"/>
+    
+      <category term="MyCAT" scheme="http://valleylord.github.io/categories/MyCAT/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[MyCAT 的优缺点]]></title>
@@ -1117,102 +1227,6 @@ person表：
       <category term="Dataguru" scheme="http://valleylord.github.io/tags/Dataguru/"/>
     
       <category term="MyCAT" scheme="http://valleylord.github.io/categories/MyCAT/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[Shipyard管理Docker容器]]></title>
-    <link href="http://valleylord.github.io/post/201601-docker-shipyard/"/>
-    <id>http://valleylord.github.io/post/201601-docker-shipyard/</id>
-    <published>2016-01-23T02:47:00.000Z</published>
-    <updated>2016-01-23T14:00:47.000Z</updated>
-    <content type="html"><![CDATA[<p>Shipyard 是一个基于 Web 的 Docker 管理工具,支持多 host,可以把多个 Docker host 上的 containers 统一管理;可以查看 images,甚至 build images;并提供 RESTful API 等等。</p>
-<p>Shipyard 的部署方法也处于不断改进中，原先之前采用<code>shipyard/deploy</code><a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>方法来部署Shipyard的方法已经不再被官方推荐了。现在部署 Shipyard 的方法是使用 shipyard-project 的脚本<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>。</p>
-<h2>Shipyard 部署</h2>
-<p>部署前，需要修改 Docker 的配置，在<code>/etc/default/docker</code>中增加如下配置，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">-<span class="ruby"><span class="constant">H</span>=<span class="symbol">unix:</span>/<span class="regexp">//var</span><span class="regexp">/run/docker</span>.sock -<span class="constant">H</span>=<span class="symbol">tcp:</span>/<span class="regexp">/0.0.0.0:2375</span></span></div></pre></td></tr></table></figure></p>
-<p>然后开始正式部署 Shipyard，获取最新的 Shipyard 的部署脚本，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">curl -sSL http<span class="variable">s:</span>//shipyard-project.<span class="keyword">com</span>/deploy &gt; shipyard-deploy.<span class="keyword">sh</span></div><div class="line">chmod +<span class="keyword">x</span> shipyard-deploy.<span class="keyword">sh</span></div></pre></td></tr></table></figure></p>
-<p>如果只使用默认的参数，可以如下启动 Shipyard，本机地址是 192.168.2.201，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">$ cat shipyard-deploy.sh|  bash -s             </div><div class="line">Deploying Shipyard</div><div class="line"> -<span class="ruby">&gt; <span class="constant">Starting</span> <span class="constant">Database</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Starting</span> <span class="constant">Discovery</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Starting</span> <span class="constant">Cert</span> <span class="constant">Volume</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Starting</span> <span class="constant">Proxy</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Starting</span> <span class="constant">Swarm</span> <span class="constant">Manager</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Starting</span> <span class="constant">Swarm</span> <span class="constant">Agent</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Starting</span> <span class="constant">Controller</span></span></div><div class="line">Waiting for Shipyard on 192.168.2.201:8080</div><div class="line">.........</div><div class="line">Shipyard available at http://192.168.2.201:8080</div><div class="line">Username: admin Password: shipyard</div></pre></td></tr></table></figure></p>
-<p>由于 iptables 的规则，Shipyard 会被防火墙阻挡，启动之后还需要清理 iptables 的规则，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">iptables -t nat -<span class="literal">F</span></div><div class="line">iptables -<span class="literal">F</span></div></pre></td></tr></table></figure></p>
-<p>否则会访问出错。如果需要关闭 Shipyard，仍然是使用 Shipyard 的脚本，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">$ cat shipyard-deploy.sh| ACTION=remove bash -s</div><div class="line">Removing Shipyard</div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Database</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Discovery</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Cert</span> <span class="constant">Volume</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Proxy</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Swarm</span> <span class="constant">Agent</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Swarm</span> <span class="constant">Manager</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Controller</span></span></div><div class="line">Done</div></pre></td></tr></table></figure></p>
-<p>启动后即可用浏览器访问本地8080端口登陆，默认的用户名密码是“admin/shipyard”。</p>
-<p><img src="/images/201601-docker-shipyard/docker-shipyard-up.png" alt=""></p>
-<h2>增加 Shipyard 节点</h2>
-<p>Shipyard 可以管理多个宿主机，这在 Shipyard 中被称为节点。增加节点的方法也是使用相同的部署脚本，</p>
-<p>在另一台宿主机（IP 192.168.2.202）中运行，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cat ./shipyard-deploy.sh | <span class="variable">ACTION=</span>node <span class="variable">DISCOVERY=</span>etcd://<span class="number">192.168</span>.<span class="number">2.201</span>:<span class="number">4001</span> <span class="variable">PROXY_PORT=</span><span class="number">2376</span> bash -s</div></pre></td></tr></table></figure></p>
-<p>运行之后也需要清理 iptables 规则。然后在 Shipyard 的管理网页上的“Nodes”栏中，即可看以下画面，</p>
-<p><img src="/images/201601-docker-shipyard/docker-shipyard-nodes.png" alt=""></p>
-<p>有2个节点目前受 Shipyard 管理。</p>
-<h2>管理容器</h2>
-<p>Shipyard 的主要功能还是管理容器，例如，新增容器，</p>
-<p><img src="/images/201601-docker-shipyard/docker-shipyard-container-new.png" alt=""></p>
-<p><img src="/images/201601-docker-shipyard/docker-shipyard-container.png" alt=""></p>
-<p>使用中发现，Shipyard 似乎不支持网页上部署其他节点的容器，只能部署本节点的。容器管理的功能所有节点都一样，如下，部署了2个 Mysql 容器，</p>
-<p><img src="/images/201601-docker-shipyard/docker-shipyard-mysql.png" alt=""></p>
-<p>可能这个版本的 Shipyard 有 bug，当前 Shipyard 已经包含两个节点，且两个节点上都有<code>mysql:latest</code>的镜像，但是在 images 栏中，Nodes 列并未显示，如下，</p>
-<p><img src="/images/201601-docker-shipyard/docker-shipyard-bug.png" alt=""></p>
-<p>图中，ID 为<code>ea0aca21950d</code>的 Mysql 镜像是在 192.168.2.202 上，ID 为<code>a07681abeb6c</code>的镜像是在 192.168.2.201 上。</p>
-<div class="footnotes">
-<hr>
-<ol>
-<li id="fn1"><p><a href="https://github.com/shipyard/shipyard-deploy" class="uri" target="_blank" rel="external">https://github.com/shipyard/shipyard-deploy</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="https://github.com/shipyard/shipyard" class="uri" target="_blank" rel="external">https://github.com/shipyard/shipyard</a><a href="#fnref2">↩</a></p></li>
-</ol>
-</div>
-]]></content>
-    <summary type="html">
-    <![CDATA[<p>Shipyard 是一个基于 Web 的 Docker 管理工具,支持多 host,可以把多个 Docker host 上的 containers 统一管理;可以查看 images,甚至 build images;并提供 RESTful API 等等。</p>
-<p>Sh]]>
-    </summary>
-    
-      <category term="Docker" scheme="http://valleylord.github.io/tags/Docker/"/>
-    
-      <category term="shipyard" scheme="http://valleylord.github.io/tags/shipyard/"/>
-    
-      <category term="Dataguru" scheme="http://valleylord.github.io/tags/Dataguru/"/>
-    
-      <category term="Docker" scheme="http://valleylord.github.io/categories/Docker/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[Ubuntu上完全编译安装QuantLib]]></title>
-    <link href="http://valleylord.github.io/post/201601-quantlib-install/"/>
-    <id>http://valleylord.github.io/post/201601-quantlib-install/</id>
-    <published>2016-01-20T11:18:00.000Z</published>
-    <updated>2016-01-21T14:06:18.000Z</updated>
-    <content type="html"><![CDATA[<p>QuantLib 是一个基于 boost 的 Quant 程序库。QuantLib 的安装比较简单<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>，本文在 Ubuntu上安装 Quantlib1.7.1。</p>
-<p>解包 QuantLib-1.7.tar.gz 后，使用<code>./configure</code> 来配置编译环境，也可以用<code>./configure --help</code>来查看参数选项。</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">./configure --with-boost-<span class="keyword">include</span>=<span class="regexp">/usr/program</span><span class="regexp">/program/boost</span>-<span class="number">1.60</span>/<span class="keyword">include</span>/boost-<span class="number">1_60</span> \</div><div class="line">--with-boost-lib=<span class="regexp">/usr/program</span><span class="regexp">/program/boost</span>-<span class="number">1.60</span>/lib \</div><div class="line">--prefix=<span class="regexp">/usr/program</span><span class="regexp">/program/quantlib</span>-<span class="number">1.7</span>.<span class="number">1</span> \</div><div class="line"><span class="constant">CC</span>=clang <span class="constant">CXX</span>=clang++</div></pre></td></tr></table></figure></p>
-<p>本文使用 clang3.6 来编译，boost 库的版本是比较新的1.60，实际 configure 的时候显示 boost 的版本只要大于1.39即可。其中<code>--with-boost-include</code>和<code>--with-boost-lib</code>是 boost 库的头文件和库文件的路径，<code>--prefix</code>是安装时的安装目录，<code>CC=clang CXX=clang++</code>是指定使用 clang 来编译。</p>
-<p>接下来，就是<code>make</code>和<code>make install</code>，即可完成安装。我在编译的时候，有错误发生，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">zabr.o: In function <span class="smartquote">`ZabrTest::suite()'</span>:</div><div class="line">/home/arnes/download/quantlib/QuantLib-1.7/test-suite/zabr.cpp:92: undefined reference to <span class="smartquote">`boost::unit_test::test_suite::test_suite(boost::unit_test::basic_cstring&lt;char const&gt;, boost::unit_test::basic_cstring&lt;char const&gt;, unsigned long)'</span></div><div class="line">collect2: error: ld returned 1 exit status</div><div class="line">make[1]: *** [quantlib-test-suite] 错误 1</div></pre></td></tr></table></figure></p>
-<p>不过，这似乎并不影响QuantLib的安装。如果需要让编译器默认找到的话，还需要配置环境变量，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">export <span class="constant">C_INCLUDE_PATH</span>=<span class="regexp">/usr/program</span><span class="regexp">/program/quantlib</span>-<span class="number">1.7</span>.<span class="number">1</span>/<span class="symbol">include:</span><span class="variable">$C_INCLUDE_PATH</span></div><div class="line">export <span class="constant">CPLUS_INCLUDE_PATH</span>=<span class="regexp">/usr/program</span><span class="regexp">/program/quantlib</span>-<span class="number">1.7</span>.<span class="number">1</span>/<span class="symbol">include:</span><span class="variable">$CPLUS_INCLUDE_PATH</span></div><div class="line"></div><div class="line">export <span class="constant">LD_LIBRARY_PATH</span>=<span class="regexp">/usr/program</span><span class="regexp">/program/quantlib</span>-<span class="number">1.7</span>.<span class="number">1</span>/<span class="symbol">lib:</span><span class="variable">$LD_LIBRARY_PATH</span></div><div class="line">export <span class="constant">LIBRARY_PATH</span>=<span class="regexp">/usr/program</span><span class="regexp">/program/quantlib</span>-<span class="number">1.7</span>.<span class="number">1</span>/<span class="symbol">lib:</span><span class="variable">$LIBRARY_PATH</span></div></pre></td></tr></table></figure></p>
-<p>完成之后，就可以使用QuantLib，尝试编译QuantLib目录下的示例程序，</p>
-<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">cd</span> Examples/BermudanSwaption</div><div class="line">clang++ BermudanSwaption.cpp -o BermudanSwaption <span class="operator">-l</span>QuantLib</div><div class="line">./BermudanSwaption</div></pre></td></tr></table></figure></p>
-<p>如果安装正常，编译和运行都不会报错。</p>
-<div class="footnotes">
-<hr>
-<ol>
-<li id="fn1"><p><a href="http://quantlib.org/install/linux.shtml" class="uri" target="_blank" rel="external">http://quantlib.org/install/linux.shtml</a><a href="#fnref1">↩</a></p></li>
-</ol>
-</div>
-]]></content>
-    <summary type="html">
-    <![CDATA[<p>QuantLib 是一个基于 boost 的 Quant 程序库。QuantLib 的安装比较简单<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>，本文在 Ubuntu上安装 Quantlib1.]]>
-    </summary>
-    
-      <category term="C++" scheme="http://valleylord.github.io/tags/C/"/>
-    
-      <category term="quantlib" scheme="http://valleylord.github.io/tags/quantlib/"/>
-    
-      <category term="C++" scheme="http://valleylord.github.io/categories/C/"/>
     
   </entry>
   
