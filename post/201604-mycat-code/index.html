@@ -88,7 +88,7 @@
     </p>
   <p class="article-time">
     <time datetime="2016-04-30T11:31:06.000Z" itemprop="datePublished">2016-04-30</time>
-    更新日期:<time datetime="2016-05-01T04:12:05.462Z" itemprop="dateModified">2016-05-01</time>
+    更新日期:<time datetime="2016-05-07T11:40:06.295Z" itemprop="dateModified">2016-05-07</time>
     
   </p>
 </header>
@@ -142,6 +142,9 @@
 <p>先将 SQL 返回的回调类设为 <code>SingleNodeHandler</code>，也就是自己，然后调用后端连接 <code>BackendConnection</code> 类的 <code>execute</code> 方法，真正的执行 SQL。对于后端是 MySQL 数据库的时候，实际上使用的的是 <code>MySQLBackendConnection</code> 类，该类的 <code>execute</code> 方法调用了 <code>synAndDoExecute</code>，并在 <code>synAndDoExecute</code> 中调用了 <code>sendQueryCmd</code>，向 MySQL 发送 SQL 请求。对于 SQL 的返回，是实现 <code>ResponseHandler</code> 接口来实现的，该接口定义了不同的 SQL 返回处理方法。</p>
 <p>对于多节点的情况，<code>MultiNodeQueryHandler</code> 类的基本流程和 <code>SingleNodeHandler</code> 一样，不同之处有几个地方。一个是，在 <code>execute()</code> 方法中，对每一个节点分别调用 <code>_execute(conn)</code> 执行 SQL；还有一个是，回调的接口实现要更加复杂一些，例如，<code>rowEofResponse</code> 接口的实现中，调用了 <code>DataMergeService</code>，用于合并多个数据库上查询返回的结果。</p>
 <h2>总体结构图</h2>
+<p>总体大致的结构图如下，比较粗略，</p>
+<p><img src="/images/201604-mycat-code/mycat-code-class1.png"></p>
+<p><img src="/images/201604-mycat-code/mycat-code-class2.png"></p>
   
 	</div>
 		<footer class="article-footer clearfix">
