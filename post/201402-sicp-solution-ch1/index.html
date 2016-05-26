@@ -12,7 +12,7 @@
     <meta name="description" content="我使用的scheme解释器主要是petite chez scheme。解题过程中参考了：http://sicp.readthedocs.org/en/latest/index.html
 1.1和1.2基本没问题，除非你没看书......
 1.3
-123456(define (&amp;lt;= x y">
+123456(define (&amp;lt;= x y)  ">
     
     
     
@@ -88,7 +88,7 @@
     </p>
   <p class="article-time">
     <time datetime="2014-02-07T11:55:00.000Z" itemprop="datePublished">2014-02-07</time>
-    更新日期:<time datetime="2014-12-03T01:10:08.000Z" itemprop="dateModified">2014-12-03</time>
+    更新日期:<time datetime="2016-05-25T15:04:53.385Z" itemprop="dateModified">2016-05-25</time>
     
   </p>
 </header>
@@ -153,7 +153,11 @@
 <p>1.20 <code>gcd</code>过程中，<code>remainder</code>的调用，在应用序的情况下是4次，分别是</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="list">(<span class="title">remainder</span> <span class="number">206</span> <span class="number">40</span>)</span></div><div class="line"><span class="list">(<span class="title">remainder</span> <span class="number">40</span> <span class="number">6</span>)</span></div><div class="line"><span class="list">(<span class="title">remainder</span> <span class="number">6</span> <span class="number">4</span>)</span></div><div class="line"><span class="list">(<span class="title">remainder</span> <span class="number">4</span> <span class="number">2</span>)</span></div></pre></td></tr></table></figure></p>
 <p>最后一次<code>gcd(2 0)</code>的时候直接返回，没有调用<code>remainder</code>，所以<code>gcd</code>的调用是5次。正题则序的话就多很多了，应为是先展开再求值，以<code>gcd(6 4)</code>举例，第1次展开得到<code>(gcd 4 (remainder 6 4))</code>，然后接着展开，在程序中有a和b的地方分别用4和<code>(remainder 6 4)</code>替换，if条件不满足，这样又多出了1次<code>remainder</code>调用，都是b的。最后一次<code>gcd</code>调用是<code>(gcd (remainder 6 4) (remainder 4 (remainder 6 4)))</code>，做同样的替换之后发现if条件满足，不需要继续递归了了，这样又多出3次<code>remainder</code>调用，2次是计算<code>b=(remainder 4 (remainder 6 4))</code>，1次是计算<code>a=(remainder 6 4)</code>。这样看起来的确多了很多次，有人总结了证明</p>
-<p>正则代换后,则第n层的a b两个参数对应的<code>remainder</code>的次数分别为$a(n)$, $b(n)$,则: $$a(n) = b(n-1);b(n)=a(n-1)+b(n-1)+1;a(0)=0,b(0)=0$$ 总共5层,由于每层的if判断进行了计算,再加上最后一层的a是计算了的,所以最后的结果是: $$b(0)+b(1)+b(2)+b(3)+b(4)+a(4)=18$$ 这样看起来，我的解释器的确是应用序的。(注：应用序和正则序在FP里面还有另一种表述，分别是：Call-by-Value和Call-by-Name)</p>
+正则代换后,则第n层的a b两个参数对应的<code>remainder</code>的次数分别为$a(n)$, $b(n)$,则:
+$$a(n) = b(n-1);b(n)=a(n-1)+b(n-1)+1;a(0)=0,b(0)=0$$
+总共5层,由于每层的if判断进行了计算,再加上最后一层的a是计算了的,所以最后的结果是:
+$$b(0)+b(1)+b(2)+b(3)+b(4)+a(4)=18$$
+<p>这样看起来，我的解释器的确是应用序的。(注：应用序和正则序在FP里面还有另一种表述，分别是：Call-by-Value和Call-by-Name)</p>
 <p>1.21 抄程序吧</p>
 <p>1.22 坑爹啊，我找了N久才找到了petite里面记录系统运行时间的过程是<code>real-time</code>，首先修改了<code>timed-prime-test</code>来更方便的计时</p>
 <p><figure class="highlight scheme"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="list">(<span class="title">define</span> <span class="list">(<span class="title">timed-prime-test</span> n)</span></span></div><div class="line">  <span class="comment">;(newline)</span></div><div class="line">  <span class="comment">;(display n)</span></div><div class="line">  <span class="list">(<span class="title">start-prime-test</span> n <span class="list">(<span class="title">real-time</span>)</span>)</span>)</div><div class="line"></div><div class="line"><span class="list">(<span class="title">define</span> <span class="list">(<span class="title">start-prime-test</span> n start-time)</span></span></div><div class="line">  <span class="list">(<span class="title"><span class="built_in">if</span></span> <span class="list">(<span class="title">prime?</span> n)</span></span></div><div class="line">      <span class="list">(<span class="title">report-prime</span> n <span class="list">(<span class="title"><span class="built_in">-</span></span> <span class="list">(<span class="title">real-time</span>)</span> start-time)</span>)</span>))</div><div class="line"></div><div class="line"><span class="list">(<span class="title">define</span> <span class="list">(<span class="title">report-prime</span> n elapsed-time)</span></span></div><div class="line">  <span class="list">(<span class="title">display</span> n)</span></div><div class="line">  <span class="list">(<span class="title">display</span> <span class="string">" *** "</span>)</span></div><div class="line">  <span class="list">(<span class="title">display</span> elapsed-time)</span></div><div class="line">  <span class="list">(<span class="title">display</span> <span class="string">"\n"</span>)</span>)</div><div class="line"></div><div class="line"><span class="list">(<span class="title">define</span> <span class="list">(<span class="title">next-odd</span> n)</span></span></div><div class="line">  <span class="list">(<span class="title"><span class="built_in">if</span></span> <span class="list">(<span class="title"><span class="built_in">even?</span></span> n)</span> <span class="list">(<span class="title"><span class="built_in">+</span></span> n<span class="number"> 1</span>)</span></span></div><div class="line">      <span class="list">(<span class="title"><span class="built_in">+</span></span> n<span class="number"> 2</span>)</span>))</div><div class="line"></div><div class="line"><span class="list">(<span class="title">define</span> <span class="list">(<span class="title">search-prime</span> start-number first-i)</span></span></div><div class="line">  <span class="list">(<span class="title"><span class="built_in">if</span></span> <span class="list">(<span class="title"><span class="built_in">=</span></span> first-i<span class="number"> 0</span>)</span> <span class="list">(<span class="title">display</span> <span class="string">"Done\n"</span>)</span></span></div><div class="line">     <span class="list">(<span class="title"><span class="built_in">if</span></span> <span class="list">(<span class="title">prime?</span> start-number)</span> <span class="list">(<span class="list">(<span class="title">timed-prime-test</span> start-number)</span></span></span></div><div class="line">                                <span class="list">(<span class="title">search-prime</span> <span class="list">(<span class="title">next-odd</span> start-number)</span> <span class="list">(<span class="title"><span class="built_in">-</span></span> first-i<span class="number"> 1</span>)</span>)</span>)</div><div class="line">         <span class="list">(<span class="title">search-prime</span> <span class="list">(<span class="title">next-odd</span> start-number)</span> first-i)</span>) ))</div></pre></td></tr></table></figure></p>
@@ -330,7 +334,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -340,6 +344,8 @@
 		<ul>
 		
 			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Bug/" title="Bug">Bug<sup>1</sup></a></li>
 		
 			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
 		
@@ -363,7 +369,7 @@
 		
 			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
 		
-			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>1</sup></a></li>
+			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>0</sup></a></li>
 		
 			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
 		
@@ -378,6 +384,8 @@
 		
 			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
 		
+			<li><a href="/tags/Bug/" title="Bug">Bug<sup>1</sup></a></li>
+		
 			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
@@ -390,7 +398,7 @@
 		
 			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
 		
-			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+			<li><a href="/tags/Java/" title="Java">Java<sup>12</sup></a></li>
 		
 			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
 		
@@ -414,8 +422,6 @@
 		
 			<li><a href="/tags/boost/" title="boost">boost<sup>1</sup></a></li>
 		
-			<li><a href="/tags/quantlib/" title="quantlib">quantlib<sup>1</sup></a></li>
-		
 		</ul>
 </div>
 
@@ -424,7 +430,7 @@
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 12.50px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 13.75px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.25px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.75px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 17.50px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.75px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.50px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.50px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.25px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 11.25px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.25px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.25px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.50px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 13.75px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.25px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.75px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 17.50px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.75px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.50px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.50px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.25px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 11.25px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.25px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.25px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
     </div>
   </div>
 

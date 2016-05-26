@@ -10,7 +10,7 @@
     <meta name="author" content="Valleylord">
     
     <meta name="description" content="通过自定义classloader和java的反射技术，可以自行控制类的加载。多数的Web容器，例如，Tomcat中就实现了自己的类加载器，在修改编译代码之后，可以在不停服务的情况下，运行新class文件中的代码；还有，OSGi中也实现了更加复杂的类加载器，被认为是控制类加载的经典代码。
-本文试图用">
+本文试图用一">
     
     
     
@@ -86,7 +86,7 @@
     </p>
   <p class="article-time">
     <time datetime="2014-09-13T12:26:00.000Z" itemprop="datePublished">2014-09-13</time>
-    更新日期:<time datetime="2014-12-03T01:15:32.000Z" itemprop="dateModified">2014-12-03</time>
+    更新日期:<time datetime="2016-05-25T15:04:53.741Z" itemprop="dateModified">2016-05-25</time>
     
   </p>
 </header>
@@ -110,14 +110,14 @@
 <p>那<code>dynaclazns</code>中的内容是在何时添加的呢？是在初始化classloader的时候，也就是初始化<code>HowswapCL</code>类的时候，初始化过程中，先对每个<code>basedir</code>路径下需要加载的类文件调用<code>loadDirectly</code>做加载，然后将类名加入到<code>dynaclazns</code>中。在<code>loadDirectly</code>做加载的时候，先通过<code>basedir</code>路径和类名拼出class文件的路径，然后将class文件以二进制形式读入到对象<code>raw</code>中，最后根据类名和<code>raw</code>中二进制信息，调用<code>defineClass</code>加载这个类。</p>
 <p>另外，loadClass的resolve参数在本例中没有用到，其含义是：resolve=true时，则保证已经装载，而且已经连接了。resolve=false时，则仅仅是去装载这个类，不关心是否连接了，所以此时可能被连接了，也可能没有被连接，默认是false。</p>
 <p>运行起来的示例截图如下，</p>
-<p><img src="/images/201408-jvm-classloader/classloader-hotswap.png" alt=""></p>
+<p><img src="/images/201408-jvm-classloader/classloader-hotswap.png"></p>
 <p>本文重点参考了这几篇文章<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>，<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>，<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>。以上代码仅仅是测试代码，演示了自定义classloader实现热替换的基本原理，在设计上有诸多弊病。如果是实际项目的代码，一般会以接口的形式调用<code>Output</code>，而不会是静态方法；还有，每次调用都加载一次类，也的确很浪费性能，毕竟修改类的情况是少数，可以对指定路径下的类做一个监听，当发现class文件的修改时间或者是md5值发生改变的时候，就自动做一次重新加载，否则不做，这对性能有很好的提升，Eclipse的自动编译就是使用了类似这样的方法。</p>
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://www.ibm.com/developerworks/cn/java/j-lo-hotswapcls/index.html" class="uri" target="_blank" rel="external">http://www.ibm.com/developerworks/cn/java/j-lo-hotswapcls/index.html</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://blog.csdn.net/ozwarld/article/details/7440868" class="uri" target="_blank" rel="external">http://blog.csdn.net/ozwarld/article/details/7440868</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="http://blog.csdn.net/iceman1952/article/details/1523025" class="uri" target="_blank" rel="external">http://blog.csdn.net/iceman1952/article/details/1523025</a><a href="#fnref3">↩</a></p></li>
+<li id="fn1"><p><a href="http://www.ibm.com/developerworks/cn/java/j-lo-hotswapcls/index.html" target="_blank" rel="external">http://www.ibm.com/developerworks/cn/java/j-lo-hotswapcls/index.html</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://blog.csdn.net/ozwarld/article/details/7440868" target="_blank" rel="external">http://blog.csdn.net/ozwarld/article/details/7440868</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="http://blog.csdn.net/iceman1952/article/details/1523025" target="_blank" rel="external">http://blog.csdn.net/iceman1952/article/details/1523025</a><a href="#fnref3">↩</a></p></li>
 </ol>
 </div>
   
@@ -207,7 +207,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -217,6 +217,8 @@
 		<ul>
 		
 			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Bug/" title="Bug">Bug<sup>1</sup></a></li>
 		
 			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
 		
@@ -240,7 +242,7 @@
 		
 			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
 		
-			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>1</sup></a></li>
+			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>0</sup></a></li>
 		
 			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
 		
@@ -255,6 +257,8 @@
 		
 			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
 		
+			<li><a href="/tags/Bug/" title="Bug">Bug<sup>1</sup></a></li>
+		
 			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
@@ -267,7 +271,7 @@
 		
 			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
 		
-			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+			<li><a href="/tags/Java/" title="Java">Java<sup>12</sup></a></li>
 		
 			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
 		
@@ -291,8 +295,6 @@
 		
 			<li><a href="/tags/boost/" title="boost">boost<sup>1</sup></a></li>
 		
-			<li><a href="/tags/quantlib/" title="quantlib">quantlib<sup>1</sup></a></li>
-		
 		</ul>
 </div>
 
@@ -301,7 +303,7 @@
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 12.50px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 13.75px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.25px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.75px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 17.50px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.75px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.50px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.50px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.25px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 11.25px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.25px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.25px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.50px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 13.75px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.25px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.75px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 17.50px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.75px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.50px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.50px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.25px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 11.25px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.25px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.25px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
     </div>
   </div>
 

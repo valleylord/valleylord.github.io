@@ -10,7 +10,7 @@
     <meta name="author" content="Valleylord">
     
     <meta name="description" content="Shipyard 是一个基于 Web 的 Docker 管理工具,支持多 host,可以把多个 Docker host 上的 containers 统一管理;可以查看 images,甚至 build images;并提供 RESTful API 等等。
-Shipyard 的部署方法也处于不断改进中">
+Shipyard 的部署方法也处于不断改进中，">
     
     
     
@@ -86,7 +86,7 @@ Shipyard 的部署方法也处于不断改进中">
     </p>
   <p class="article-time">
     <time datetime="2016-01-23T02:47:00.000Z" itemprop="datePublished">2016-01-23</time>
-    更新日期:<time datetime="2016-01-23T14:00:47.000Z" itemprop="dateModified">2016-01-23</time>
+    更新日期:<time datetime="2016-05-25T15:04:53.645Z" itemprop="dateModified">2016-05-25</time>
     
   </p>
 </header>
@@ -112,28 +112,28 @@ Shipyard 的部署方法也处于不断改进中">
 <p>否则会访问出错。如果需要关闭 Shipyard，仍然是使用 Shipyard 的脚本，</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">$ cat shipyard-deploy.sh| ACTION=remove bash -s</div><div class="line">Removing Shipyard</div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Database</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Discovery</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Cert</span> <span class="constant">Volume</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Proxy</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Swarm</span> <span class="constant">Agent</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Swarm</span> <span class="constant">Manager</span></span></div><div class="line"> -<span class="ruby">&gt; <span class="constant">Removing</span> <span class="constant">Controller</span></span></div><div class="line">Done</div></pre></td></tr></table></figure></p>
 <p>启动后即可用浏览器访问本地8080端口登陆，默认的用户名密码是“admin/shipyard”。</p>
-<p><img src="/images/201601-docker-shipyard/docker-shipyard-up.png" alt=""></p>
+<p><img src="/images/201601-docker-shipyard/docker-shipyard-up.png"></p>
 <h2>增加 Shipyard 节点</h2>
 <p>Shipyard 可以管理多个宿主机，这在 Shipyard 中被称为节点。增加节点的方法也是使用相同的部署脚本，</p>
 <p>在另一台宿主机（IP 192.168.2.202）中运行，</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cat ./shipyard-deploy.sh | <span class="variable">ACTION=</span>node <span class="variable">DISCOVERY=</span>etcd://<span class="number">192.168</span>.<span class="number">2.201</span>:<span class="number">4001</span> <span class="variable">PROXY_PORT=</span><span class="number">2376</span> bash -s</div></pre></td></tr></table></figure></p>
 <p>运行之后也需要清理 iptables 规则。然后在 Shipyard 的管理网页上的“Nodes”栏中，即可看以下画面，</p>
-<p><img src="/images/201601-docker-shipyard/docker-shipyard-nodes.png" alt=""></p>
+<p><img src="/images/201601-docker-shipyard/docker-shipyard-nodes.png"></p>
 <p>有2个节点目前受 Shipyard 管理。</p>
 <h2>管理容器</h2>
 <p>Shipyard 的主要功能还是管理容器，例如，新增容器，</p>
-<p><img src="/images/201601-docker-shipyard/docker-shipyard-container-new.png" alt=""></p>
-<p><img src="/images/201601-docker-shipyard/docker-shipyard-container.png" alt=""></p>
+<p><img src="/images/201601-docker-shipyard/docker-shipyard-container-new.png"></p>
+<p><img src="/images/201601-docker-shipyard/docker-shipyard-container.png"></p>
 <p>使用中发现，Shipyard 似乎不支持网页上部署其他节点的容器，只能部署本节点的。容器管理的功能所有节点都一样，如下，部署了2个 Mysql 容器，</p>
-<p><img src="/images/201601-docker-shipyard/docker-shipyard-mysql.png" alt=""></p>
+<p><img src="/images/201601-docker-shipyard/docker-shipyard-mysql.png"></p>
 <p>可能这个版本的 Shipyard 有 bug，当前 Shipyard 已经包含两个节点，且两个节点上都有<code>mysql:latest</code>的镜像，但是在 images 栏中，Nodes 列并未显示，如下，</p>
-<p><img src="/images/201601-docker-shipyard/docker-shipyard-bug.png" alt=""></p>
+<p><img src="/images/201601-docker-shipyard/docker-shipyard-bug.png"></p>
 <p>图中，ID 为<code>ea0aca21950d</code>的 Mysql 镜像是在 192.168.2.202 上，ID 为<code>a07681abeb6c</code>的镜像是在 192.168.2.201 上。</p>
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="https://github.com/shipyard/shipyard-deploy" class="uri" target="_blank" rel="external">https://github.com/shipyard/shipyard-deploy</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="https://github.com/shipyard/shipyard" class="uri" target="_blank" rel="external">https://github.com/shipyard/shipyard</a><a href="#fnref2">↩</a></p></li>
+<li id="fn1"><p><a href="https://github.com/shipyard/shipyard-deploy" target="_blank" rel="external">https://github.com/shipyard/shipyard-deploy</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="https://github.com/shipyard/shipyard" target="_blank" rel="external">https://github.com/shipyard/shipyard</a><a href="#fnref2">↩</a></p></li>
 </ol>
 </div>
   
@@ -223,7 +223,7 @@ Shipyard 的部署方法也处于不断改进中">
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -233,6 +233,8 @@ Shipyard 的部署方法也处于不断改进中">
 		<ul>
 		
 			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Bug/" title="Bug">Bug<sup>1</sup></a></li>
 		
 			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
 		
@@ -256,7 +258,7 @@ Shipyard 的部署方法也处于不断改进中">
 		
 			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
 		
-			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>1</sup></a></li>
+			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>0</sup></a></li>
 		
 			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
 		
@@ -271,6 +273,8 @@ Shipyard 的部署方法也处于不断改进中">
 		
 			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
 		
+			<li><a href="/tags/Bug/" title="Bug">Bug<sup>1</sup></a></li>
+		
 			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
@@ -283,7 +287,7 @@ Shipyard 的部署方法也处于不断改进中">
 		
 			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
 		
-			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+			<li><a href="/tags/Java/" title="Java">Java<sup>12</sup></a></li>
 		
 			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
 		
@@ -307,8 +311,6 @@ Shipyard 的部署方法也处于不断改进中">
 		
 			<li><a href="/tags/boost/" title="boost">boost<sup>1</sup></a></li>
 		
-			<li><a href="/tags/quantlib/" title="quantlib">quantlib<sup>1</sup></a></li>
-		
 		</ul>
 </div>
 
@@ -317,7 +319,7 @@ Shipyard 的部署方法也处于不断改进中">
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 12.50px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 13.75px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.25px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.75px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 17.50px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.75px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.50px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.50px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.25px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 11.25px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.25px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.25px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.50px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 13.75px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.25px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.75px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 17.50px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.75px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.50px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.50px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.25px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 11.25px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.25px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.25px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
     </div>
   </div>
 

@@ -11,7 +11,7 @@
     
     <meta name="description" content="Java的锁是多线程编程中必须理解的概念，其synchronized关键字本质上就是一个互斥锁的实现。
 本文比较在Java中使用锁和使用atomic包中类型在多线程环境下的性能差异，并探讨JVM获取锁的一般步骤。
-假设要对一个整数做++操作1000000次。在使用锁（本文使用的是synchron">
+假设要对一个整数做++操作1000000次。在使用锁（本文使用的是synchroniz">
     
     
     
@@ -87,7 +87,7 @@
     </p>
   <p class="article-time">
     <time datetime="2014-10-09T06:54:00.000Z" itemprop="datePublished">2014-10-09</time>
-    更新日期:<time datetime="2014-12-03T01:16:23.000Z" itemprop="dateModified">2014-12-03</time>
+    更新日期:<time datetime="2016-05-25T15:04:53.817Z" itemprop="dateModified">2016-05-25</time>
     
   </p>
 </header>
@@ -146,8 +146,8 @@
 </tr>
 </tbody>
 </table>
-<p><img src="/images/201410-java-lock/withlock.png" alt=""></p>
-<p><img src="/images/201410-java-lock/withoutlock.png" alt=""></p>
+<p><img src="/images/201410-java-lock/withlock.png"></p>
+<p><img src="/images/201410-java-lock/withoutlock.png"></p>
 <p>可见，无锁版本的程序始终要比有锁的略快一些，在线程较少（&lt;=CPU个数）的时候，尤其明显。同时，也可以看到，线程并不是越多越好，过多的线程本身就会有很多线程消耗，另外引起的锁竞争现象也会愈发明显。</p>
 <p>以上是有锁和无锁情况下的程序性能对比。下面探讨JVM获取锁的一般步骤，主要的步骤是：偏向锁-&gt;轻量级锁-&gt;自旋锁-&gt;重量级锁。在执行过程中，还有执行期间的锁粗化和锁消除等优化。</p>
 <p>首先说一下重量级锁，重量级锁类似于操作系统中的锁操作，不过是JVM的对象监视器Monitor实现的。当线程需要竞争某个资源的时候，先进入竞争队列，如果竞争不到锁，本线程就在竞争队列中等待下一次竞争锁；如果竞争到资源，就成为这个资源的Owner，并与其他获取资源的线程互斥；如果调用了wait，说明线程被阻塞，等待阻塞被notify，然后重新进入竞争队列。以上的竞争队列都是利用CAS实现的的无锁队列。由于需要维护多个队列，重量锁的性能消耗实际上是比较大的，但是也更加保险。</p>
@@ -160,10 +160,10 @@
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://blog.csdn.net/chen77716/article/details/6618779" class="uri" target="_blank" rel="external">http://blog.csdn.net/chen77716/article/details/6618779</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://blog.csdn.net/chen77716/article/details/6641477" class="uri" target="_blank" rel="external">http://blog.csdn.net/chen77716/article/details/6641477</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="http://www.majin163.com/2014/03/17/synchronized1/" class="uri" target="_blank" rel="external">http://www.majin163.com/2014/03/17/synchronized1/</a><a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p><a href="http://www.majin163.com/2014/03/17/synchronized2/" class="uri" target="_blank" rel="external">http://www.majin163.com/2014/03/17/synchronized2/</a><a href="#fnref4">↩</a></p></li>
+<li id="fn1"><p><a href="http://blog.csdn.net/chen77716/article/details/6618779" target="_blank" rel="external">http://blog.csdn.net/chen77716/article/details/6618779</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://blog.csdn.net/chen77716/article/details/6641477" target="_blank" rel="external">http://blog.csdn.net/chen77716/article/details/6641477</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="http://www.majin163.com/2014/03/17/synchronized1/" target="_blank" rel="external">http://www.majin163.com/2014/03/17/synchronized1/</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="http://www.majin163.com/2014/03/17/synchronized2/" target="_blank" rel="external">http://www.majin163.com/2014/03/17/synchronized2/</a><a href="#fnref4">↩</a></p></li>
 </ol>
 </div>
   
@@ -253,7 +253,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -263,6 +263,8 @@
 		<ul>
 		
 			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Bug/" title="Bug">Bug<sup>1</sup></a></li>
 		
 			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
 		
@@ -286,7 +288,7 @@
 		
 			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
 		
-			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>1</sup></a></li>
+			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>0</sup></a></li>
 		
 			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
 		
@@ -301,6 +303,8 @@
 		
 			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
 		
+			<li><a href="/tags/Bug/" title="Bug">Bug<sup>1</sup></a></li>
+		
 			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
 		
 			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
@@ -313,7 +317,7 @@
 		
 			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
 		
-			<li><a href="/tags/Java/" title="Java">Java<sup>11</sup></a></li>
+			<li><a href="/tags/Java/" title="Java">Java<sup>12</sup></a></li>
 		
 			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
 		
@@ -337,8 +341,6 @@
 		
 			<li><a href="/tags/boost/" title="boost">boost<sup>1</sup></a></li>
 		
-			<li><a href="/tags/quantlib/" title="quantlib">quantlib<sup>1</sup></a></li>
-		
 		</ul>
 </div>
 
@@ -347,7 +349,7 @@
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/C/" style="font-size: 12.50px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 13.75px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.25px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.75px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 17.50px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.75px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.50px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.50px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.25px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 11.25px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.25px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.25px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.50px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 13.75px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.25px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.75px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 17.50px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.75px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.50px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.50px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.25px;">SICP</a><a href="/tags/Tomcat/" style="font-size: 11.25px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.25px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.25px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a>
     </div>
   </div>
 
