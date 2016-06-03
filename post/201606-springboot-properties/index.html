@@ -1,0 +1,484 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Spring Boot 配置文件 application.properties [转] | 褚哥说|</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Valleylord">
+    
+    <meta name="description" content="转载自：http://www.qiyadeng.com/post/spring-boot-application-properties
+某文库上有相同的：http://wenku.baidu.com/link?url=EiipoOvUVbDgtP0sSMsMA0iOFYnNTVI2yQNe4puK2">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="褚哥说|" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/author.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/author.jpg">
+    
+
+	
+	<link href="http://cdn.bootcss.com/highlight.js/8.2/styles/monokai.min.css" rel="stylesheet">
+	<script src="http://cdn.bootcss.com/highlight.js/8.2/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+	
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="褚哥说|">褚哥说|</a></h1>
+				<h2 class="blog-motto">我想写一些东西</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul><li> <a href="/atom.xml">RSS</a> </li>
+                    <ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/tags">标签</a></li>
+					
+						<li><a href="/links">链接</a></li>
+					
+						<li><a href="http://www.cnblogs.com/valleylord/">旧文</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					</li>
+                <li><div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div></li>
+
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container" class="clearfix">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/post/201606-springboot-properties/" title="Spring Boot 配置文件 application.properties [转]" itemprop="url">Spring Boot 配置文件 application.properties [转]</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-06-03T07:40:27.000Z" itemprop="datePublished">2016-06-03</time>
+    更新日期:<time datetime="2016-06-03T11:53:25.783Z" itemprop="dateModified">2016-06-03</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+		</div>
+		
+		<p>转载自：<a href="http://www.qiyadeng.com/post/spring-boot-application-properties" target="_blank" rel="external">http://www.qiyadeng.com/post/spring-boot-application-properties</a></p>
+<p>某文库上有相同的：<a href="http://wenku.baidu.com/link?url=EiipoOvUVbDgtP0sSMsMA0iOFYnNTVI2yQNe4puK2XYOtMNKGzoEZxHhfKOlkBd7el4R2rgX6bHxrfEPkmWs94zNiuV2NJCaRfav_7FdGpG" target="_blank" rel="external">http://wenku.baidu.com/link?url=EiipoOvUVbDgtP0sSMsMA0iOFYnNTVI2yQNe4puK2XYOtMNKGzoEZxHhfKOlkBd7el4R2rgX6bHxrfEPkmWs94zNiuV2NJCaRfav_7FdGpG</a></p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div><div class="line">171</div><div class="line">172</div><div class="line">173</div><div class="line">174</div><div class="line">175</div><div class="line">176</div><div class="line">177</div><div class="line">178</div><div class="line">179</div><div class="line">180</div><div class="line">181</div><div class="line">182</div><div class="line">183</div><div class="line">184</div><div class="line">185</div><div class="line">186</div><div class="line">187</div><div class="line">188</div><div class="line">189</div><div class="line">190</div><div class="line">191</div><div class="line">192</div><div class="line">193</div><div class="line">194</div><div class="line">195</div><div class="line">196</div><div class="line">197</div><div class="line">198</div><div class="line">199</div><div class="line">200</div><div class="line">201</div><div class="line">202</div><div class="line">203</div><div class="line">204</div><div class="line">205</div><div class="line">206</div><div class="line">207</div><div class="line">208</div><div class="line">209</div><div class="line">210</div><div class="line">211</div><div class="line">212</div><div class="line">213</div><div class="line">214</div><div class="line">215</div><div class="line">216</div><div class="line">217</div><div class="line">218</div><div class="line">219</div><div class="line">220</div><div class="line">221</div><div class="line">222</div><div class="line">223</div><div class="line">224</div><div class="line">225</div><div class="line">226</div><div class="line">227</div><div class="line">228</div><div class="line">229</div><div class="line">230</div><div class="line">231</div><div class="line">232</div><div class="line">233</div><div class="line">234</div><div class="line">235</div><div class="line">236</div><div class="line">237</div><div class="line">238</div><div class="line">239</div><div class="line">240</div><div class="line">241</div><div class="line">242</div><div class="line">243</div><div class="line">244</div><div class="line">245</div><div class="line">246</div><div class="line">247</div><div class="line">248</div><div class="line">249</div><div class="line">250</div><div class="line">251</div><div class="line">252</div><div class="line">253</div><div class="line">254</div><div class="line">255</div><div class="line">256</div><div class="line">257</div><div class="line">258</div><div class="line">259</div><div class="line">260</div><div class="line">261</div><div class="line">262</div><div class="line">263</div><div class="line">264</div><div class="line">265</div><div class="line">266</div><div class="line">267</div><div class="line">268</div><div class="line">269</div><div class="line">270</div><div class="line">271</div><div class="line">272</div><div class="line">273</div><div class="line">274</div><div class="line">275</div><div class="line">276</div><div class="line">277</div><div class="line">278</div><div class="line">279</div><div class="line">280</div><div class="line">281</div><div class="line">282</div><div class="line">283</div><div class="line">284</div><div class="line">285</div><div class="line">286</div><div class="line">287</div><div class="line">288</div><div class="line">289</div><div class="line">290</div><div class="line">291</div><div class="line">292</div><div class="line">293</div><div class="line">294</div><div class="line">295</div><div class="line">296</div><div class="line">297</div><div class="line">298</div><div class="line">299</div><div class="line">300</div><div class="line">301</div><div class="line">302</div><div class="line">303</div><div class="line">304</div><div class="line">305</div><div class="line">306</div><div class="line">307</div><div class="line">308</div><div class="line">309</div><div class="line">310</div><div class="line">311</div><div class="line">312</div><div class="line">313</div><div class="line">314</div><div class="line">315</div><div class="line">316</div><div class="line">317</div><div class="line">318</div><div class="line">319</div><div class="line">320</div><div class="line">321</div><div class="line">322</div><div class="line">323</div><div class="line">324</div><div class="line">325</div><div class="line">326</div><div class="line">327</div><div class="line">328</div><div class="line">329</div><div class="line">330</div><div class="line">331</div><div class="line">332</div><div class="line">333</div><div class="line">334</div><div class="line">335</div><div class="line">336</div><div class="line">337</div><div class="line">338</div><div class="line">339</div><div class="line">340</div><div class="line">341</div><div class="line">342</div><div class="line">343</div><div class="line">344</div><div class="line">345</div><div class="line">346</div><div class="line">347</div><div class="line">348</div><div class="line">349</div><div class="line">350</div><div class="line">351</div><div class="line">352</div><div class="line">353</div><div class="line">354</div><div class="line">355</div><div class="line">356</div><div class="line">357</div><div class="line">358</div><div class="line">359</div><div class="line">360</div><div class="line">361</div><div class="line">362</div><div class="line">363</div><div class="line">364</div><div class="line">365</div><div class="line">366</div><div class="line">367</div><div class="line">368</div><div class="line">369</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># ===================================================================</span></div><div class="line"><span class="comment"># COMMON SPRING BOOT PROPERTIES</span></div><div class="line"><span class="comment">#</span></div><div class="line"><span class="comment"># This sample file is provided as a guideline. Do NOT copy it in its</span></div><div class="line"><span class="comment"># entirety to your own application.               ^^^</span></div><div class="line"><span class="comment"># ===================================================================</span></div><div class="line"></div><div class="line"><span class="comment"># ----------------------------------------</span></div><div class="line"><span class="comment"># CORE PROPERTIES</span></div><div class="line"><span class="comment"># ----------------------------------------</span></div><div class="line"></div><div class="line"><span class="comment"># SPRING CONFIG (ConfigFileApplicationListener)</span></div><div class="line">spring.config.<span class="variable">name=</span> <span class="comment"># config file name (default to 'application')</span></div><div class="line">spring.config.<span class="variable">location=</span> <span class="comment"># location of config file</span></div><div class="line"></div><div class="line"><span class="comment"># PROFILES</span></div><div class="line">spring.<span class="variable">profiles=</span> <span class="comment"># comma list of active profiles</span></div><div class="line"></div><div class="line"><span class="comment"># APPLICATION SETTINGS (SpringApplication)</span></div><div class="line">spring.main.<span class="variable">sources=</span></div><div class="line">spring.main.<span class="variable">web-environment=</span> <span class="comment"># detect by default</span></div><div class="line">spring.main.<span class="variable">show-banner=</span><span class="constant">true</span></div><div class="line">spring.main....= <span class="comment"># see class for all properties</span></div><div class="line"></div><div class="line"><span class="comment"># LOGGING</span></div><div class="line">logging.<span class="variable">path=</span>/var/logs</div><div class="line">logging.<span class="variable">file=</span>myapp.log</div><div class="line">logging.<span class="variable">config=</span></div><div class="line"></div><div class="line"><span class="comment"># IDENTITY (ContextIdApplicationContextInitializer)</span></div><div class="line">spring.application.<span class="variable">name=</span></div><div class="line">spring.application.<span class="variable">index=</span></div><div class="line"></div><div class="line"><span class="comment"># EMBEDDED SERVER CONFIGURATION (ServerProperties)</span></div><div class="line">server.<span class="variable">port=</span><span class="number">8080</span></div><div class="line">server.<span class="variable">address=</span> <span class="comment"># bind to a specific NIC</span></div><div class="line">server.<span class="variable">session-timeout=</span> <span class="comment"># session timeout in seconds</span></div><div class="line">server.<span class="variable">context-path=</span> <span class="comment"># the context path, defaults to '/'</span></div><div class="line">server.<span class="variable">servlet-path=</span> <span class="comment"># the servlet path, defaults to '/'</span></div><div class="line">server.tomcat.<span class="variable">access-log-pattern=</span> <span class="comment"># log pattern of the access log</span></div><div class="line">server.tomcat.<span class="variable">access-log-enabled=</span><span class="constant">false</span> <span class="comment"># is access logging enabled</span></div><div class="line">server.tomcat.<span class="variable">protocol-header=</span>x-forwarded-proto <span class="comment"># ssl forward headers</span></div><div class="line">server.tomcat.<span class="variable">remote-ip-header=</span>x-forwarded-for</div><div class="line">server.tomcat.<span class="variable">basedir=</span>/tmp <span class="comment"># base dir (usually not needed, defaults to tmp)</span></div><div class="line">server.tomcat.<span class="variable">background-processor-delay=</span><span class="number">30</span>; <span class="comment"># in seconds</span></div><div class="line">server.tomcat.<span class="variable">max-threads =</span> <span class="number">0</span> <span class="comment"># number of threads in protocol handler</span></div><div class="line">server.tomcat.<span class="variable">uri-encoding =</span> UTF-<span class="number">8</span> <span class="comment"># character encoding to use for URL decoding</span></div><div class="line"></div><div class="line"><span class="comment"># SPRING MVC (HttpMapperProperties)</span></div><div class="line">http.mappers.<span class="variable">json-pretty-print=</span><span class="constant">false</span> <span class="comment"># pretty print JSON</span></div><div class="line">http.mappers.<span class="variable">json-sort-keys=</span><span class="constant">false</span> <span class="comment"># sort keys</span></div><div class="line">spring.mvc.<span class="variable">locale=</span> <span class="comment"># set fixed locale, e.g. en_UK</span></div><div class="line">spring.mvc.<span class="variable">date-format=</span> <span class="comment"># set fixed date format, e.g. dd/MM/yyyy</span></div><div class="line">spring.mvc.<span class="variable">message-codes-resolver-format=</span> <span class="comment"># PREFIX_ERROR_CODE / POSTFIX_ERROR_CODE</span></div><div class="line">spring.view.<span class="variable">prefix=</span> <span class="comment"># MVC view prefix</span></div><div class="line">spring.view.<span class="variable">suffix=</span> <span class="comment"># ... and suffix</span></div><div class="line">spring.resources.<span class="variable">cache-period=</span> <span class="comment"># cache timeouts in headers sent to browser</span></div><div class="line">spring.resources.<span class="variable">add-mappings=</span><span class="constant">true</span> <span class="comment"># if default mappings should be added</span></div><div class="line"></div><div class="line"><span class="comment"># THYMELEAF (ThymeleafAutoConfiguration)</span></div><div class="line">spring.thymeleaf.<span class="variable">prefix=</span>classpath:/templates/</div><div class="line">spring.thymeleaf.<span class="variable">suffix=</span>.html</div><div class="line">spring.thymeleaf.<span class="variable">mode=</span>HTML5</div><div class="line">spring.thymeleaf.<span class="variable">encoding=</span>UTF-<span class="number">8</span></div><div class="line">spring.thymeleaf.<span class="variable">content-type=</span>text/html <span class="comment"># ;charset=&lt;encoding&gt; is added</span></div><div class="line">spring.thymeleaf.<span class="variable">cache=</span><span class="constant">true</span> <span class="comment"># set to false for hot refresh</span></div><div class="line"></div><div class="line"><span class="comment"># FREEMARKER (FreeMarkerAutoConfiguration)</span></div><div class="line">spring.freemarker.<span class="variable">allowRequestOverride=</span><span class="constant">false</span></div><div class="line">spring.freemarker.<span class="variable">allowSessionOverride=</span><span class="constant">false</span></div><div class="line">spring.freemarker.<span class="variable">cache=</span><span class="constant">true</span></div><div class="line">spring.freemarker.<span class="variable">checkTemplateLocation=</span><span class="constant">true</span></div><div class="line">spring.freemarker.<span class="variable">contentType=</span>text/html</div><div class="line">spring.freemarker.<span class="variable">exposeRequestAttributes=</span><span class="constant">false</span></div><div class="line">spring.freemarker.<span class="variable">exposeSessionAttributes=</span><span class="constant">false</span></div><div class="line">spring.freemarker.<span class="variable">exposeSpringMacroHelpers=</span><span class="constant">false</span></div><div class="line">spring.freemarker.<span class="variable">prefix=</span></div><div class="line">spring.freemarker.<span class="variable">requestContextAttribute=</span></div><div class="line">spring.freemarker.settings.*=</div><div class="line">spring.freemarker.<span class="variable">suffix=</span>.ftl</div><div class="line">spring.freemarker.<span class="variable">templateEncoding=</span>UTF-<span class="number">8</span></div><div class="line">spring.freemarker.<span class="variable">templateLoaderPath=</span>classpath:/templates/</div><div class="line">spring.freemarker.<span class="variable">viewNames=</span> <span class="comment"># whitelist of view names that can be resolved</span></div><div class="line"></div><div class="line"><span class="comment"># GROOVY TEMPLATES (GroovyTemplateAutoConfiguration)</span></div><div class="line">spring.groovy.template.<span class="variable">allowRequestOverride=</span><span class="constant">false</span></div><div class="line">spring.groovy.template.<span class="variable">allowSessionOverride=</span><span class="constant">false</span></div><div class="line">spring.groovy.template.<span class="variable">cache=</span><span class="constant">true</span></div><div class="line">spring.groovy.template.configuration.*= <span class="comment"># See Groovy's TemplateConfiguration</span></div><div class="line">spring.groovy.template.<span class="variable">contentType=</span>text/html</div><div class="line">spring.groovy.template.<span class="variable">prefix=</span>classpath:/templates/</div><div class="line">spring.groovy.template.<span class="variable">suffix=</span>.tpl</div><div class="line">spring.groovy.template.<span class="variable">templateEncoding=</span>UTF-<span class="number">8</span></div><div class="line">spring.groovy.template.<span class="variable">viewNames=</span> <span class="comment"># whitelist of view names that can be resolved</span></div><div class="line"></div><div class="line"><span class="comment"># VELOCITY TEMPLATES (VelocityAutoConfiguration)</span></div><div class="line">spring.velocity.<span class="variable">allowRequestOverride=</span><span class="constant">false</span></div><div class="line">spring.velocity.<span class="variable">allowSessionOverride=</span><span class="constant">false</span></div><div class="line">spring.velocity.<span class="variable">cache=</span><span class="constant">true</span></div><div class="line">spring.velocity.<span class="variable">checkTemplateLocation=</span><span class="constant">true</span></div><div class="line">spring.velocity.<span class="variable">contentType=</span>text/html</div><div class="line">spring.velocity.<span class="variable">dateToolAttribute=</span></div><div class="line">spring.velocity.<span class="variable">exposeRequestAttributes=</span><span class="constant">false</span></div><div class="line">spring.velocity.<span class="variable">exposeSessionAttributes=</span><span class="constant">false</span></div><div class="line">spring.velocity.<span class="variable">exposeSpringMacroHelpers=</span><span class="constant">false</span></div><div class="line">spring.velocity.<span class="variable">numberToolAttribute=</span></div><div class="line">spring.velocity.<span class="variable">prefix=</span></div><div class="line">spring.velocity.properties.*=</div><div class="line">spring.velocity.<span class="variable">requestContextAttribute=</span></div><div class="line">spring.velocity.<span class="variable">resourceLoaderPath=</span>classpath:/templates/</div><div class="line">spring.velocity.<span class="variable">suffix=</span>.vm</div><div class="line">spring.velocity.<span class="variable">templateEncoding=</span>UTF-<span class="number">8</span></div><div class="line">spring.velocity.<span class="variable">viewNames=</span> <span class="comment"># whitelist of view names that can be resolved</span></div><div class="line"></div><div class="line"><span class="comment"># INTERNATIONALIZATION (MessageSourceAutoConfiguration)</span></div><div class="line">spring.messages.<span class="variable">basename=</span>messages</div><div class="line">spring.messages.<span class="variable">cacheSeconds=</span>-<span class="number">1</span></div><div class="line">spring.messages.<span class="variable">encoding=</span>UTF-<span class="number">8</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># SECURITY (SecurityProperties)</span></div><div class="line">security.user.<span class="variable">name=</span>user <span class="comment"># login username</span></div><div class="line">security.user.<span class="variable">password=</span> <span class="comment"># login password</span></div><div class="line">security.user.<span class="variable">role=</span>USER <span class="comment"># role assigned to the user</span></div><div class="line">security.<span class="variable">require-ssl=</span><span class="constant">false</span> <span class="comment"># advanced settings ...</span></div><div class="line">security.<span class="variable">enable-csrf=</span><span class="constant">false</span></div><div class="line">security.basic.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">security.basic.<span class="variable">realm=</span>Spring</div><div class="line">security.basic.<span class="variable">path=</span> <span class="comment"># /**</span></div><div class="line">security.headers.<span class="variable">xss=</span><span class="constant">false</span></div><div class="line">security.headers.<span class="variable">cache=</span><span class="constant">false</span></div><div class="line">security.headers.<span class="variable">frame=</span><span class="constant">false</span></div><div class="line">security.headers.<span class="variable">contentType=</span><span class="constant">false</span></div><div class="line">security.headers.<span class="variable">hsts=</span>all <span class="comment"># none / domain / all</span></div><div class="line">security.<span class="variable">sessions=</span>stateless <span class="comment"># always / never / if_required / stateless</span></div><div class="line">security.<span class="variable">ignored=</span><span class="constant">false</span></div><div class="line"></div><div class="line"><span class="comment"># DATASOURCE (DataSourceAutoConfiguration & DataSourceProperties)</span></div><div class="line">spring.datasource.<span class="variable">name=</span> <span class="comment"># name of the data source</span></div><div class="line">spring.datasource.<span class="variable">initialize=</span><span class="constant">true</span> <span class="comment"># populate using data.sql</span></div><div class="line">spring.datasource.<span class="variable">schema=</span> <span class="comment"># a schema (DDL) script resource reference</span></div><div class="line">spring.datasource.<span class="variable">data=</span> <span class="comment"># a data (DML) script resource reference</span></div><div class="line">spring.datasource.<span class="variable">platform=</span> <span class="comment"># the platform to use in the schema resource (schema-${platform}.sql)</span></div><div class="line">spring.datasource.<span class="variable">continueOnError=</span><span class="constant">false</span> <span class="comment"># continue even if can't be initialized</span></div><div class="line">spring.datasource.<span class="variable">separator=</span>; <span class="comment"># statement separator in SQL initialization scripts</span></div><div class="line">spring.datasource.<span class="variable">driverClassName=</span> <span class="comment"># JDBC Settings...</span></div><div class="line">spring.datasource.<span class="variable">url=</span></div><div class="line">spring.datasource.<span class="variable">username=</span></div><div class="line">spring.datasource.<span class="variable">password=</span></div><div class="line">spring.datasource.<span class="variable">max-active=</span><span class="number">100</span> <span class="comment"># Advanced configuration...</span></div><div class="line">spring.datasource.<span class="variable">max-idle=</span><span class="number">8</span></div><div class="line">spring.datasource.<span class="variable">min-idle=</span><span class="number">8</span></div><div class="line">spring.datasource.<span class="variable">initial-size=</span><span class="number">10</span></div><div class="line">spring.datasource.<span class="variable">validation-query=</span></div><div class="line">spring.datasource.<span class="variable">test-on-borrow=</span><span class="constant">false</span></div><div class="line">spring.datasource.<span class="variable">test-on-return=</span><span class="constant">false</span></div><div class="line">spring.datasource.<span class="variable">test-while-idle=</span></div><div class="line">spring.datasource.<span class="variable">time-between-eviction-runs-millis=</span></div><div class="line">spring.datasource.<span class="variable">min-evictable-idle-time-millis=</span></div><div class="line">spring.datasource.<span class="variable">max-wait-millis=</span></div><div class="line"></div><div class="line"><span class="comment"># MONGODB (MongoProperties)</span></div><div class="line">spring.data.mongodb.<span class="variable">host=</span> <span class="comment"># the db host</span></div><div class="line">spring.data.mongodb.<span class="variable">port=</span><span class="number">27017</span> <span class="comment"># the connection port (defaults to 27107)</span></div><div class="line">spring.data.mongodb.<span class="variable">uri=</span>mongodb://localhost/test <span class="comment"># connection URL</span></div><div class="line">spring.data.mongo.repositories.<span class="variable">enabled=</span><span class="constant">true</span> <span class="comment"># if spring data repository support is enabled</span></div><div class="line"></div><div class="line"><span class="comment"># JPA (JpaBaseConfiguration, HibernateJpaAutoConfiguration)</span></div><div class="line">spring.jpa.properties.*= <span class="comment"># properties to set on the JPA connection</span></div><div class="line">spring.jpa.<span class="variable">openInView=</span><span class="constant">true</span></div><div class="line">spring.jpa.<span class="variable">show-sql=</span><span class="constant">true</span></div><div class="line">spring.jpa.<span class="variable">database-platform=</span></div><div class="line">spring.jpa.<span class="variable">database=</span></div><div class="line">spring.jpa.<span class="variable">generate-ddl=</span><span class="constant">false</span> <span class="comment"># ignored by Hibernate, might be useful for other vendors</span></div><div class="line">spring.jpa.hibernate.<span class="variable">naming-strategy=</span> <span class="comment"># naming classname</span></div><div class="line">spring.jpa.hibernate.<span class="variable">ddl-auto=</span> <span class="comment"># defaults to create-drop for embedded dbs</span></div><div class="line">spring.data.jpa.repositories.<span class="variable">enabled=</span><span class="constant">true</span> <span class="comment"># if spring data repository support is enabled</span></div><div class="line"></div><div class="line"><span class="comment"># SOLR (SolrProperties})</span></div><div class="line">spring.data.solr.<span class="variable">host=</span>http://<span class="number">127.0</span>.<span class="number">0.1</span>:<span class="number">8983</span>/solr</div><div class="line">spring.data.solr.<span class="variable">zkHost=</span></div><div class="line">spring.data.solr.repositories.<span class="variable">enabled=</span><span class="constant">true</span> <span class="comment"># if spring data repository support is enabled</span></div><div class="line"></div><div class="line"><span class="comment"># ELASTICSEARCH (ElasticsearchProperties})</span></div><div class="line">spring.data.elasticsearch.<span class="variable">cluster-name=</span> <span class="comment"># The cluster name (defaults to elasticsearch)</span></div><div class="line">spring.data.elasticsearch.<span class="variable">cluster-nodes=</span> <span class="comment"># The address(es) of the server node (comma-separated; if not specified starts a client node)</span></div><div class="line">spring.data.elasticsearch.<span class="variable">local=</span><span class="constant">true</span> <span class="comment"># if local mode should be used with client nodes</span></div><div class="line">spring.data.elasticsearch.repositories.<span class="variable">enabled=</span><span class="constant">true</span> <span class="comment"># if spring data repository support is enabled</span></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># FLYWAY (FlywayProperties)</span></div><div class="line">flyway.<span class="variable">locations=</span>classpath:db/migrations <span class="comment"># locations of migrations scripts</span></div><div class="line">flyway.<span class="variable">schemas=</span> <span class="comment"># schemas to update</span></div><div class="line">flyway.<span class="variable">initVersion=</span> <span class="number">1</span> <span class="comment"># version to start migration</span></div><div class="line">flyway.<span class="variable">prefix=</span>V</div><div class="line">flyway.<span class="variable">suffix=</span>.sql</div><div class="line">flyway.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">flyway.<span class="variable">url=</span> <span class="comment"># JDBC url if you want Flyway to create its own DataSource</span></div><div class="line">flyway.<span class="variable">user=</span> <span class="comment"># JDBC username if you want Flyway to create its own DataSource</span></div><div class="line">flyway.<span class="variable">password=</span> <span class="comment"># JDBC password if you want Flyway to create its own DataSource</span></div><div class="line"></div><div class="line"><span class="comment"># LIQUIBASE (LiquibaseProperties)</span></div><div class="line">liquibase.<span class="variable">change-log=</span>classpath:/db/changelog/db.changelog-master.yaml</div><div class="line">liquibase.<span class="variable">contexts=</span> <span class="comment"># runtime contexts to use</span></div><div class="line">liquibase.<span class="variable">default-schema=</span> <span class="comment"># default database schema to use</span></div><div class="line">liquibase.<span class="variable">drop-first=</span><span class="constant">false</span></div><div class="line">liquibase.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line"></div><div class="line"><span class="comment"># JMX</span></div><div class="line">spring.jmx.<span class="variable">enabled=</span><span class="constant">true</span> <span class="comment"># Expose MBeans from Spring</span></div><div class="line"></div><div class="line"><span class="comment"># RABBIT (RabbitProperties)</span></div><div class="line">spring.rabbitmq.<span class="variable">host=</span> <span class="comment"># connection host</span></div><div class="line">spring.rabbitmq.<span class="variable">port=</span> <span class="comment"># connection port</span></div><div class="line">spring.rabbitmq.<span class="variable">addresses=</span> <span class="comment"># connection addresses (e.g. myhost:9999,otherhost:1111)</span></div><div class="line">spring.rabbitmq.<span class="variable">username=</span> <span class="comment"># login user</span></div><div class="line">spring.rabbitmq.<span class="variable">password=</span> <span class="comment"># login password</span></div><div class="line">spring.rabbitmq.<span class="variable">virtualhost=</span></div><div class="line">spring.rabbitmq.<span class="variable">dynamic=</span></div><div class="line"></div><div class="line"><span class="comment"># REDIS (RedisProperties)</span></div><div class="line">spring.redis.<span class="variable">host=</span>localhost <span class="comment"># server host</span></div><div class="line">spring.redis.<span class="variable">password=</span> <span class="comment"># server password</span></div><div class="line">spring.redis.<span class="variable">port=</span><span class="number">6379</span> <span class="comment"># connection port</span></div><div class="line">spring.redis.pool.<span class="variable">max-idle=</span><span class="number">8</span> <span class="comment"># pool settings ...</span></div><div class="line">spring.redis.pool.<span class="variable">min-idle=</span><span class="number">0</span></div><div class="line">spring.redis.pool.<span class="variable">max-active=</span><span class="number">8</span></div><div class="line">spring.redis.pool.<span class="variable">max-wait=</span>-<span class="number">1</span></div><div class="line"></div><div class="line"><span class="comment"># ACTIVEMQ (ActiveMQProperties)</span></div><div class="line">spring.activemq.<span class="variable">broker-url=</span>tcp://localhost:<span class="number">61616</span> <span class="comment"># connection URL</span></div><div class="line">spring.activemq.<span class="variable">user=</span></div><div class="line">spring.activemq.<span class="variable">password=</span></div><div class="line">spring.activemq.<span class="variable">in-memory=</span><span class="constant">true</span> <span class="comment"># broker kind to create if no broker-url is specified</span></div><div class="line">spring.activemq.<span class="variable">pooled=</span><span class="constant">false</span></div><div class="line"></div><div class="line"><span class="comment"># HornetQ (HornetQProperties)</span></div><div class="line">spring.hornetq.<span class="variable">mode=</span> <span class="comment"># connection mode (native, embedded)</span></div><div class="line">spring.hornetq.<span class="variable">host=</span>localhost <span class="comment"># hornetQ host (native mode)</span></div><div class="line">spring.hornetq.<span class="variable">port=</span><span class="number">5445</span> <span class="comment"># hornetQ port (native mode)</span></div><div class="line">spring.hornetq.embedded.<span class="variable">enabled=</span><span class="constant">true</span> <span class="comment"># if the embedded server is enabled (needs hornetq-jms-server.jar)</span></div><div class="line">spring.hornetq.embedded.<span class="variable">serverId=</span> <span class="comment"># auto-generated id of the embedded server (integer)</span></div><div class="line">spring.hornetq.embedded.<span class="variable">persistent=</span><span class="constant">false</span> <span class="comment"># message persistence</span></div><div class="line">spring.hornetq.embedded.<span class="variable">data-directory=</span> <span class="comment"># location of data content (when persistence is enabled)</span></div><div class="line">spring.hornetq.embedded.<span class="variable">queues=</span> <span class="comment"># comma separate queues to create on startup</span></div><div class="line">spring.hornetq.embedded.<span class="variable">topics=</span> <span class="comment"># comma separate topics to create on startup</span></div><div class="line">spring.hornetq.embedded.<span class="variable">cluster-password=</span> <span class="comment"># customer password (randomly generated by default)</span></div><div class="line"></div><div class="line"><span class="comment"># JMS (JmsProperties)</span></div><div class="line">spring.jms.<span class="variable">pub-sub-domain=</span> <span class="comment"># false for queue (default), true for topic</span></div><div class="line"></div><div class="line"><span class="comment"># SPRING BATCH (BatchDatabaseInitializer)</span></div><div class="line">spring.batch.job.<span class="variable">names=</span>job1,job2</div><div class="line">spring.batch.job.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">spring.batch.initializer.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">spring.batch.<span class="variable">schema=</span> <span class="comment"># batch schema to load</span></div><div class="line"></div><div class="line"><span class="comment"># AOP</span></div><div class="line">spring.aop.<span class="variable">auto=</span></div><div class="line">spring.aop.<span class="variable">proxy-target-class=</span></div><div class="line"></div><div class="line"><span class="comment"># FILE ENCODING (FileEncodingApplicationListener)</span></div><div class="line">spring.<span class="variable">mandatory-file-encoding=</span><span class="constant">false</span></div><div class="line"></div><div class="line"><span class="comment"># SPRING SOCIAL (SocialWebAutoConfiguration)</span></div><div class="line">spring.social.<span class="variable">auto-connection-views=</span><span class="constant">true</span> <span class="comment"># Set to true for default connection views or false if you provide your own</span></div><div class="line"></div><div class="line"><span class="comment"># SPRING SOCIAL FACEBOOK (FacebookAutoConfiguration)</span></div><div class="line">spring.social.facebook.<span class="variable">app-id=</span> <span class="comment"># your application's Facebook App ID</span></div><div class="line">spring.social.facebook.<span class="variable">app-secret=</span> <span class="comment"># your application's Facebook App Secret</span></div><div class="line"></div><div class="line"><span class="comment"># SPRING SOCIAL LINKEDIN (LinkedInAutoConfiguration)</span></div><div class="line">spring.social.linkedin.<span class="variable">app-id=</span> <span class="comment"># your application's LinkedIn App ID</span></div><div class="line">spring.social.linkedin.<span class="variable">app-secret=</span> <span class="comment"># your application's LinkedIn App Secret</span></div><div class="line"></div><div class="line"><span class="comment"># SPRING SOCIAL TWITTER (TwitterAutoConfiguration)</span></div><div class="line">spring.social.twitter.<span class="variable">app-id=</span> <span class="comment"># your application's Twitter App ID</span></div><div class="line">spring.social.twitter.<span class="variable">app-secret=</span> <span class="comment"># your application's Twitter App Secret</span></div><div class="line"></div><div class="line"><span class="comment"># SPRING MOBILE SITE PREFERENCE (SitePreferenceAutoConfiguration)</span></div><div class="line">spring.mobile.sitepreference.<span class="variable">enabled=</span><span class="constant">true</span> <span class="comment"># enabled by default</span></div><div class="line"></div><div class="line"><span class="comment"># SPRING MOBILE DEVICE VIEWS (DeviceDelegatingViewResolverAutoConfiguration)</span></div><div class="line">spring.mobile.devicedelegatingviewresolver.<span class="variable">enabled=</span><span class="constant">true</span> <span class="comment"># disabled by default</span></div><div class="line">spring.mobile.devicedelegatingviewresolver.<span class="variable">normalPrefix=</span></div><div class="line">spring.mobile.devicedelegatingviewresolver.<span class="variable">normalSuffix=</span></div><div class="line">spring.mobile.devicedelegatingviewresolver.<span class="variable">mobilePrefix=</span>mobile/</div><div class="line">spring.mobile.devicedelegatingviewresolver.<span class="variable">mobileSuffix=</span></div><div class="line">spring.mobile.devicedelegatingviewresolver.<span class="variable">tabletPrefix=</span>tablet/</div><div class="line">spring.mobile.devicedelegatingviewresolver.<span class="variable">tabletSuffix=</span></div><div class="line"></div><div class="line"><span class="comment"># ----------------------------------------</span></div><div class="line"><span class="comment"># ACTUATOR PROPERTIES</span></div><div class="line"><span class="comment"># ----------------------------------------</span></div><div class="line"></div><div class="line"><span class="comment"># MANAGEMENT HTTP SERVER (ManagementServerProperties)</span></div><div class="line">management.<span class="variable">port=</span> <span class="comment"># defaults to 'server.port'</span></div><div class="line">management.<span class="variable">address=</span> <span class="comment"># bind to a specific NIC</span></div><div class="line">management.<span class="variable">contextPath=</span> <span class="comment"># default to '/'</span></div><div class="line"></div><div class="line"><span class="comment"># ENDPOINTS (AbstractEndpoint subclasses)</span></div><div class="line">endpoints.autoconfig.<span class="variable">id=</span>autoconfig</div><div class="line">endpoints.autoconfig.<span class="variable">sensitive=</span><span class="constant">true</span></div><div class="line">endpoints.autoconfig.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">endpoints.beans.<span class="variable">id=</span>beans</div><div class="line">endpoints.beans.<span class="variable">sensitive=</span><span class="constant">true</span></div><div class="line">endpoints.beans.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">endpoints.configprops.<span class="variable">id=</span>configprops</div><div class="line">endpoints.configprops.<span class="variable">sensitive=</span><span class="constant">true</span></div><div class="line">endpoints.configprops.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">endpoints.configprops.<span class="variable">keys-to-sanitize=</span>password,secret</div><div class="line">endpoints.dump.<span class="variable">id=</span>dump</div><div class="line">endpoints.dump.<span class="variable">sensitive=</span><span class="constant">true</span></div><div class="line">endpoints.dump.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">endpoints.env.<span class="variable">id=</span>env</div><div class="line">endpoints.env.<span class="variable">sensitive=</span><span class="constant">true</span></div><div class="line">endpoints.env.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">endpoints.health.<span class="variable">id=</span>health</div><div class="line">endpoints.health.<span class="variable">sensitive=</span><span class="constant">false</span></div><div class="line">endpoints.health.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">endpoints.info.<span class="variable">id=</span>info</div><div class="line">endpoints.info.<span class="variable">sensitive=</span><span class="constant">false</span></div><div class="line">endpoints.info.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">endpoints.metrics.<span class="variable">id=</span>metrics</div><div class="line">endpoints.metrics.<span class="variable">sensitive=</span><span class="constant">true</span></div><div class="line">endpoints.metrics.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">endpoints.shutdown.<span class="variable">id=</span>shutdown</div><div class="line">endpoints.shutdown.<span class="variable">sensitive=</span><span class="constant">true</span></div><div class="line">endpoints.shutdown.<span class="variable">enabled=</span><span class="constant">false</span></div><div class="line">endpoints.trace.<span class="variable">id=</span>trace</div><div class="line">endpoints.trace.<span class="variable">sensitive=</span><span class="constant">true</span></div><div class="line">endpoints.trace.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line"></div><div class="line"><span class="comment"># MVC ONLY ENDPOINTS</span></div><div class="line">endpoints.jolokia.<span class="variable">path=</span>jolokia</div><div class="line">endpoints.jolokia.<span class="variable">sensitive=</span><span class="constant">true</span></div><div class="line">endpoints.jolokia.<span class="variable">enabled=</span><span class="constant">true</span> <span class="comment"># when using Jolokia</span></div><div class="line">endpoints.error.<span class="variable">path=</span>/error</div><div class="line"></div><div class="line"><span class="comment"># JMX ENDPOINT (EndpointMBeanExportProperties)</span></div><div class="line">endpoints.jmx.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">endpoints.jmx.<span class="variable">domain=</span> <span class="comment"># the JMX domain, defaults to 'org.springboot'</span></div><div class="line">endpoints.jmx.<span class="variable">unique-names=</span><span class="constant">false</span></div><div class="line">endpoints.jmx.<span class="variable">enabled=</span><span class="constant">true</span></div><div class="line">endpoints.jmx.<span class="variable">staticNames=</span></div><div class="line"></div><div class="line"><span class="comment"># JOLOKIA (JolokiaProperties)</span></div><div class="line">jolokia.config.*= <span class="comment"># See Jolokia manual</span></div><div class="line"></div><div class="line"><span class="comment"># REMOTE SHELL</span></div><div class="line">shell.<span class="variable">auth=</span>simple <span class="comment"># jaas, key, simple, spring</span></div><div class="line">shell.<span class="variable">command-refresh-interval=</span>-<span class="number">1</span></div><div class="line">shell.<span class="variable">command-path-pattern=</span> <span class="comment"># classpath*:/commands/**, classpath*:/crash/commands/**</span></div><div class="line">shell.<span class="variable">config-path-patterns=</span> <span class="comment"># classpath*:/crash/*</span></div><div class="line">shell.<span class="variable">disabled-plugins=</span><span class="constant">false</span> <span class="comment"># don't expose plugins</span></div><div class="line">shell.ssh.<span class="variable">enabled=</span> <span class="comment"># ssh settings ...</span></div><div class="line">shell.ssh.<span class="variable">keyPath=</span></div><div class="line">shell.ssh.<span class="variable">port=</span></div><div class="line">shell.telnet.<span class="variable">enabled=</span> <span class="comment"># telnet settings ...</span></div><div class="line">shell.telnet.<span class="variable">port=</span></div><div class="line">shell.auth.jaas.<span class="variable">domain=</span> <span class="comment"># authentication settings ...</span></div><div class="line">shell.auth.key.<span class="variable">path=</span></div><div class="line">shell.auth.simple.user.<span class="variable">name=</span></div><div class="line">shell.auth.simple.user.<span class="variable">password=</span></div><div class="line">shell.auth.spring.<span class="variable">roles=</span></div><div class="line"></div><div class="line"><span class="comment"># GIT INFO</span></div><div class="line">spring.git.<span class="variable">properties=</span> <span class="comment"># resource ref to generated git info properties file</span></div></pre></td></tr></table></figure></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Spring-Boot/">Spring Boot</a><a href="/tags/转载/">转载</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Spring-Boot/">Spring Boot</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://valleylord.github.io/post/201606-springboot-properties/" data-title="Spring Boot 配置文件 application.properties [转] | 褚哥说|" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/post/201606-keytool-openssl-transform/"  title="KeyTool 和 OpenSSL 相互转换 [转]">
+ <strong>NEXT:</strong><br/> 
+ <span>KeyTool 和 OpenSSL 相互转换 [转]
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+      
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  
+  </div>
+
+<div id="asidepart">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	
+	<section class="author-info">
+		
+			<p> 欢迎来到Valleylord的博客！</p>
+		
+		
+			<p>	本博的文章尽量原创。</p>
+		
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/http://weibo.com/valleylord" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/https://github.com/valleylord" target="_blank" title="github"></a>
+		
+		
+	</div>
+</div>
+<aside class="clearfix">
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Bug/" title="Bug">Bug<sup>1</sup></a></li>
+		
+			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>14</sup></a></li>
+		
+			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/SSL/" title="SSL">SSL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Spring-Boot/" title="Spring Boot">Spring Boot<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>0</sup></a></li>
+		
+			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Bug/" title="Bug">Bug<sup>1</sup></a></li>
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>60</sup></a></li>
+		
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>12</sup></a></li>
+		
+			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MyCAT/" title="MyCAT">MyCAT<sup>14</sup></a></li>
+		
+			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/tags/Quantmod/" title="Quantmod">Quantmod<sup>3</sup></a></li>
+		
+			<li><a href="/tags/R/" title="R">R<sup>3</sup></a></li>
+		
+			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/SICP/" title="SICP">SICP<sup>2</sup></a></li>
+		
+			<li><a href="/tags/SSL/" title="SSL">SSL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Spring-Boot/" title="Spring Boot">Spring Boot<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Tomcat/" title="Tomcat">Tomcat<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.50px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 13.75px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.00px;">JVM</a><a href="/tags/Java/" style="font-size: 16.25px;">Java</a><a href="/tags/Kubernetes/" style="font-size: 13.75px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MyCAT/" style="font-size: 17.50px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.75px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.50px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.50px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/SICP/" style="font-size: 11.25px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.25px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.25px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.25px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/转载/" style="font-size: 11.25px;">转载</a>
+    </div>
+  </div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <!--
+      <li><a href="http://yangjian.me" target="_blank" title="YangJian">Alimon's Blog</a></li>
+      <li><a href="http://zespia.tw/hexo" target="_blank" title="Hexo">Hexo</a></li>
+      -->
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  //back to top
+  function backToTop(){
+    var buttonHTML = $("<a href=\"#top\" id=\"back-top\">" + "<span>Back to Top</span></a>");
+    buttonHTML.appendTo($("body"));
+    var buttonToTop = $("#back-top");
+    // hide #back-top first
+    buttonToTop.hide();
+
+    // fade in #back-top
+    $(function() {
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                buttonToTop.fadeIn();
+            } else {
+                buttonToTop.fadeOut();
+            }
+        });
+        // scroll body to 0px on click
+        buttonToTop.click(function() {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+            return false;
+        });
+    });
+  }
+  backToTop();
+
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      ta = $('#toc.toc-aside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+
+  var show = true;
+  c.click(function(){
+    if(show == true){
+        a.addClass('fadeOut').css('display', 'none');
+        ta.css('display', 'block').addClass('fadeIn');
+        m.addClass('moveMain');  
+    }else{
+        a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');     
+        ta.css('display', 'none'); 
+        m.removeClass('moveMain');
+        $('#toc.toc-aside').css('display', 'none');
+    }
+    show = !show;
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,240-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>
