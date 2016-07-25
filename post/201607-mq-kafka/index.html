@@ -1,0 +1,603 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>说说 MQ 之 Kafka | 褚哥说|</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Valleylord">
+    
+    <meta name="description" content="现代的互联网分布式系统，只要稍微大一些，就一定逃不开3类中间件：远程调用（RPC）框架、消息队列、数据库访问中间件。Kafka 是消息队列中间件的代表产品，用 Scala 语言实现，本文采用的是 Kafka_2.11 0.10.0.0 版本进行实验。
+基本概念
+首先，Kafka 中有一些基本的概念需">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="褚哥说|" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/author.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/author.jpg">
+    
+
+	
+	<link href="http://cdn.bootcss.com/highlight.js/8.2/styles/monokai.min.css" rel="stylesheet">
+	<script src="http://cdn.bootcss.com/highlight.js/8.2/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+	
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="褚哥说|">褚哥说|</a></h1>
+				<h2 class="blog-motto">我想写一些东西</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul><li> <a href="/atom.xml">RSS</a> </li>
+                    <ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/tags">标签</a></li>
+					
+						<li><a href="/links">链接</a></li>
+					
+						<li><a href="http://www.cnblogs.com/valleylord/">旧文</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					</li>
+                <li><div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div></li>
+
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container" class="clearfix">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/post/201607-mq-kafka/" title="说说 MQ 之 Kafka" itemprop="url">说说 MQ 之 Kafka</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-07-11T06:56:12.000Z" itemprop="datePublished">2016-07-11</time>
+    更新日期:<time datetime="2016-07-22T02:46:43.000Z" itemprop="dateModified">2016-07-22</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">基本概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.1.</span> <span class="toc-text">关于顺序和分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.2.</span> <span class="toc-text">关于副本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.3.</span> <span class="toc-text">关于丢消息和重复收到消息</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">Kafka 的工具和编程接口</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">2.1.</span> <span class="toc-text">Kafka 的工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">2.2.</span> <span class="toc-text">Kafka 的 Java API</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">Kafka 副本和集群</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">Kafka 最佳实践</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">后记</span></a></li></ol>
+		</div>
+		
+		<p>现代的互联网分布式系统，只要稍微大一些，就一定逃不开3类中间件：远程调用（RPC）框架、消息队列、数据库访问中间件。Kafka 是消息队列中间件的代表产品，用 Scala 语言实现，本文采用的是 Kafka_2.11 0.10.0.0 版本进行实验。</p>
+<h2>基本概念</h2>
+<p>首先，Kafka 中有一些基本的概念需要熟悉 <a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> <a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>。</p>
+<ul>
+<li>Topic，指消息的类别，每个消息都必须有；</li>
+<li>Producer，指消息的产生者，或者，消息的写端；</li>
+<li>Consumer，指消息的消费者，或者，消息的读端；</li>
+<li>Producer Group，指产生者组，组内的生产者产生同一类消息；</li>
+<li>Consumer Group，指消费者组，组内的消费者消费同一类消息；</li>
+<li>Broker，指消息服务器，Producer 产生的消息都是写到这里，Consumer 读消息也是从这里读；</li>
+<li>Zookeeper，是 Kafka 的注册中心，Broker 和 Consumer 之间的协调器，包含状态信息、配置信息和一些 Topic 的信息；</li>
+<li>Partition，指消息的水平分区，一个 Topic 可以有多个分区；</li>
+<li>Replica，指消息的副本，为了提高可用性，将消息副本保存在其他 Broker 上；</li>
+</ul>
+<p>特别说明，Broker 是指单个消息服务进程，一般情况下，Kafka 是集群运行的，Broker 只是集群中的一个服务进程，而非代指整个 Kafka 服务，可以简单将 Broker 理解成服务器（Server）。Kafka 引入的术语都比较常见，从字面上理解相对直观。Kafka 的大致结构图是这样，</p>
+<p><img src="http://kafka.apache.org/images/producer_consumer.png"></p>
+<p>Kafka 是 Pull 模式的消息队列，即 Consumer 连到消息队列服务上，主动请求新消息，如果要做到实时性，需要采用长轮询，Kafka 在0.8的时候已经支持长轮询模式。上图中 Consumer 的连接箭头方向可能会让读者误以为是 Push 模式，特此注明。更多关于 Kafka 设计的文章可以参考官方文档，或者一些比较好的博客文章 <a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>。</p>
+<h3>关于顺序和分区</h3>
+<p>Kafka 是一个力求保持消息顺序性的消息队列，但不是完全保证，其保证的是 Partition 级别的顺序性，如下图，</p>
+<p><img src="http://kafka.apache.org/images/log_anatomy.png"></p>
+<p>此图是 Topic 的分区 log 的示意图，可见，每个分区上的 log 都是一个有序的队列，所以，Kafka 是分区级别有序的。如果，某个 Topic 只有一个分区，那么这个 Topic 下的消息就都是有序的。</p>
+<p>分区是为了提升消息处理的吞吐率而产生的，将一个 Topic 中的消息分成几份，分别给不同的 Broker 处理。如下图，</p>
+<p><img src="http://kafka.apache.org/images/consumer-groups.png"></p>
+<p>此图中有2个 Broker，Server 1 和 Server 2，每个 Broker 上有2个分区，总共4个分区，P0 ~ P3；有2个 Consumer Group，Consumer Group A 有2个 Consumer，Consumer Group B 有4个 Consumer。Kafka 的实现是，在稳定的情况下，维持固定的连接，每个 Consumer 稳定的消费其中某几个分区的消息，以上图举例，Consumer Group A 中的 C1 稳定消费 P0、P3，C2 稳定消费 P1、P2。这样的连接分配可能会导致消息消费的不均匀分布，但好处是比较容易保证顺序性。</p>
+<p>维持完全的顺序性在分布式系统看来几乎是无意义的。因为，如果需要维持顺序性，那么就只能有一条线程阻塞的处理顺序消息，即，Producer -&gt; MQ -&gt; Consumer 必须线程上一一对应。这与分布式系统的初衷是相违背的。但是局部的有序性，是可以维持的。比如，有30000条消息，每3条之间有关联，1-&gt;2-&gt;3，4-&gt;5-&gt;6，……，但是全局范围来看，并不需要保证 1-&gt;4-&gt;7，可以 7-&gt;4-&gt;1 的顺序来执行，这样可以达到最大并行度10000，而这通常是现实中我们面对的情况。通常应用中，将有先后关系的消息发送到相同的分区上，即可解决大部分问题。</p>
+<h3>关于副本</h3>
+<p>副本是高可用 Kafka 集群的实现方式。假设集群中有3个 Broker，那么可以指定3个副本，这3个副本是对等的，对于某个 Topic 的分区来说，其中一个是 Leader，即主节点，另外2个副本是 Follower，即从节点，每个副本在一个 Broker 上。当 Leader 收到消息的时候，会将消息写一份到副本中，通常情况，只有 Leader 处于工作状态。在 Leader 发生故障宕机的时候，Follwer 会取代 Leader 继续传送消息，而不会发生消息丢失。Kafka 的副本是以分区为单位的，也就是说，即使是同一个 Topic，其不同分区的 Leader 节点也不同。甚至，Kafka 倾向于用不同的 Broker 来做分区的 Leader，因为这样能做到更好的负载均衡。</p>
+<p>在副本间的消息同步，实际上是复制消息的 log，复制可以是同步复制，也可以是异步复制。同步复制是说，当 Leader 收到消息后，将消息写入从副本，只有在收到从副本写入成功的确认后才返回成功给 Producer；异步复制是说，Leader 将消息写入从副本，但是不等待从副本的成功确认，直接返回成功给 Producer。同步复制效率较低，但是消息不会丢；异步复制效率高，但是在 Broker 宕机的时候，可能会出现消息丢失。</p>
+<h3>关于丢消息和重复收到消息</h3>
+<p>任何一个 MQ 都需要处理丢消息和重复收到消息的，正常情况下，Kafka 可以保证：1. 不丢消息；2. 不重复发消息；3. 消息读且只读一次。当然这都是正常情况，极端情况，如 Broker 宕机，断电，这类情况下，Kafka 只能保证 1 或者 2，无法保证 3。</p>
+<p>在有副本的情况下，Kafka 是可以保证消息不丢的，其前提是设置了同步复制，这也是 Kafka 的默认设置，但是可能出现重复发送消息，这个交给上层应用解决；在生产者中使用异步提交，可以保证不重复发送消息，但是有丢消息的可能，如果应用可以容忍，也可以接受。如果需要实现读且只读一次，就比较麻烦，需要更底层的 API <a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a>。</p>
+<h2>Kafka 的工具和编程接口</h2>
+<h3>Kafka 的工具</h3>
+<p>Kafka 提供的工具还是比较全的，<code>bin/</code> 目录下的工具有以下一些，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">bin/connect-distributed.<span class="keyword">sh</span>     bin/kafka-consumer-offset-checker.<span class="keyword">sh</span>     bin/kafka-replica-verification.<span class="keyword">sh</span>   bin/kafka-verifiable-producer.<span class="keyword">sh</span></div><div class="line">bin/connect-standalone.<span class="keyword">sh</span>      bin/kafka-consumer-perf-test.<span class="keyword">sh</span>          bin/kafka-run-class.<span class="keyword">sh</span>              bin/zookeeper-security-migration.<span class="keyword">sh</span></div><div class="line">bin/kafka-acls.<span class="keyword">sh</span>              bin/kafka-mirror-maker.<span class="keyword">sh</span>                bin/kafka-server-start.<span class="keyword">sh</span>           bin/zookeeper-server-start.<span class="keyword">sh</span></div><div class="line">bin/kafka-configs.<span class="keyword">sh</span>           bin/kafka-preferred-replica-election.<span class="keyword">sh</span>  bin/kafka-server-<span class="keyword">stop</span>.<span class="keyword">sh</span>            bin/zookeeper-server-<span class="keyword">stop</span>.<span class="keyword">sh</span></div><div class="line">bin/kafka-console-consumer.<span class="keyword">sh</span>  bin/kafka-producer-perf-test.<span class="keyword">sh</span>          bin/kafka-simple-consumer-<span class="keyword">shell</span>.<span class="keyword">sh</span>  bin/zookeeper-<span class="keyword">shell</span>.<span class="keyword">sh</span></div><div class="line">bin/kafka-console-producer.<span class="keyword">sh</span>  bin/kafka-reassign-partitions.<span class="keyword">sh</span>         bin/kafka-topics.<span class="keyword">sh</span></div><div class="line">bin/kafka-consumer-groups.<span class="keyword">sh</span>   bin/kafka-replay-<span class="built_in">log</span>-producer.<span class="keyword">sh</span>         bin/kafka-verifiable-consumer.<span class="keyword">sh</span></div></pre></td></tr></table></figure></p>
+<p>我常用的命令有以下几个，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">server</span><span class="literal">-</span><span class="comment">start</span><span class="string">.</span><span class="comment">sh</span> <span class="literal">-</span><span class="comment">daemon</span> <span class="comment">config/server</span><span class="string">.</span><span class="comment">properties</span> <span class="comment">&</span></div><div class="line"></div><div class="line"><span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">topics</span><span class="string">.</span><span class="comment">sh</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">describe</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">zookeeper</span> <span class="comment">192</span><span class="string">.</span><span class="comment">168</span><span class="string">.</span><span class="comment">232</span><span class="string">.</span><span class="comment">23:2181</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">topic</span> <span class="comment">topic1</span></div><div class="line"><span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">topics</span><span class="string">.</span><span class="comment">sh</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">list</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">zookeeper</span> <span class="comment">192</span><span class="string">.</span><span class="comment">168</span><span class="string">.</span><span class="comment">232</span><span class="string">.</span><span class="comment">23:2181</span></div><div class="line"><span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">topics</span><span class="string">.</span><span class="comment">sh</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">delete</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">zookeeper</span> <span class="comment">192</span><span class="string">.</span><span class="comment">168</span><span class="string">.</span><span class="comment">232</span><span class="string">.</span><span class="comment">23:2181</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">topic</span> <span class="comment">topic1</span></div><div class="line"><span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">topics</span><span class="string">.</span><span class="comment">sh</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">create</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">zookeeper</span> <span class="comment">192</span><span class="string">.</span><span class="comment">168</span><span class="string">.</span><span class="comment">232</span><span class="string">.</span><span class="comment">23:2181</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">replication</span><span class="literal">-</span><span class="comment">factor</span> <span class="comment">3</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">partitions</span> <span class="comment">2</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">topic</span> <span class="comment">topic1</span></div><div class="line"></div><div class="line"><span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">console</span><span class="literal">-</span><span class="comment">consumer</span><span class="string">.</span><span class="comment">sh</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">zookeeper</span> <span class="comment">192</span><span class="string">.</span><span class="comment">168</span><span class="string">.</span><span class="comment">232</span><span class="string">.</span><span class="comment">23:2181</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">topic</span> <span class="comment">topic1</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">from</span><span class="literal">-</span><span class="comment">beginning</span></div><div class="line"><span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">console</span><span class="literal">-</span><span class="comment">producer</span><span class="string">.</span><span class="comment">sh</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">broker</span><span class="literal">-</span><span class="comment">list</span> <span class="comment">192</span><span class="string">.</span><span class="comment">168</span><span class="string">.</span><span class="comment">232</span><span class="string">.</span><span class="comment">23:9092</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">topic</span> <span class="comment">topic1</span></div></pre></td></tr></table></figure></p>
+<p><code>kafka-server-start.sh</code> 是用于 Kafka 的 Broker 启动的，主要就一个参数 <code>config/server.properties</code>，该文件中的配置项待会再说.还有一个 <code>-daemon</code> 参数，这个是将 Kafka 放在后台用守护进程的方式运行，如果不加这个参数，Kafka 会在运行一段时间后自动退出，据说这个是 0.10.0.0 版本才有的问题 <a href="#fn5" class="footnoteRef" id="fnref5"><sup>5</sup></a>。<code>kafka-topics.sh</code> 是用于管理 Topic 的工具，我主要用的 <code>--describe</code>、<code>--list</code>、<code>--delete</code>、<code>--create</code> 这4个功能，上述的例子基本是不言自明的，<code>--replication-factor 3</code>、<code>--partitions 2</code> 这两个参数分别表示3个副本（含 Leader），和2个分区。<code>kafka-console-consumer.sh</code> 和 <code>kafka-console-producer.sh</code> 是生产者和消费者的简易终端工具，在调试的时候比较有用，我常用的是 <code>kafka-console-consumer.sh</code>。我没有用 Kafka 自带的 zookeeper，而是用的 zookeeper 官方的发布版本 3.4.8，端口是默认2181，与 Broker 在同一台机器上。</p>
+<p>下面说一下 Broker 启动的配置文件 <code>config/server.properties</code>，我在默认配置的基础上，修改了以下一些，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">broker.<span class="variable">id=</span><span class="number">0</span></div><div class="line"><span class="variable">listeners=</span>PLAINTEXT://<span class="number">192.168</span>.<span class="number">232.23</span>:<span class="number">9092</span></div><div class="line">log.<span class="variable">dirs=</span>/tmp/kafka-logs</div><div class="line">delete.topic.<span class="variable">enable=</span><span class="constant">true</span></div></pre></td></tr></table></figure></p>
+<p><code>broker.id</code> 是 Kafka 集群中的 Broker ID，不可重复，我在多副本的实验中，将他们分别设置为0、1、2；<code>listeners</code> 是 Broker 监听的地址，默认是监听 <code>localhost:9092</code>，因为我不是单机实验，所以修改为本机局域网地址，当然，如果要监听所有地址的话，也可以设置为 <code>0.0.0.0:9092</code>，多副本实验中，将监听端口分别设置为 9092、9093、9094；<code>log.dirs</code> 是 Broker 的 log 的目录，多副本实验中，不同的 Broker 需要有不同的 log 目录；<code>delete.topic.enable</code> 设为 true 后，可以删除 Topic，并且连带 Topic 中的消息也一并删掉，否则，即使调用 <code>kafka-topics.sh --delete</code> 也无法删除 Topic，这是一个便利性的设置，对于开发环境可以，生产环境一定要设为 false（默认）。实验中发现， 如果有消费者在消费这个 Topic，那么也无法删除，还是比较安全的。</p>
+<p>剩下的工具多数在文档中也有提到。如果看一下这些脚本的话，会发现多数脚本的写法都是一致的，先做一些参数的校验，最后运行 <code>exec $base_dir/kafka-run-class.sh XXXXXXXXX &quot;$@&quot;</code>，可见，这些工具都是使用运行 Java Class 的方式调用的。</p>
+<h3>Kafka 的 Java API</h3>
+<p>在编程接口方面，官方提供了 Scala 和 Java 的接口，社区提供了更多的其他语言的接口，基本上，无论用什么语言开发，都能找到相应的 API。下面说一下 Java 的 API 接口。</p>
+<p>生产者的 API 只有一种，相对比较简单，代码如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.apache.kafka.clients.producer.Callback;</div><div class="line"><span class="keyword">import</span> org.apache.kafka.clients.producer.KafkaProducer;</div><div class="line"><span class="keyword">import</span> org.apache.kafka.clients.producer.ProducerRecord;</div><div class="line"><span class="keyword">import</span> org.apache.kafka.clients.producer.RecordMetadata;</div><div class="line"></div><div class="line"><span class="keyword">import</span> java.util.Properties;</div><div class="line"><span class="keyword">import</span> java.util.concurrent.ExecutionException;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleProducerDemo</span> </span>{</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span>(String[] args){</div><div class="line"></div><div class="line">        Properties props = <span class="keyword">new</span> Properties();</div><div class="line">        props.put(<span class="string">"bootstrap.servers"</span>, <span class="string">"192.168.232.23:9092,192.168.232.23:9093,192.168.232.23:9094"</span>);</div><div class="line">        props.put(<span class="string">"zookeeper.connect"</span>, <span class="string">"192.168.232.23:2181"</span>);</div><div class="line">        props.put(<span class="string">"client.id"</span>, <span class="string">"DemoProducer"</span>);</div><div class="line">        props.put(<span class="string">"key.serializer"</span>, <span class="string">"org.apache.kafka.common.serialization.IntegerSerializer"</span>);</div><div class="line">        props.put(<span class="string">"value.serializer"</span>, <span class="string">"org.apache.kafka.common.serialization.StringSerializer"</span>);</div><div class="line">        KafkaProducer&lt;Integer, String&gt; producer = <span class="keyword">new</span> KafkaProducer&lt;&gt;(props);</div><div class="line"></div><div class="line">        String topic = <span class="string">"topic1"</span>;</div><div class="line">        Boolean isAsync = <span class="keyword">false</span>;</div><div class="line"></div><div class="line">        <span class="keyword">int</span> messageNo = <span class="number">1</span>;</div><div class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) {</div><div class="line">            String messageStr = <span class="string">"Message_"</span> + String.format(<span class="string">"%05d"</span>,messageNo);</div><div class="line">            <span class="keyword">long</span> startTime = System.currentTimeMillis();</div><div class="line">            <span class="keyword">if</span> (isAsync) { <span class="comment">// Send asynchronously</span></div><div class="line">                producer.send(<span class="keyword">new</span> ProducerRecord&lt;&gt;(topic,</div><div class="line">                        messageNo,</div><div class="line">                        messageStr), <span class="keyword">new</span> DemoCallBack(startTime, messageNo, messageStr));</div><div class="line">            } <span class="keyword">else</span> { <span class="comment">// Send synchronously</span></div><div class="line">                <span class="keyword">try</span> {</div><div class="line">                    producer.send(<span class="keyword">new</span> ProducerRecord&lt;&gt;(topic,</div><div class="line">                            messageNo,</div><div class="line">                            messageStr)).get();</div><div class="line">                    System.out.println(<span class="string">"Sent message: ("</span> + messageNo + <span class="string">", "</span> + messageStr + <span class="string">")"</span>);</div><div class="line">                } <span class="keyword">catch</span> (InterruptedException | ExecutionException e) {</div><div class="line">                    e.printStackTrace();</div><div class="line">                }</div><div class="line">            }</div><div class="line"></div><div class="line">            <span class="keyword">try</span> {</div><div class="line">                Thread.sleep(<span class="number">3</span>);</div><div class="line">            } <span class="keyword">catch</span> (InterruptedException e) {</div><div class="line">                e.printStackTrace();</div><div class="line">            }</div><div class="line">            ++messageNo;</div><div class="line">        }</div><div class="line"></div><div class="line">    }</div><div class="line">}</div><div class="line"></div><div class="line">class DemoCallBack implements Callback {</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">long</span> startTime;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> key;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String message;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="title">DemoCallBack</span>(<span class="keyword">long</span> startTime, <span class="keyword">int</span> key, String message) {</div><div class="line">        <span class="keyword">this</span>.startTime = startTime;</div><div class="line">        <span class="keyword">this</span>.key = key;</div><div class="line">        <span class="keyword">this</span>.message = message;</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCompletion</span>(RecordMetadata metadata, Exception exception) {</div><div class="line">        <span class="keyword">long</span> elapsedTime = System.currentTimeMillis() - startTime;</div><div class="line">        <span class="keyword">if</span> (metadata != <span class="keyword">null</span>) {</div><div class="line">            System.out.println(</div><div class="line">                    <span class="string">"Send     message: ("</span> + String.format(<span class="string">"%05d"</span>,key) + <span class="string">", "</span> + message + <span class="string">") at offset "</span>+ metadata.offset() +</div><div class="line">                            <span class="string">" to partition("</span> + metadata.partition() +</div><div class="line">                            <span class="string">") in "</span> + elapsedTime + <span class="string">" ms"</span>);</div><div class="line">        } <span class="keyword">else</span> {</div><div class="line">            exception.printStackTrace();</div><div class="line">        }</div><div class="line">    }</div><div class="line">}</div></pre></td></tr></table></figure></p>
+<p>上例中使用了同步和异步发送两种方式。在多副本的情况下，如果要指定同步复制还是异步复制，可以使用 <code>acks</code> 参数，详细参考官方文档 Producer Configs 部分的内容；在多分区的情况下，如果要指定发送到哪个分区，可以使用 <code>partitioner.class</code> 参数，其值是一个实现了 <code>org.apache.kafka.clients.producer.Partitioner</code> 接口的类，用于根据不同的消息指定分区<a href="#fn6" class="footnoteRef" id="fnref6"><sup>6</sup></a>。消费者的 API 有几种，比较新的 API 如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="preprocessor"><span class="keyword">import</span> org.apache.kafka.clients.consumer.ConsumerRecord;</span></div><div class="line"><span class="preprocessor"><span class="keyword">import</span> org.apache.kafka.clients.consumer.ConsumerRecords;</span></div><div class="line"><span class="preprocessor"><span class="keyword">import</span> org.apache.kafka.clients.consumer.KafkaConsumer;</span></div><div class="line"></div><div class="line"><span class="preprocessor"><span class="keyword">import</span> java.util.Arrays;</span></div><div class="line"><span class="preprocessor"><span class="keyword">import</span> java.util.Properties;</span></div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleConsumer</span> </span>{</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> main(String[] args){</div><div class="line">        Properties props = <span class="keyword">new</span> Properties();</div><div class="line">        props.put(<span class="string">"bootstrap.servers"</span>, <span class="string">"192.168.232.23:9092"</span>);</div><div class="line">        props.put(<span class="string">"group.id"</span>, <span class="string">"test"</span>);</div><div class="line">        props.put(<span class="string">"enable.auto.commit"</span>, <span class="string">"true"</span>);</div><div class="line">        props.put(<span class="string">"auto.commit.interval.ms"</span>, <span class="string">"1000"</span>);</div><div class="line">        props.put(<span class="string">"session.timeout.ms"</span>, <span class="string">"30000"</span>);</div><div class="line">        props.put(<span class="string">"key.deserializer"</span>, <span class="string">"org.apache.kafka.common.serialization.IntegerDeserializer"</span>);</div><div class="line">        props.put(<span class="string">"value.deserializer"</span>, <span class="string">"org.apache.kafka.common.serialization.StringDeserializer"</span>);</div><div class="line">        KafkaConsumer&lt;Integer, String&gt; consumer = <span class="keyword">new</span> KafkaConsumer&lt;&gt;(props);</div><div class="line">        consumer.subscribe(Arrays.asList(<span class="string">"topic1"</span>, <span class="string">"topic2"</span>, <span class="string">"topic3"</span>));</div><div class="line">        <span class="keyword">while</span> (<span class="literal">true</span>) {</div><div class="line">            ConsumerRecords&lt;Integer, String&gt; records = consumer.poll(<span class="number">100</span>);</div><div class="line">            <span class="keyword">for</span> (ConsumerRecord&lt;Integer, String&gt; record : records) {</div><div class="line">                System.out.println(<span class="string">"Received message: ("</span> + String.format(<span class="string">"%05d"</span>, record.key()) + <span class="string">", "</span> + record.value() + <span class="string">") at offset "</span> + record.offset());</div><div class="line">            }</div><div class="line">        }</div><div class="line">    }</div><div class="line">}</div></pre></td></tr></table></figure></p>
+<p>消费者还有旧的 API，比如 <code>Consumer</code> 和 <code>SimpleConsumer</code> API，这些都可以从 Kafka 代码的 kafka-example 中找到，上述的两个例子也是改写自 kafka-example。使用新旧 API 在功能上都能满足消息收发的需要，但新 API 只依赖 <code>kafka-clients</code>，打包出来的 jar 包会小很多，以我的测试，新 API 的消费者 jar 包大约有 2M 左右，而旧 API 的消费者 jar 包接近 16M。</p>
+<p>其实，Kafka 也提供了按分区订阅，可以一次订阅多个分区 <code>TopicPartition[]</code>；也支持手动提交 offset，需要调用 <code>consumer.commitSync</code>。</p>
+<p>Kafka 似乎没有公开 Topic 创建以及修改的 API（至少我没有找到），如果生产者向 Broker 写入的 Topic 是一个新 Topic，那么 Broker 会创建这个 Topic。创建的过程中会使用默认参数，例如，分区个数，会使用 Broker 配置中的 <code>num.partitions</code> 参数（默认1）；副本个数，会使用 <code>default.replication.factor</code> 参数。但是通常情况下，我们会需要创建自定义的 Topic，那官方的途径是使用 Kafka 的工具。也有一些非官方的途径 <a href="#fn7" class="footnoteRef" id="fnref7"><sup>7</sup></a>，例如可以这样写，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">String</span>[] options = <span class="keyword">new</span> <span class="built_in">String</span>[]{</div><div class="line">        <span class="string">"--create"</span>,</div><div class="line">        <span class="string">"--zookeeper"</span>,</div><div class="line">        <span class="string">"192.168.232.23:2181"</span>,</div><div class="line">        <span class="string">"--partitions"</span>,</div><div class="line">        <span class="string">"2"</span>,</div><div class="line">        <span class="string">"--replication-factor"</span>,</div><div class="line">        <span class="string">"3"</span>,</div><div class="line">        <span class="string">"--topic"</span>,</div><div class="line">        <span class="string">"topic1"</span></div><div class="line">};</div><div class="line">TopicCommand.main(options);</div></pre></td></tr></table></figure></p>
+<p>但是这样写有一个问题，在执行完 <code>TopicCommand.main(options);</code> 之后，系统会自动退出，原因是执行完指令之后，会调用 <code>System.exit(exitCode);</code> 系统直接退出。这样当然不行，我的办法是，把相关的执行代码挖出来，写一个 TopicUtils 类，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> joptsimple.OptionSpecBuilder;</div><div class="line"><span class="keyword">import</span> kafka.admin.TopicCommand;</div><div class="line"><span class="keyword">import</span> kafka.admin.TopicCommand$;</div><div class="line"><span class="keyword">import</span> kafka.utils.ZkUtils;</div><div class="line"><span class="keyword">import</span> org.apache.kafka.common.security.JaasUtils;</div><div class="line"><span class="keyword">import</span> scala.runtime.Nothing$;</div><div class="line"></div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TopicUtils</span> </span>{</div><div class="line">    <span class="comment">// from: http://blog.csdn.net/changong28/article/details/39325079</span></div><div class="line">    <span class="comment">// from: http://www.cnblogs.com/davidwang456/p/4313784.html</span></div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">createTopic</span>(){</div><div class="line">        String[] options = <span class="keyword">new</span> String[]{</div><div class="line">                <span class="string">"--create"</span>,</div><div class="line">                <span class="string">"--zookeeper"</span>,</div><div class="line">                KafkaProperties.ZOOKEEPER_URL,</div><div class="line">                <span class="string">"--partitions"</span>,</div><div class="line">                <span class="string">"2"</span>,</div><div class="line">                <span class="string">"--replication-factor"</span>,</div><div class="line">                <span class="string">"3"</span>,</div><div class="line">                <span class="string">"--topic"</span>,</div><div class="line">                KafkaProperties.TOPIC</div><div class="line">        };</div><div class="line"><span class="comment">//        TopicCommand.main(options);</span></div><div class="line">        oper(options);</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">listTopic</span>(){</div><div class="line">        String[] options = <span class="keyword">new</span> String[]{</div><div class="line">                <span class="string">"--list"</span>,</div><div class="line">                <span class="string">"--zookeeper"</span>,</div><div class="line">                KafkaProperties.ZOOKEEPER_URL</div><div class="line">        };</div><div class="line"><span class="comment">//        TopicCommand.main(options);</span></div><div class="line">        oper(options);</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">deleteTopic</span>(){</div><div class="line">        String[] options = <span class="keyword">new</span> String[]{</div><div class="line">                <span class="string">"--delete"</span>,</div><div class="line">                <span class="string">"--zookeeper"</span>,</div><div class="line">                KafkaProperties.ZOOKEEPER_URL,</div><div class="line">                <span class="string">"--topic"</span>,</div><div class="line">                KafkaProperties.TOPIC</div><div class="line">        };</div><div class="line"><span class="comment">//        TopicCommand.main(options);</span></div><div class="line">        oper(options);</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">describeTopic</span>(){</div><div class="line">        String[] options = <span class="keyword">new</span> String[]{</div><div class="line">                <span class="string">"--describe"</span>,</div><div class="line">                <span class="string">"--zookeeper"</span>,</div><div class="line">                KafkaProperties.ZOOKEEPER_URL,</div><div class="line">                <span class="string">"--topic"</span>,</div><div class="line">                KafkaProperties.TOPIC</div><div class="line">        };</div><div class="line"><span class="comment">//        TopicCommand.main(options);</span></div><div class="line">        oper(options);</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span>(String[] args){</div><div class="line">        listTopic();</div><div class="line">        createTopic();</div><div class="line">        listTopic();</div><div class="line">        describeTopic();</div><div class="line">        deleteTopic();</div><div class="line">        <span class="keyword">try</span> {</div><div class="line">            Thread.sleep(<span class="number">3</span>*<span class="number">1000</span>);</div><div class="line">        } <span class="keyword">catch</span> (InterruptedException e) {</div><div class="line">            e.printStackTrace();</div><div class="line">        }</div><div class="line">        listTopic();</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="javadoc">/** copied & modified from kafka.admin.TopicCommand$.main</span></div><div class="line">     *</div><div class="line">     *<span class="javadoctag"> @param</span> args</div><div class="line">     */</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">oper</span>(String args[]){</div><div class="line">        <span class="keyword">try</span> {</div><div class="line">        TopicCommand$ topicCommand$ = TopicCommand$.MODULE$;</div><div class="line">        <span class="keyword">final</span> TopicCommand.TopicCommandOptions opts = <span class="keyword">new</span> TopicCommand.TopicCommandOptions(args);</div><div class="line">        <span class="keyword">if</span>(args.length == <span class="number">0</span>) {</div><div class="line">            <span class="keyword">throw</span> kafka.utils.CommandLineUtils$.MODULE$.printUsageAndDie(opts.parser(), <span class="string">"Create, delete, describe, or change a topic."</span>);</div><div class="line">        } <span class="keyword">else</span> {</div><div class="line">            <span class="keyword">int</span> actions =<span class="number">0</span>;</div><div class="line">            OptionSpecBuilder[] optionSpecBuilders = {opts.createOpt(), opts.listOpt(), opts.alterOpt(), opts.describeOpt(), opts.deleteOpt()};</div><div class="line">            <span class="keyword">for</span> (OptionSpecBuilder temp:optionSpecBuilders){</div><div class="line">                <span class="keyword">if</span> (opts.options().has(temp)) {</div><div class="line">                    actions++;</div><div class="line">                }</div><div class="line">            }</div><div class="line"></div><div class="line">            <span class="keyword">if</span>(actions != <span class="number">1</span>) {</div><div class="line">                <span class="keyword">throw</span> kafka.utils.CommandLineUtils$.MODULE$.printUsageAndDie(opts.parser(), <span class="string">"Command must include exactly one action: --list, --describe, --create, --alter or --delete"</span>);</div><div class="line">            } <span class="keyword">else</span> {</div><div class="line">                opts.checkArgs();</div><div class="line">                ZkUtils zkUtils = kafka.utils.ZkUtils$.MODULE$.apply((String)opts.options().valueOf(opts.zkConnectOpt()), <span class="number">30000</span>, <span class="number">30000</span>, JaasUtils.isZkSecurityEnabled());</div><div class="line">                <span class="keyword">byte</span> exitCode = <span class="number">0</span>;</div><div class="line"></div><div class="line">                <span class="keyword">try</span> {</div><div class="line">                    <span class="keyword">try</span> {</div><div class="line">                        <span class="keyword">if</span>(opts.options().has(opts.createOpt())) {</div><div class="line">                            topicCommand$.createTopic(zkUtils, opts);</div><div class="line">                        } <span class="keyword">else</span> <span class="keyword">if</span>(opts.options().has(opts.alterOpt())) {</div><div class="line">                            topicCommand$.alterTopic(zkUtils, opts);</div><div class="line">                        } <span class="keyword">else</span> <span class="keyword">if</span>(opts.options().has(opts.listOpt())) {</div><div class="line">                            topicCommand$.listTopics(zkUtils, opts);</div><div class="line">                        } <span class="keyword">else</span> <span class="keyword">if</span>(opts.options().has(opts.describeOpt())) {</div><div class="line">                            topicCommand$.describeTopic(zkUtils, opts);</div><div class="line">                        } <span class="keyword">else</span> <span class="keyword">if</span>(opts.options().has(opts.deleteOpt())) {</div><div class="line">                            topicCommand$.deleteTopic(zkUtils, opts);</div><div class="line">                        }</div><div class="line">                    } <span class="keyword">catch</span> (<span class="keyword">final</span> Throwable var12) {</div><div class="line">                        scala.Predef$.MODULE$.println((<span class="keyword">new</span> StringBuilder()).append(<span class="string">"Error while executing topic command : "</span>).append(var12.getMessage()).toString());</div><div class="line">                        System.out.println(var12);</div><div class="line">                        exitCode = <span class="number">1</span>;</div><div class="line">                        <span class="keyword">return</span>;</div><div class="line">                    }</div><div class="line">                } <span class="keyword">finally</span> {</div><div class="line">                    zkUtils.close();</div><div class="line"><span class="comment">//                    System.exit(exitCode);</span></div><div class="line">                }</div><div class="line"></div><div class="line">            }</div><div class="line">        }</div><div class="line">        } <span class="keyword">catch</span> (Nothing$ nothing$) {</div><div class="line">            nothing$.printStackTrace();</div><div class="line">        }</div><div class="line">    }</div><div class="line">}</div></pre></td></tr></table></figure></p>
+<p>以上的 <code>oper</code> 方法改写自 <code>kafka.admin.TopicCommand$.main</code> 方法。可以发现这部分代码非常怪异，原因是 <code>TopicCommand$</code> 是 Scala 写的，再编译成 Java class 字节码，然后我根据这些字节码反编译得到 Java 代码，并以此为基础进行修改，等于是我在用 Java 的方式改写 Scala 的代码，难免会觉得诡异。当然，这种写法用在生产环境的话是不太合适的，因为调用的 <code>topicCommand$.createTopic</code> 等方法都没有抛出异常，例如参数不合法的情况，而且也没有使用 log4j 之类的 log 库，只是用 <code>System.out.println</code> 这样的方法屏显，在出现错误的时候，比较难以定位。</p>
+<h2>Kafka 副本和集群</h2>
+<p>在生产环境中，Kafka 总是以“集群+分区”方式运行的，以保证可靠性和性能。下面是一个3副本的 Kafka 集群实例。</p>
+<p>首先，需要启动3个 Kafka Broker，Broker 的配置文件分别如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">broker.id=<span class="number">0</span></div><div class="line">listeners=<span class="constant">PLAINTEXT</span><span class="symbol">://</span><span class="number">192.168</span>.<span class="number">232.23</span><span class="symbol">:</span><span class="number">9092</span></div><div class="line">log.dirs=<span class="regexp">/tmp/kafka</span>-logs</div><div class="line"></div><div class="line">broker.id=<span class="number">1</span></div><div class="line">listeners=<span class="constant">PLAINTEXT</span><span class="symbol">://</span><span class="number">192.168</span>.<span class="number">232.23</span><span class="symbol">:</span><span class="number">9093</span></div><div class="line">log.dirs=<span class="regexp">/tmp/kafka</span>-logs-<span class="number">1</span></div><div class="line"></div><div class="line">broker.id=<span class="number">1</span></div><div class="line">listeners=<span class="constant">PLAINTEXT</span><span class="symbol">://</span><span class="number">192.168</span>.<span class="number">232.23</span><span class="symbol">:</span><span class="number">9094</span></div><div class="line">log.dirs=<span class="regexp">/tmp/kafka</span>-logs-<span class="number">2</span></div></pre></td></tr></table></figure></p>
+<p>虽然每个 Broker 只配置了一个端口，实际上，Kafka 会多占用一个，可能是用来 Broker 之间的复制的。另外，3个 Broker 都配置了，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">zookeeper.<span class="variable">connect=</span>localhost:<span class="number">2181</span></div><div class="line">delete.topic.<span class="variable">enable=</span><span class="constant">true</span></div></pre></td></tr></table></figure></p>
+<p>在同一个 Zookeeper 上的 Broker 会被归类到一个集群中。注意，这些配置中并没有指定哪一个 Broker 是主节点，哪些 Broker 是从节点，Kafka 采用的办法是从可选的 Broker 中，选出每个分区的 Leader。也就是说，对某个 Topic 来说，可能0节点是 Leader，另外一些 Topic，可能1节点是 Leader；甚至，如果 topic1 有2个分区的话，分区1的 Leader 是0节点，分区2的 Leader 是1节点。</p>
+<p>这种对等的设计，对于故障恢复是十分有用的，在节点崩溃的时候，Kafka 会自动选举出可用的从节点，将其升级为主节点。在崩溃的节点恢复，加入集群之后，Kafka 又会将这个节点加入到可用节点，并自动选举出新的主节点。</p>
+<p>实验如下，先新建一个3副本，2分区的 Topic，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">topics</span><span class="string">.</span><span class="comment">sh</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">create</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">zookeeper</span> <span class="comment">192</span><span class="string">.</span><span class="comment">168</span><span class="string">.</span><span class="comment">232</span><span class="string">.</span><span class="comment">23:2181</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">replication</span><span class="literal">-</span><span class="comment">factor</span> <span class="comment">3</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">partitions</span> <span class="comment">2</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">topic</span> <span class="comment">topic1</span></div></pre></td></tr></table></figure></p>
+<p>初始状况下，topic1 的状态如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">$</span> <span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">topics</span><span class="string">.</span><span class="comment">sh</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">describe</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">zookeeper</span> <span class="comment">192</span><span class="string">.</span><span class="comment">168</span><span class="string">.</span><span class="comment">232</span><span class="string">.</span><span class="comment">23:2181</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">topic</span> <span class="comment">topic1</span></div><div class="line"><span class="comment">Topic:topic1</span>    <span class="comment">PartitionCount:2</span>        <span class="comment">ReplicationFactor:3</span>     <span class="comment">Configs:</span></div><div class="line">        <span class="comment">Topic:</span> <span class="comment">topic1</span>   <span class="comment">Partition:</span> <span class="comment">0</span>    <span class="comment">Leader:</span> <span class="comment">0</span>       <span class="comment">Replicas:</span> <span class="comment">0</span><span class="string">,</span><span class="comment">1</span><span class="string">,</span><span class="comment">2</span> <span class="comment">Isr:</span> <span class="comment">0</span><span class="string">,</span><span class="comment">1</span><span class="string">,</span><span class="comment">2</span></div><div class="line">        <span class="comment">Topic:</span> <span class="comment">topic1</span>   <span class="comment">Partition:</span> <span class="comment">1</span>    <span class="comment">Leader:</span> <span class="comment">1</span>       <span class="comment">Replicas:</span> <span class="comment">1</span><span class="string">,</span><span class="comment">2</span><span class="string">,</span><span class="comment">0</span> <span class="comment">Isr:</span> <span class="comment">1</span><span class="string">,</span><span class="comment">2</span><span class="string">,</span><span class="comment">0</span></div></pre></td></tr></table></figure></p>
+<p>对于上面的输出，即使没有文档，也可以看懂大概：topic1 有2个分区，Partition 0 和 Partition 1，Leader 分别在 Broker 0 和 1。Replicas 表示副本在哪些 Broker 上，Isr（In-Sync Replicas）表示处于同步状态中的 Broker，如果有 Broker 宕机了，那么 Replicas 不会变，但是 Isr 会仅显示没有宕机的 Broker，详见下面的实验。</p>
+<p>然后分2个线程，运行之前写的 Producer 和 Consumer 的示例代码，Producer 采用异步发送，消息采用同步复制。在有消息传送的情况下，<code>kill -9</code> 停掉其中2个 Broker（Broker 0 和 Broker 1），模拟突然宕机。此时，topic1 状态如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">$</span> <span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">topics</span><span class="string">.</span><span class="comment">sh</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">describe</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">zookeeper</span> <span class="comment">192</span><span class="string">.</span><span class="comment">168</span><span class="string">.</span><span class="comment">232</span><span class="string">.</span><span class="comment">23:2181</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">topic</span> <span class="comment">topic1</span></div><div class="line"><span class="comment">Topic:topic1</span>    <span class="comment">PartitionCount:2</span>        <span class="comment">ReplicationFactor:3</span>     <span class="comment">Configs:</span></div><div class="line">        <span class="comment">Topic:</span> <span class="comment">topic1</span>   <span class="comment">Partition:</span> <span class="comment">0</span>    <span class="comment">Leader:</span> <span class="comment">2</span>       <span class="comment">Replicas:</span> <span class="comment">0</span><span class="string">,</span><span class="comment">1</span><span class="string">,</span><span class="comment">2</span> <span class="comment">Isr:</span> <span class="comment">2</span></div><div class="line">        <span class="comment">Topic:</span> <span class="comment">topic1</span>   <span class="comment">Partition:</span> <span class="comment">1</span>    <span class="comment">Leader:</span> <span class="comment">2</span>       <span class="comment">Replicas:</span> <span class="comment">1</span><span class="string">,</span><span class="comment">2</span><span class="string">,</span><span class="comment">0</span> <span class="comment">Isr:</span> <span class="comment">2</span></div></pre></td></tr></table></figure></p>
+<p>可见，Kafka 已经选出了新的 Leader，消息传送没有中断。接着再启动被停掉的那两个 Broker，并查看 topic1 的状态，如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">$</span> <span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">topics</span><span class="string">.</span><span class="comment">sh</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">describe</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">zookeeper</span> <span class="comment">192</span><span class="string">.</span><span class="comment">168</span><span class="string">.</span><span class="comment">232</span><span class="string">.</span><span class="comment">23:2181</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">topic</span> <span class="comment">topic1</span></div><div class="line"><span class="comment">Topic:topic1</span>    <span class="comment">PartitionCount:2</span>        <span class="comment">ReplicationFactor:3</span>     <span class="comment">Configs:</span></div><div class="line">        <span class="comment">Topic:</span> <span class="comment">topic1</span>   <span class="comment">Partition:</span> <span class="comment">0</span>    <span class="comment">Leader:</span> <span class="comment">2</span>       <span class="comment">Replicas:</span> <span class="comment">0</span><span class="string">,</span><span class="comment">1</span><span class="string">,</span><span class="comment">2</span> <span class="comment">Isr:</span> <span class="comment">2</span><span class="string">,</span><span class="comment">1</span><span class="string">,</span><span class="comment">0</span></div><div class="line">        <span class="comment">Topic:</span> <span class="comment">topic1</span>   <span class="comment">Partition:</span> <span class="comment">1</span>    <span class="comment">Leader:</span> <span class="comment">2</span>       <span class="comment">Replicas:</span> <span class="comment">1</span><span class="string">,</span><span class="comment">2</span><span class="string">,</span><span class="comment">0</span> <span class="comment">Isr:</span> <span class="comment">2</span><span class="string">,</span><span class="comment">1</span><span class="string">,</span><span class="comment">0</span></div><div class="line"></div><div class="line"><span class="comment">$</span> <span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">topics</span><span class="string">.</span><span class="comment">sh</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">describe</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">zookeeper</span> <span class="comment">192</span><span class="string">.</span><span class="comment">168</span><span class="string">.</span><span class="comment">232</span><span class="string">.</span><span class="comment">23:2181</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">topic</span> <span class="comment">topic1</span></div><div class="line"><span class="comment">Topic:topic1</span>    <span class="comment">PartitionCount:2</span>        <span class="comment">ReplicationFactor:3</span>     <span class="comment">Configs:</span></div><div class="line">        <span class="comment">Topic:</span> <span class="comment">topic1</span>   <span class="comment">Partition:</span> <span class="comment">0</span>    <span class="comment">Leader:</span> <span class="comment">2</span>       <span class="comment">Replicas:</span> <span class="comment">0</span><span class="string">,</span><span class="comment">1</span><span class="string">,</span><span class="comment">2</span> <span class="comment">Isr:</span> <span class="comment">2</span><span class="string">,</span><span class="comment">1</span><span class="string">,</span><span class="comment">0</span></div><div class="line">        <span class="comment">Topic:</span> <span class="comment">topic1</span>   <span class="comment">Partition:</span> <span class="comment">1</span>    <span class="comment">Leader:</span> <span class="comment">1</span>       <span class="comment">Replicas:</span> <span class="comment">1</span><span class="string">,</span><span class="comment">2</span><span class="string">,</span><span class="comment">0</span> <span class="comment">Isr:</span> <span class="comment">2</span><span class="string">,</span><span class="comment">1</span><span class="string">,</span><span class="comment">0</span></div></pre></td></tr></table></figure></p>
+<p>可以发现， 有一个短暂的时间，topic1 的两个分区的 Leader 都是 Broker 2，但是在 Kafka 重新选举之后，分区1的 Leader 变为 Broker 1。说明 Kafka 倾向于用不同的 Broker 做分区的 Leader，这样更能达到负载均衡的效果。</p>
+<p>再来看看 Producer 和 Consumer 的日志，下面这个片段是2个 Broker 宕机前后的日志，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line">......</div><div class="line">Send     message: (<span class="number">00439</span>, Message_00439) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">217</span> <span class="built_in">to</span> partition(<span class="number">0</span>) <span class="operator">in</span> <span class="number">3</span> ms</div><div class="line">Received message: (<span class="number">00438</span>, Message_00438) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">216</span></div><div class="line">Send     message: (<span class="number">00440</span>, Message_00440) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">218</span> <span class="built_in">to</span> partition(<span class="number">0</span>) <span class="operator">in</span> <span class="number">5</span> ms</div><div class="line">Send     message: (<span class="number">00441</span>, Message_00441) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">221</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">5</span> ms</div><div class="line">Received message: (<span class="number">00441</span>, Message_00441) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">221</span></div><div class="line">Received message: (<span class="number">00439</span>, Message_00439) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">217</span></div><div class="line">Send     message: (<span class="number">00442</span>, Message_00442) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">222</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">5</span> ms</div><div class="line">Send     message: (<span class="number">00443</span>, Message_00443) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">219</span> <span class="built_in">to</span> partition(<span class="number">0</span>) <span class="operator">in</span> <span class="number">3</span> ms</div><div class="line">Received message: (<span class="number">00440</span>, Message_00440) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">218</span></div><div class="line">Received message: (<span class="number">00443</span>, Message_00443) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">219</span></div><div class="line">org.apache.kafka.common.errors.NetworkException: The server disconnected <span class="keyword">before</span> <span class="operator">a</span> response was received.</div><div class="line">org.apache.kafka.common.errors.NetworkException: The server disconnected <span class="keyword">before</span> <span class="operator">a</span> response was received.</div><div class="line">org.apache.kafka.common.errors.NetworkException: The server disconnected <span class="keyword">before</span> <span class="operator">a</span> response was received.</div><div class="line">org.apache.kafka.common.errors.NetworkException: The server disconnected <span class="keyword">before</span> <span class="operator">a</span> response was received.</div><div class="line">org.apache.kafka.common.errors.NetworkException: The server disconnected <span class="keyword">before</span> <span class="operator">a</span> response was received.</div><div class="line">org.apache.kafka.common.errors.NetworkException: The server disconnected <span class="keyword">before</span> <span class="operator">a</span> response was received.</div><div class="line">org.apache.kafka.common.errors.NetworkException: The server disconnected <span class="keyword">before</span> <span class="operator">a</span> response was received.</div><div class="line">Received message: (<span class="number">00442</span>, Message_00442) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">222</span></div><div class="line">Send     message: (<span class="number">00452</span>, Message_00452) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">223</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">7492</span> ms</div><div class="line">Send     message: (<span class="number">00454</span>, Message_00454) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">224</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">7485</span> ms</div><div class="line">Send     message: (<span class="number">00455</span>, Message_00455) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">225</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">7482</span> ms</div><div class="line">Send     message: (<span class="number">00458</span>, Message_00458) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">226</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">7473</span> ms</div><div class="line">Send     message: (<span class="number">00460</span>, Message_00460) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">227</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">7467</span> ms</div><div class="line">Send     message: (<span class="number">00461</span>, Message_00461) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">228</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">7465</span> ms</div><div class="line">Send     message: (<span class="number">00462</span>, Message_00462) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">229</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">7462</span> ms</div><div class="line">Send     message: (<span class="number">00463</span>, Message_00463) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">230</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">7459</span> ms</div><div class="line">Send     message: (<span class="number">00464</span>, Message_00464) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">231</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">7456</span> ms</div><div class="line">Send     message: (<span class="number">00465</span>, Message_00465) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">232</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">7453</span> ms</div><div class="line">......</div><div class="line">Send     message: (<span class="number">01103</span>, Message_01103) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">543</span> <span class="built_in">to</span> partition(<span class="number">1</span>) <span class="operator">in</span> <span class="number">5478</span> ms</div><div class="line">Received message: (<span class="number">00631</span>, Message_00631) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">310</span></div><div class="line">Received message: (<span class="number">00633</span>, Message_00633) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">311</span></div><div class="line">Send     message: (<span class="number">00451</span>, Message_00451) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">220</span> <span class="built_in">to</span> partition(<span class="number">0</span>) <span class="operator">in</span> <span class="number">7525</span> ms</div><div class="line">Received message: (<span class="number">00634</span>, Message_00634) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">312</span></div><div class="line">Send     message: (<span class="number">00453</span>, Message_00453) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">221</span> <span class="built_in">to</span> partition(<span class="number">0</span>) <span class="operator">in</span> <span class="number">7518</span> ms</div><div class="line">Received message: (<span class="number">00639</span>, Message_00639) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">313</span></div><div class="line">Send     message: (<span class="number">00456</span>, Message_00456) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">222</span> <span class="built_in">to</span> partition(<span class="number">0</span>) <span class="operator">in</span> <span class="number">7509</span> ms</div><div class="line">Received message: (<span class="number">00641</span>, Message_00641) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">314</span></div><div class="line">Send     message: (<span class="number">00457</span>, Message_00457) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">223</span> <span class="built_in">to</span> partition(<span class="number">0</span>) <span class="operator">in</span> <span class="number">7506</span> ms</div><div class="line">Received message: (<span class="number">00643</span>, Message_00643) <span class="keyword">at</span> <span class="built_in">offset</span> <span class="number">315</span></div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>出现错误的时候，Producer 抛出了 <code>NetworkException</code> 异常。其中有3589条 Received 日志，3583条 Send 日志，7条 <code>NetworkException</code> 异常日志，发送消息的最大序号是3590，接收消息的最大序号是3589，有以下几个值得注意的地方，</p>
+<ol>
+<li>宕机之前，消息的接收并不是顺序的，这是因为 topic1 有2个分区，Kafka 只保证分区上的有序；</li>
+<li>宕机之后，出现了长段的发送日志而没有接收日志，说明 Kafka 此时正在选举，选举的过程会阻塞消费者；</li>
+<li>从接收消息的条数和序号来看，所有的消息都收到了，没有丢（没有收到3590的消息可能是因为强制退出 client 进程的原因），发送的过程的7个异常应该只是虚警，7条异常对应序号444~450，3583条 Send 消息再加上这7条，与总消息3590条一致；</li>
+</ol>
+<p>从这个实验中，可以看到，虽然 Kafka 不保证消息重复发送，但是却在尽量保证没有消息被重复发送，可能我的实验场景还不够极端，没有做出消息重复的情况。</p>
+<p>如之前所说，如果要保持完全顺序性，需要使用单分区；如果要避免抛出 <code>NetworkException</code> 异常，就使用 Producer 同步发送。下面，我们重做上面的例子，不同之处是使用单分区和 Producer 同步发送，截取一段 Broker 宕机时的日志如下，</p>
+<p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">......</div><div class="line">Sent <span class="keyword">message</span>: (<span class="number">118</span>, Message_00118)</div><div class="line">Received <span class="keyword">message</span>: (<span class="number">00118</span>, Message_00118) at offset <span class="number">117</span></div><div class="line">Received <span class="keyword">message</span>: (<span class="number">00119</span>, Message_00119) at offset <span class="number">118</span></div><div class="line">Sent <span class="keyword">message</span>: (<span class="number">119</span>, Message_00119)</div><div class="line">Sent <span class="keyword">message</span>: (<span class="number">120</span>, Message_00120)</div><div class="line">Received <span class="keyword">message</span>: (<span class="number">00120</span>, Message_00120) at offset <span class="number">119</span></div><div class="line">Sent <span class="keyword">message</span>: (<span class="number">121</span>, Message_00121)</div><div class="line">Received <span class="keyword">message</span>: (<span class="number">00121</span>, Message_00121) at offset <span class="number">120</span></div><div class="line">Sent <span class="keyword">message</span>: (<span class="number">122</span>, Message_00122)</div><div class="line">Sent <span class="keyword">message</span>: (<span class="number">123</span>, Message_00123)</div><div class="line">Sent <span class="keyword">message</span>: (<span class="number">124</span>, Message_00124)</div><div class="line">Sent <span class="keyword">message</span>: (<span class="number">125</span>, Message_00125)</div><div class="line">Sent <span class="keyword">message</span>: (<span class="number">126</span>, Message_00126)</div><div class="line">Sent <span class="keyword">message</span>: (<span class="number">127</span>, Message_00127)</div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>可见，由于采用同步发送，Broker 宕机并没有造成抛出异常，另外，由于使用单分区，顺序性也得到了保证，全局没有出现乱序的情况。</p>
+<p>综上，是否使用多分区更多的是对顺序性的要求，而使用 Producer 同步发送还是异步发送，更多是出于重复消息的考虑，如果异步发送抛出异常，在保证不丢消息的前提下，势必要重发消息，这就会导致收到重复消息。多分区和 Producer 异步发送，会带来性能的提升，但是也会引入非顺序性，重复消息等问题，如何取舍要看应用的需求。</p>
+<h2>Kafka 最佳实践</h2>
+<p>Kafka 在一些应用场景中，有一些前人总结的最佳实践 <a href="#fn8" class="footnoteRef" id="fnref8"><sup>8</sup></a> <a href="#fn9" class="footnoteRef" id="fnref9"><sup>9</sup></a>。对最佳实践，我的看法是，对于自己比较熟悉，有把握的部分，可以按自己的步骤进行；对一些自己不清楚的领域，可以借鉴其中的一些内容，至少不会错的特别厉害。有文章<a href="#fn10" class="footnoteRef" id="fnref10"><sup>10</sup></a>说，Kafka 在分区比较多的时候，相应时间会变长，这个现象值得在实践中注意。</p>
+<h2>后记</h2>
+<p>在 Kafka 与 RocketMQ 的对比中，RocketMQ 的一个核心功能就是可以支持同步刷盘，此时，即使突然断电，也可以保证消息不丢；而 Kafka 采用的是异步刷盘，即使返回写入成功，也只是写入缓冲区成功，并非已经持久化。因此，如果出现断电或 <code>kill -9</code> 的情况，Kafka 内存中的消息可能丢失。另外，同步刷盘的效率是比较低下的，一般生产中估计也不会使用，可以用优雅关闭的方式来关闭进程。如果不考虑这些极端情况的话，Kafka 基本是一个很可靠的消息中间件。</p>
+<div class="footnotes">
+<hr>
+<ol>
+<li id="fn1"><p><a href="http://kafka.apache.org/documentation.html" target="_blank" rel="external">http://kafka.apache.org/documentation.html</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://www.jianshu.com/p/453c6e7ff81c" target="_blank" rel="external">http://www.jianshu.com/p/453c6e7ff81c</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="http://www.infoq.com/cn/author/%E9%83%AD%E4%BF%8A#文章" target="_blank" rel="external">http://www.infoq.com/cn/author/%E9%83%AD%E4%BF%8A#文章</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="http://developer.51cto.com/art/201501/464491.htm" target="_blank" rel="external">http://developer.51cto.com/art/201501/464491.htm</a><a href="#fnref4">↩</a></p></li>
+<li id="fn5"><p><a href="https://segmentfault.com/q/1010000004292925" target="_blank" rel="external">https://segmentfault.com/q/1010000004292925</a><a href="#fnref5">↩</a></p></li>
+<li id="fn6"><p><a href="http://www.cnblogs.com/gnivor/p/5318319.html" target="_blank" rel="external">http://www.cnblogs.com/gnivor/p/5318319.html</a><a href="#fnref6">↩</a></p></li>
+<li id="fn7"><p><a href="http://www.cnblogs.com/davidwang456/p/4313784.html" target="_blank" rel="external">http://www.cnblogs.com/davidwang456/p/4313784.html</a><a href="#fnref7">↩</a></p></li>
+<li id="fn8"><p><a href="http://www.jianshu.com/p/8689901720fd" target="_blank" rel="external">http://www.jianshu.com/p/8689901720fd</a><a href="#fnref8">↩</a></p></li>
+<li id="fn9"><p><a href="http://zqhxuyuan.github.io/2016/05/26/2016-05-13-Kafka-Book-Sample/" target="_blank" rel="external">http://zqhxuyuan.github.io/2016/05/26/2016-05-13-Kafka-Book-Sample/</a><a href="#fnref9">↩</a></p></li>
+<li id="fn10"><p><a href="http://www.confluent.io/blog/how-to-choose-the-number-of-topicspartitions-in-a-kafka-cluster/" target="_blank" rel="external">http://www.confluent.io/blog/how-to-choose-the-number-of-topicspartitions-in-a-kafka-cluster/</a><a href="#fnref10">↩</a></p></li>
+</ol>
+</div>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Kafka/">Kafka</a><a href="/tags/MQ/">MQ</a><a href="/tags/Java/">Java</a><a href="/tags/Scala/">Scala</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Kafka/">Kafka</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://valleylord.github.io/post/201607-mq-kafka/" data-title="说说 MQ 之 Kafka | 褚哥说|" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/post/201607-mq-rocketmq/" title="说说 MQ 之 RocketMQ">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  说说 MQ 之 RocketMQ</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/post/201606-dubbo-maven-nexus/"  title="dubbox 发布到 nexus maven 私服">
+ <strong>NEXT:</strong><br/> 
+ <span>dubbox 发布到 nexus maven 私服
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+      
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">基本概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.1.</span> <span class="toc-text">关于顺序和分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.2.</span> <span class="toc-text">关于副本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">1.3.</span> <span class="toc-text">关于丢消息和重复收到消息</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">Kafka 的工具和编程接口</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">2.1.</span> <span class="toc-text">Kafka 的工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#undefined"><span class="toc-number">2.2.</span> <span class="toc-text">Kafka 的 Java API</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">Kafka 副本和集群</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">Kafka 最佳实践</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">5.</span> <span class="toc-text">后记</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	
+	<section class="author-info">
+		
+			<p> 欢迎来到Valleylord的博客！</p>
+		
+		
+			<p>	本博的文章尽量原创。</p>
+		
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/http://weibo.com/valleylord" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/https://github.com/valleylord" target="_blank" title="github"></a>
+		
+		
+	</div>
+</div>
+<aside class="clearfix">
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Bug/" title="Bug">Bug<sup>1</sup></a></li>
+		
+			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kafka/" title="Kafka">Kafka<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Memory-Model/" title="Memory Model">Memory Model<sup>1</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>14</sup></a></li>
+		
+			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/RocketMQ/" title="RocketMQ">RocketMQ<sup>1</sup></a></li>
+		
+			<li><a href="/categories/SSL/" title="SSL">SSL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Spring-Boot/" title="Spring Boot">Spring Boot<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>0</sup></a></li>
+		
+			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Bug/" title="Bug">Bug<sup>1</sup></a></li>
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>60</sup></a></li>
+		
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>14</sup></a></li>
+		
+			<li><a href="/tags/Kafka/" title="Kafka">Kafka<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MQ/" title="MQ">MQ<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Memory-Model/" title="Memory Model">Memory Model<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MyCAT/" title="MyCAT">MyCAT<sup>14</sup></a></li>
+		
+			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/tags/Quantmod/" title="Quantmod">Quantmod<sup>3</sup></a></li>
+		
+			<li><a href="/tags/R/" title="R">R<sup>3</sup></a></li>
+		
+			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/tags/RocketMQ/" title="RocketMQ">RocketMQ<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/转载/" style="font-size: 11.43px;">转载</a>
+    </div>
+  </div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <!--
+      <li><a href="http://yangjian.me" target="_blank" title="YangJian">Alimon's Blog</a></li>
+      <li><a href="http://zespia.tw/hexo" target="_blank" title="Hexo">Hexo</a></li>
+      -->
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  //back to top
+  function backToTop(){
+    var buttonHTML = $("<a href=\"#top\" id=\"back-top\">" + "<span>Back to Top</span></a>");
+    buttonHTML.appendTo($("body"));
+    var buttonToTop = $("#back-top");
+    // hide #back-top first
+    buttonToTop.hide();
+
+    // fade in #back-top
+    $(function() {
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                buttonToTop.fadeIn();
+            } else {
+                buttonToTop.fadeOut();
+            }
+        });
+        // scroll body to 0px on click
+        buttonToTop.click(function() {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+            return false;
+        });
+    });
+  }
+  backToTop();
+
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      ta = $('#toc.toc-aside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+
+  var show = true;
+  c.click(function(){
+    if(show == true){
+        a.addClass('fadeOut').css('display', 'none');
+        ta.css('display', 'block').addClass('fadeIn');
+        m.addClass('moveMain');  
+    }else{
+        a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');     
+        ta.css('display', 'none'); 
+        m.removeClass('moveMain');
+        $('#toc.toc-aside').css('display', 'none');
+    }
+    show = !show;
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,240-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>
