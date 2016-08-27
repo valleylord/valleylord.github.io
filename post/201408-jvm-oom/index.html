@@ -90,7 +90,7 @@ java.lang.OutOfMemoryEr">
     </p>
   <p class="article-time">
     <time datetime="2014-08-16T02:49:00.000Z" itemprop="datePublished">2014-08-16</time>
-    更新日期:<time datetime="2014-12-03T01:14:27.000Z" itemprop="dateModified">2014-12-03</time>
+    更新日期:<time datetime="2016-05-25T15:04:53.741Z" itemprop="dateModified">2016-05-25</time>
     
   </p>
 </header>
@@ -114,8 +114,7 @@ java.lang.OutOfMemoryEr">
 <h3>java.lang.OutOfMemoryError: PermGen space</h3>
 <p>这个异常比较常见，是说JVM里的Perm内 存区的异常溢出，由于JVM在默认的情况下，Perm默认为64M，而很多程序需要大量的Perm区内 存，尤其使用到像Spring等框架的时候，由于需要使用到动态生成类，而这些类不能被GC自动释放，所以导致OutOfMemoryError: PermGen space异常。解决方法很简单，增大JVM的 -XX:MaxPermSize 启动参数，就可以解决这个问题，如过使用的是默认变量通常是64M[5.0 and newer: 64 bit VMs are scaled 30% larger; 1.4 amd64: 96m; 1.3.1 -client: 32m.]，改成128M就可以了，-XX:MaxPermSize=128m。如果已经是128m（Eclipse已经是128m了），就改成 256m。我一般在服务器上为安全起见，改成256m。</p>
 <h3>java.lang.OutOfMemoryError：heap space或其它OutOfMemoryError</h3>
-这个异常实际上跟上面的异常是一个异常，但解决方法不同，所以分开来写。上面那个异常是因为JVM的perm区内 存区分少了引起的（JVM的内 存区分为 young,old,perm三种）。而这个异常是因为JVM堆内 存或者说总体分少了。解决方法是更改 -Xms -Xmx 启动参数，通常是扩大1倍。xms是管理启动时最小内 存量的，xmx是管里JVM最大的内 存量的。
-<p>注：OutOfMemoryError可能有很多种原因，根据JVM Specification, 可能有一下几种情况，我先简单列出。stack：stack分区不能动态扩展，或不足以生成新的线程。Heap:需要更多的内 存，而不能获得。Method Area :如果不能满足分配需求。runtime constant pool(从Method Area分配内 存)不足以创建class or interface。native method stacks不能够动态扩展，或生成新的本地线程。</p>
+<p>这个异常实际上跟上面的异常是一个异常，但解决方法不同，所以分开来写。上面那个异常是因为JVM的perm区内 存区分少了引起的（JVM的内 存区分为 young,old,perm三种）。而这个异常是因为JVM堆内 存或者说总体分少了。解决方法是更改 -Xms -Xmx 启动参数，通常是扩大1倍。xms是管理启动时最小内 存量的，xmx是管里JVM最大的内 存量的。 注：OutOfMemoryError可能有很多种原因，根据JVM Specification, 可能有一下几种情况，我先简单列出。stack：stack分区不能动态扩展，或不足以生成新的线程。Heap:需要更多的内 存，而不能获得。Method Area :如果不能满足分配需求。runtime constant pool(从Method Area分配内 存)不足以创建class or interface。native method stacks不能够动态扩展，或生成新的本地线程。</p>
 <h3>java.lang.OutOfMemoryError: GC overhead limit exceeded</h3>
 <p>这个是JDK6新添的错误类型。是发生在GC占用大量时间为释放很小空间的时候发生的，是一种保护机制。我在JSP导大Excel的时候碰到过。最终解决方案是，关闭该功能，使用—— -XX:-UseGCOverheadLimit</p>
 <h3>java.lang.StackOverflowError</h3>
@@ -149,12 +148,12 @@ java.lang.OutOfMemoryEr">
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://www.360doc.com/content/10/0713/09/2159920_38653399.shtml" target="_blank" rel="external">http://www.360doc.com/content/10/0713/09/2159920_38653399.shtml</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://www.myexception.cn/internet/1182367.html" target="_blank" rel="external">http://www.myexception.cn/internet/1182367.html</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="http://it.deepinmind.com/gc/2014/05/14/metaspace-in-java-8.html" target="_blank" rel="external">http://it.deepinmind.com/gc/2014/05/14/metaspace-in-java-8.html</a><a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p><a href="http://mopishv0.blog.163.com/blog/static/54455932201010161162058/" target="_blank" rel="external">http://mopishv0.blog.163.com/blog/static/54455932201010161162058/</a><a href="#fnref4">↩</a></p></li>
-<li id="fn5"><p><a href="http://freejvm.iteye.com/blog/976878" target="_blank" rel="external">http://freejvm.iteye.com/blog/976878</a><a href="#fnref5">↩</a></p></li>
-<li id="fn6"><p><a href="http://www.nowamagic.net/librarys/veda/detail/2325" target="_blank" rel="external">http://www.nowamagic.net/librarys/veda/detail/2325</a><a href="#fnref6">↩</a></p></li>
+<li id="fn1"><p><a href="http://www.360doc.com/content/10/0713/09/2159920_38653399.shtml" class="uri" target="_blank" rel="external">http://www.360doc.com/content/10/0713/09/2159920_38653399.shtml</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://www.myexception.cn/internet/1182367.html" class="uri" target="_blank" rel="external">http://www.myexception.cn/internet/1182367.html</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="http://it.deepinmind.com/gc/2014/05/14/metaspace-in-java-8.html" class="uri" target="_blank" rel="external">http://it.deepinmind.com/gc/2014/05/14/metaspace-in-java-8.html</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="http://mopishv0.blog.163.com/blog/static/54455932201010161162058/" class="uri" target="_blank" rel="external">http://mopishv0.blog.163.com/blog/static/54455932201010161162058/</a><a href="#fnref4">↩</a></p></li>
+<li id="fn5"><p><a href="http://freejvm.iteye.com/blog/976878" class="uri" target="_blank" rel="external">http://freejvm.iteye.com/blog/976878</a><a href="#fnref5">↩</a></p></li>
+<li id="fn6"><p><a href="http://www.nowamagic.net/librarys/veda/detail/2325" class="uri" target="_blank" rel="external">http://www.nowamagic.net/librarys/veda/detail/2325</a><a href="#fnref6">↩</a></p></li>
 </ol>
 </div>
   
@@ -244,7 +243,7 @@ java.lang.OutOfMemoryEr">
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -293,7 +292,11 @@ java.lang.OutOfMemoryEr">
 		
 			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>1</sup></a></li>
 		
-			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+			<li><a href="/categories/other/" title="other">other<sup>2</sup></a></li>
+		
+			<li><a href="/categories/转载/" title="转载">转载<sup>1</sup></a></li>
+		
+			<li><a href="/categories/非技术/" title="非技术">非技术<sup>1</sup></a></li>
 		
 		</ul>
 </div>
@@ -315,6 +318,8 @@ java.lang.OutOfMemoryEr">
 			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>60</sup></a></li>
 		
 			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/English-Learning/" title="English Learning">English Learning<sup>1</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		
@@ -342,8 +347,6 @@ java.lang.OutOfMemoryEr">
 		
 			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
 		
-			<li><a href="/tags/RocketMQ/" title="RocketMQ">RocketMQ<sup>1</sup></a></li>
-		
 		</ul>
 </div>
 
@@ -352,7 +355,7 @@ java.lang.OutOfMemoryEr">
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/转载/" style="font-size: 11.43px;">转载</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/English-Learning/" style="font-size: 10.00px;">English Learning</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/区块链/" style="font-size: 10.00px;">区块链</a><a href="/tags/转载/" style="font-size: 12.86px;">转载</a><a href="/tags/非技术/" style="font-size: 10.00px;">非技术</a>
     </div>
   </div>
 

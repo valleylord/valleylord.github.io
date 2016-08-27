@@ -88,7 +88,7 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
     </p>
   <p class="article-time">
     <time datetime="2014-11-29T05:16:00.000Z" itemprop="datePublished">2014-11-29</time>
-    更新日期:<time datetime="2014-12-08T04:49:17.000Z" itemprop="dateModified">2014-12-08</time>
+    更新日期:<time datetime="2016-05-25T15:04:53.685Z" itemprop="dateModified">2016-05-25</time>
     
   </p>
 </header>
@@ -582,7 +582,7 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
 <p><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Date date = <span class="keyword">new</span> Date();</div><div class="line">Instant now = date.toInstant();</div><div class="line">LocalDateTime dateTime = LocalDateTime.ofInstant(now, myZone);</div><div class="line">ZonedDateTime zdt = ZonedDateTime.ofInstant(now, myZone);</div></pre></td></tr></table></figure></p>
 <h2>8 再也没有永久代了</h2>
 <blockquote>
-<p>发布的实现将把类的元数据放在本地内存，并将内部的字符串和静态类移至Java堆中。<a href="http://openjdk.java.net/jeps/122" target="_blank" rel="external">http://openjdk.java.net/jeps/122</a></p>
+<p>发布的实现将把类的元数据放在本地内存，并将内部的字符串和静态类移至Java堆中。<a href="http://openjdk.java.net/jeps/122" class="uri" target="_blank" rel="external">http://openjdk.java.net/jeps/122</a></p>
 </blockquote>
 <p>大多数情况的类元数据内存分配现在被分配在了本地内存。这意味着不用再设置&quot;XX:PermSize&quot;选项了(实际上也没有了)。</p>
 <p>这也意味着，在内存溢出的时候，你会得到&quot;java.lang.OutOfMemoryError: Metadata space&quot;的错误信息，而不是之前的&quot;java.lang.OutOfMemoryError: Permgen space&quot;</p>
@@ -721,7 +721,7 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p>译者注：本文原地址在<a href="https://leanpub.com/whatsnewinjava8/read" target="_blank" rel="external">https://leanpub.com/whatsnewinjava8/read</a><a href="#fnref1">↩</a></p></li>
+<li id="fn1"><p>译者注：本文原地址在<a href="https://leanpub.com/whatsnewinjava8/read" class="uri" target="_blank" rel="external">https://leanpub.com/whatsnewinjava8/read</a><a href="#fnref1">↩</a></p></li>
 <li id="fn2"><p>译者注：这里指Optional类<a href="#fnref2">↩</a></p></li>
 <li id="fn3"><p>lambda表达式<em>不是</em>匿名类，实际上它在字节码中使用了<code>invokedynamic</code>(译者注：动态调用)。<a href="#fnref3">↩</a></p></li>
 <li id="fn4"><p>下一节中介绍&quot;函数接口&quot;的含义。<a href="#fnref4">↩</a></p></li>
@@ -817,7 +817,7 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -866,7 +866,11 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
 		
 			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>1</sup></a></li>
 		
-			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+			<li><a href="/categories/other/" title="other">other<sup>2</sup></a></li>
+		
+			<li><a href="/categories/转载/" title="转载">转载<sup>1</sup></a></li>
+		
+			<li><a href="/categories/非技术/" title="非技术">非技术<sup>1</sup></a></li>
 		
 		</ul>
 </div>
@@ -888,6 +892,8 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
 			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>60</sup></a></li>
 		
 			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/English-Learning/" title="English Learning">English Learning<sup>1</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		
@@ -915,8 +921,6 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
 		
 			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
 		
-			<li><a href="/tags/RocketMQ/" title="RocketMQ">RocketMQ<sup>1</sup></a></li>
-		
 		</ul>
 </div>
 
@@ -925,7 +929,7 @@ Java 8是Java语言的一大步改进，写这本书的过程强迫我学习了�
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/转载/" style="font-size: 11.43px;">转载</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/English-Learning/" style="font-size: 10.00px;">English Learning</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/区块链/" style="font-size: 10.00px;">区块链</a><a href="/tags/转载/" style="font-size: 12.86px;">转载</a><a href="/tags/非技术/" style="font-size: 10.00px;">非技术</a>
     </div>
   </div>
 

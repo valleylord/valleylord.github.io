@@ -78,6 +78,82 @@
   <article>
     <h1 itemprop="name">
       
+        <a href="/post/201605-mycat-catlet/" title="MyCAT Catlet分析" itemprop="url">
+      
+        MyCAT Catlet分析
+      </a>
+    </h1>
+    
+     
+           <p itemprop="description" >Catlet 是 MyCAT 2.0上计划的新功能，预期可以完成多个数据中不同表之间的表连接（JOIN），目前还处于开发阶段。
+Catlet 的入口类是在 HintCatletHandler，该类实现了 HintHandler 接口，可以在 RouteService.route(</p>
+        
+    
+    <p class="article-more-link">
+      <time datetime="2016-05-01T04:41:35.000Z" itemprop="datePublished">2016-05-01</time>
+      
+          <a href="/post/201605-mycat-catlet/">阅读更多&raquo;</a>
+      
+    </p>
+
+  </article>
+</section>
+
+  <section class="post" itemscope itemprop="blogPost">
+  <article>
+    <h1 itemprop="name">
+      
+        <a href="/post/201604-mycat-code/" title="MyCAT 代码分析" itemprop="url">
+      
+        MyCAT 代码分析
+      </a>
+    </h1>
+    
+     
+           <p itemprop="description" >本文以 MyCAT 2.0-dev 代码为例，分析 MyCAT SQL执行部分的代码。
+系统启动
+系统的入口方法在 io.mycat.MycatStartup 中的 main 方法，主要代码如下两行，
+123MycatServer server = MycatServer.get</p>
+        
+    
+    <p class="article-more-link">
+      <time datetime="2016-04-30T11:31:06.000Z" itemprop="datePublished">2016-04-30</time>
+      
+          <a href="/post/201604-mycat-code/">阅读更多&raquo;</a>
+      
+    </p>
+
+  </article>
+</section>
+
+  <section class="post" itemscope itemprop="blogPost">
+  <article>
+    <h1 itemprop="name">
+      
+        <a href="/post/201604-mycat-drawback/" title="MyCAT 的优缺点" itemprop="url">
+      
+        MyCAT 的优缺点
+      </a>
+    </h1>
+    
+     
+           <p itemprop="description" >Mysql 的 proxy 中间件有比较多的工具，例如，mysql-proxy, atlas , cobar, mycat, tddl, tinnydbrouter等等。相比较而言，Mycat并不是最快的，但是功能比较丰富，对读写分离和分库分表都有支持，而且比较易用，对原有的应用</p>
+        
+    
+    <p class="article-more-link">
+      <time datetime="2016-04-16T03:00:59.000Z" itemprop="datePublished">2016-04-16</time>
+      
+          <a href="/post/201604-mycat-drawback/">阅读更多&raquo;</a>
+      
+    </p>
+
+  </article>
+</section>
+
+  <section class="post" itemscope itemprop="blogPost">
+  <article>
+    <h1 itemprop="name">
+      
         <a href="/post/201604-mycat-web-install/" title="Mycat-eye 安装" itemprop="url">
       
         Mycat-eye 安装
@@ -251,89 +327,9 @@ Kubernetes为每个serv</p>
   </article>
 </section>
 
-  <section class="post" itemscope itemprop="blogPost">
-  <article>
-    <h1 itemprop="name">
-      
-        <a href="/post/201603-mycat-haproxy/" title="MyCAT + Haproxy 集群" itemprop="url">
-      
-        MyCAT + Haproxy 集群
-      </a>
-    </h1>
-    
-     
-           <p itemprop="description" >MyCAT 在生产环境中，需要解决自身的高可用问题。一种常见的做法是使用 MyCAT + Haproxy 高可用集群12，这中做法在 mysql 集群中已经很常见了。对于 MyCAT 集群，其大致架构图如下，
-
-环境介绍
-出于简便考虑，本文的搭建环境在单台服务器上，MyCAT、H</p>
-        
-    
-    <p class="article-more-link">
-      <time datetime="2016-03-12T05:50:15.000Z" itemprop="datePublished">2016-03-12</time>
-      
-          <a href="/post/201603-mycat-haproxy/">阅读更多&raquo;</a>
-      
-    </p>
-
-  </article>
-</section>
-
-  <section class="post" itemscope itemprop="blogPost">
-  <article>
-    <h1 itemprop="name">
-      
-        <a href="/post/201603-kubernetes-roll/" title="Kubernetes 滚动升级" itemprop="url">
-      
-        Kubernetes 滚动升级
-      </a>
-    </h1>
-    
-     
-           <p itemprop="description" >本文使用的《Kubernetes 权威指南》中的例子。
-镜像介绍
-本文搭建的系统是一个留言板系统，使用的 docker 镜像是《Kubernetes 权威指南》中提供的，托管在 docker.io 上。如下，
-123456[root@Centos-L410]~arnes/kube</p>
-        
-    
-    <p class="article-more-link">
-      <time datetime="2016-03-06T08:22:26.000Z" itemprop="datePublished">2016-03-06</time>
-      
-          <a href="/post/201603-kubernetes-roll/">阅读更多&raquo;</a>
-      
-    </p>
-
-  </article>
-</section>
-
-  <section class="post" itemscope itemprop="blogPost">
-  <article>
-    <h1 itemprop="name">
-      
-        <a href="/post/201603-mycat-perf-test/" title="MyCAT 性能测试" itemprop="url">
-      
-        MyCAT 性能测试
-      </a>
-    </h1>
-    
-     
-           <p itemprop="description" >MyCAT 的性能测试主要是通过使用 MyCAT 自带的性能测试工具 testtool 来完成。本文将介绍该工具的使用。
-环境介绍
-数据库服务 mysql 运行在 192.168.2.201 （host：workstation）机器上，操作系统 Ubuntu 14.04；MyCA</p>
-        
-    
-    <p class="article-more-link">
-      <time datetime="2016-03-06T00:47:04.000Z" itemprop="datePublished">2016-03-06</time>
-      
-          <a href="/post/201603-mycat-perf-test/">阅读更多&raquo;</a>
-      
-    </p>
-
-  </article>
-</section>
-
 
   <nav id="page-nav" class="clearfix">
-    <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
   </nav>
 
 </div>
@@ -370,7 +366,7 @@ Kubernetes为每个serv</p>
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -419,7 +415,11 @@ Kubernetes为每个serv</p>
 		
 			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>1</sup></a></li>
 		
-			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+			<li><a href="/categories/other/" title="other">other<sup>2</sup></a></li>
+		
+			<li><a href="/categories/转载/" title="转载">转载<sup>1</sup></a></li>
+		
+			<li><a href="/categories/非技术/" title="非技术">非技术<sup>1</sup></a></li>
 		
 		</ul>
 </div>
@@ -441,6 +441,8 @@ Kubernetes为每个serv</p>
 			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>60</sup></a></li>
 		
 			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/English-Learning/" title="English Learning">English Learning<sup>1</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		
@@ -468,8 +470,6 @@ Kubernetes为每个serv</p>
 		
 			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
 		
-			<li><a href="/tags/RocketMQ/" title="RocketMQ">RocketMQ<sup>1</sup></a></li>
-		
 		</ul>
 </div>
 
@@ -478,7 +478,7 @@ Kubernetes为每个serv</p>
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/转载/" style="font-size: 11.43px;">转载</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/English-Learning/" style="font-size: 10.00px;">English Learning</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/区块链/" style="font-size: 10.00px;">区块链</a><a href="/tags/转载/" style="font-size: 12.86px;">转载</a><a href="/tags/非技术/" style="font-size: 10.00px;">非技术</a>
     </div>
   </div>
 

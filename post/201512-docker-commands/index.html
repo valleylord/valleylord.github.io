@@ -92,7 +92,7 @@
     </p>
   <p class="article-time">
     <time datetime="2015-12-18T13:03:00.000Z" itemprop="datePublished">2015-12-18</time>
-    更新日期:<time datetime="2015-12-26T07:51:59.000Z" itemprop="dateModified">2015-12-26</time>
+    更新日期:<time datetime="2016-05-25T15:04:52.941Z" itemprop="dateModified">2016-05-25</time>
     
   </p>
 </header>
@@ -265,9 +265,7 @@
 <h3>Container identification</h3>
 <h4>Name (--name)</h4>
 <p>给container命名有三种方式：</p>
-　　1. 使用UUID长命名(&quot;f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778&quot;)
-　　2. 使用UUID短命令(&quot;f78375b1c487&quot;)
-<p>　　3. 使用Name(&quot;evil_ptolemy&quot;)</p>
+<p>　　1. 使用UUID长命名(&quot;f78375b1c487e03c9438c729345e54db9d20cfa2ac1fc3494b6eb60872e74778&quot;) 　　2. 使用UUID短命令(&quot;f78375b1c487&quot;) 　　3. 使用Name(&quot;evil_ptolemy&quot;)</p>
 <p>这个UUID标示是由Docker deamon来生成的。如果你在执行docker run时没有指定 --name，那么deamon会自动生成一个随机数字符串当做UUID。但是对于一个container来说有个name会非常方便，因为你可以当你需要link其它容器时或者其他类似需要区分其它容器时，使用容器名称会简化操作。无论container运行在前台或者后台，这个名字都是有效的。</p>
 <h4>PID equivalent</h4>
 <p>当你在运行docker时有自动化的要求，那么你可以要求Docker将containerID 输出到你指定的文件中(PIDfile).这种行为就类似于有些应用程序将自身ID输出到文件中，方便后续脚本操作。</p>
@@ -364,13 +362,15 @@
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="comment">--expose=[]: Expose a port or a range of ports from the container</span></div><div class="line">            <span class="keyword">without</span> publishing <span class="keyword">it</span> <span class="built_in">to</span> your host</div><div class="line">-P=<span class="constant">false</span>   : Publish all exposed ports <span class="built_in">to</span> <span class="operator">the</span> host interfaces</div><div class="line">-p=[]      : Publish <span class="operator">a</span> container᾿s port <span class="built_in">to</span> <span class="operator">the</span> host (<span class="built_in">format</span>:</div><div class="line">             ip:hostPort:containerPort | ip::containerPort |</div><div class="line">             hostPort:containerPort | containerPort)</div><div class="line">             (use <span class="string">'docker port'</span> <span class="built_in">to</span> see <span class="operator">the</span> actual mapping)</div><div class="line"><span class="comment">--link=""  : Add link to another container (name:alias)</span></div></pre></td></tr></table></figure></p>
 <p>--expose可以让container接受外部传入的数据。container内监听的port不需要和外部host的port相同。比如说在container内部，一个HTTP服务监听在80端口，对应外部host的port就可能是49880.</p>
 <p>操作人员可以使用--expose，让新的container访问到这个container。具体有三个方式：</p>
-　　1. 使用-p来启动container。
-　　2. 使用-P来启动container。
-<p>　　3. 使用--link来启动container。</p>
+<p>　　1. 使用-p来启动container。 　　2. 使用-P来启动container。 　　3. 使用--link来启动container。</p>
 <p>如果使用-p或者-P，那么container会开发部分端口到host，只要对方可以连接到host，就可以连接到container内部。当使用-P时，docker会在host中随机从49153 和65535之间查找一个未被占用的端口绑定到container。你可以使用docker port来查找这个随机绑定端口。</p>
 <p>当你使用--link方式时，作为客户端的container可以通过私有网络形式访问到这个container。同时Docker会在客户端的container中设定一些环境变量来记录绑定的IP和PORT。</p>
 <h4>ENV (环境变量)</h4>
-<table>
+<table style="width:33%;">
+<colgroup>
+<col width="13%">
+<col width="19%">
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left">Variable</th>
@@ -579,13 +579,13 @@
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://www.server110.com/docker/201411/11122.html" target="_blank" rel="external">http://www.server110.com/docker/201411/11122.html</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://www.bubuko.com/infodetail-1027194.html" target="_blank" rel="external">http://www.bubuko.com/infodetail-1027194.html</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="http://www.open-open.com/lib/view/open1422492851548.html" target="_blank" rel="external">http://www.open-open.com/lib/view/open1422492851548.html</a><a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p><a href="https://docs.docker.com/engine/reference/run/" target="_blank" rel="external">https://docs.docker.com/engine/reference/run/</a><a href="#fnref4">↩</a></p></li>
-<li id="fn5"><p><a href="http://www.open-open.com/lib/view/open1422492851548.html" target="_blank" rel="external">http://www.open-open.com/lib/view/open1422492851548.html</a><a href="#fnref5">↩</a></p></li>
-<li id="fn6"><p><a href="http://segmentfault.com/a/1190000000667514" target="_blank" rel="external">http://segmentfault.com/a/1190000000667514</a><a href="#fnref6">↩</a></p></li>
-<li id="fn7"><p><a href="https://docs.docker.com/registry/" target="_blank" rel="external">https://docs.docker.com/registry/</a><a href="#fnref7">↩</a></p></li>
+<li id="fn1"><p><a href="http://www.server110.com/docker/201411/11122.html" class="uri" target="_blank" rel="external">http://www.server110.com/docker/201411/11122.html</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://www.bubuko.com/infodetail-1027194.html" class="uri" target="_blank" rel="external">http://www.bubuko.com/infodetail-1027194.html</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="http://www.open-open.com/lib/view/open1422492851548.html" class="uri" target="_blank" rel="external">http://www.open-open.com/lib/view/open1422492851548.html</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="https://docs.docker.com/engine/reference/run/" class="uri" target="_blank" rel="external">https://docs.docker.com/engine/reference/run/</a><a href="#fnref4">↩</a></p></li>
+<li id="fn5"><p><a href="http://www.open-open.com/lib/view/open1422492851548.html" class="uri" target="_blank" rel="external">http://www.open-open.com/lib/view/open1422492851548.html</a><a href="#fnref5">↩</a></p></li>
+<li id="fn6"><p><a href="http://segmentfault.com/a/1190000000667514" class="uri" target="_blank" rel="external">http://segmentfault.com/a/1190000000667514</a><a href="#fnref6">↩</a></p></li>
+<li id="fn7"><p><a href="https://docs.docker.com/registry/" class="uri" target="_blank" rel="external">https://docs.docker.com/registry/</a><a href="#fnref7">↩</a></p></li>
 </ol>
 </div>
   
@@ -670,7 +670,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -719,7 +719,11 @@
 		
 			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>1</sup></a></li>
 		
-			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+			<li><a href="/categories/other/" title="other">other<sup>2</sup></a></li>
+		
+			<li><a href="/categories/转载/" title="转载">转载<sup>1</sup></a></li>
+		
+			<li><a href="/categories/非技术/" title="非技术">非技术<sup>1</sup></a></li>
 		
 		</ul>
 </div>
@@ -741,6 +745,8 @@
 			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>60</sup></a></li>
 		
 			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/English-Learning/" title="English Learning">English Learning<sup>1</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		
@@ -768,8 +774,6 @@
 		
 			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
 		
-			<li><a href="/tags/RocketMQ/" title="RocketMQ">RocketMQ<sup>1</sup></a></li>
-		
 		</ul>
 </div>
 
@@ -778,7 +782,7 @@
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/转载/" style="font-size: 11.43px;">转载</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/English-Learning/" style="font-size: 10.00px;">English Learning</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/区块链/" style="font-size: 10.00px;">区块链</a><a href="/tags/转载/" style="font-size: 12.86px;">转载</a><a href="/tags/非技术/" style="font-size: 10.00px;">非技术</a>
     </div>
   </div>
 

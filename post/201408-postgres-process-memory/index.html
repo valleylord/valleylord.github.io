@@ -88,7 +88,7 @@ PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列
     </p>
   <p class="article-time">
     <time datetime="2014-08-31T04:54:00.000Z" itemprop="datePublished">2014-08-31</time>
-    更新日期:<time datetime="2016-03-26T14:09:08.000Z" itemprop="dateModified">2016-03-26</time>
+    更新日期:<time datetime="2016-05-25T15:04:53.421Z" itemprop="dateModified">2016-05-25</time>
     
   </p>
 </header>
@@ -203,11 +203,8 @@ PostgreSQL是一个多进程结构的系统，由master主进程fork出一系列
 </ul>
 </blockquote>
 <blockquote>
-<p>创建一个叫做 tablename，OID 为 tableoid 的表，表字段在圆括弧中给出。</p>
+<p>创建一个叫做 tablename，OID 为 tableoid 的表，表字段在圆括弧中给出。 bootstrap.c 直接支持下列字段类型： bool，bytea，char （1 字节）， name，int2，int4， regproc，regclass， regtype，text，oid， tid，xid， cid，int2vector，oidvector， _int4 （数组），_text （数组）， _aclitem（数组）。尽管我们可以创建包含其它类型字段的表， 但是我们只有在创建完 pg_type 并且填充了合适的记录之后才行。 （这实际上就意味着在系统初始化表中，只能使用这些字段类型，而非系统初始化表可以使用任意内置类型。） 如果声明了 bootstrap，那么改表将只在磁盘上创建； 不会向 pg_class，pg_attribute 等系统表里面输入任何东西。 因此这样的表将无法被普通的 SQL 操作访问，直到那些记录用硬办法（用 insert 命令）填入。 这个选项用于创建 pg_class 等自身。 如果声明了 shared_relation，那么表就作为共享表创建。 除非声明了 without_oids，否则将会有 OID。</p>
 </blockquote>
-bootstrap.c 直接支持下列字段类型： bool，bytea，char （1 字节）， name，int2，int4， regproc，regclass， regtype，text，oid， tid，xid， cid，int2vector，oidvector， <em>int4 （数组），</em>text （数组）， <em>aclitem（数组）。尽管我们可以创建包含其它类型字段的表， 但是我们只有在创建完 pg</em>type 并且填充了合适的记录之后才行。 （这实际上就意味着在系统初始化表中，只能使用这些字段类型，而非系统初始化表可以使用任意内置类型。）
-如果声明了 bootstrap，那么改表将只在磁盘上创建； 不会向 pg_class，pg_attribute 等系统表里面输入任何东西。 因此这样的表将无法被普通的 SQL 操作访问，直到那些记录用硬办法（用 insert 命令）填入。 这个选项用于创建 pg_class 等自身。
-<p>如果声明了 shared_relation，那么表就作为共享表创建。 除非声明了 without_oids，否则将会有 OID。</p>
 <blockquote>
 <ul>
 <li>open tablename</li>
@@ -222,10 +219,8 @@ bootstrap.c 直接支持下列字段类型： bool，bytea，char （1 字节）
 </ul>
 </blockquote>
 <blockquote>
-<p>关闭打开的表。给出的表明是用于交叉检查，但并不是必须的。</p>
+<p>关闭打开的表。给出的表明是用于交叉检查，但并不是必须的。 》 * insert [OID = oid_value] (value1 value2 ...) 用 value1， value2， 等作为字段值以及 oid_value 作为其 OID（对象标识）向打开的表插入一条新记录，如果 oid_value 为零（0），否则省略了改子句，而表则拥有 OID，并赋予下一个可用的 OID 数值。NULL 可以用特殊的关键字 _null_声明。包含空白的值必须用双引号栝起。</p>
 </blockquote>
-》 * insert [OID = oid_value] (value1 value2 ...)
-<p>用 value1， value2， 等作为字段值以及 oid_value 作为其 OID（对象标识）向打开的表插入一条新记录，如果 oid_value 为零（0），否则省略了改子句，而表则拥有 OID，并赋予下一个可用的 OID 数值。NULL 可以用特殊的关键字 <em>null</em>声明。包含空白的值必须用双引号栝起。</p>
 <blockquote>
 <ul>
 <li>declare [unique] index indexname indexoid on tablename using amname ( opclass1 name1 [, ...] )</li>
@@ -273,7 +268,7 @@ bootstrap.c 直接支持下列字段类型： bool，bytea，char （1 字节）
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://www.cnblogs.com/gaojian/p/3288350.html" target="_blank" rel="external">http://www.cnblogs.com/gaojian/p/3288350.html</a><a href="#fnref1">↩</a></p></li>
+<li id="fn1"><p><a href="http://www.cnblogs.com/gaojian/p/3288350.html" class="uri" target="_blank" rel="external">http://www.cnblogs.com/gaojian/p/3288350.html</a><a href="#fnref1">↩</a></p></li>
 </ol>
 </div>
   
@@ -363,7 +358,7 @@ bootstrap.c 直接支持下列字段类型： bool，bytea，char （1 字节）
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -412,7 +407,11 @@ bootstrap.c 直接支持下列字段类型： bool，bytea，char （1 字节）
 		
 			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>1</sup></a></li>
 		
-			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+			<li><a href="/categories/other/" title="other">other<sup>2</sup></a></li>
+		
+			<li><a href="/categories/转载/" title="转载">转载<sup>1</sup></a></li>
+		
+			<li><a href="/categories/非技术/" title="非技术">非技术<sup>1</sup></a></li>
 		
 		</ul>
 </div>
@@ -434,6 +433,8 @@ bootstrap.c 直接支持下列字段类型： bool，bytea，char （1 字节）
 			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>60</sup></a></li>
 		
 			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/English-Learning/" title="English Learning">English Learning<sup>1</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		
@@ -461,8 +462,6 @@ bootstrap.c 直接支持下列字段类型： bool，bytea，char （1 字节）
 		
 			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
 		
-			<li><a href="/tags/RocketMQ/" title="RocketMQ">RocketMQ<sup>1</sup></a></li>
-		
 		</ul>
 </div>
 
@@ -471,7 +470,7 @@ bootstrap.c 直接支持下列字段类型： bool，bytea，char （1 字节）
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/转载/" style="font-size: 11.43px;">转载</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/English-Learning/" style="font-size: 10.00px;">English Learning</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/区块链/" style="font-size: 10.00px;">区块链</a><a href="/tags/转载/" style="font-size: 12.86px;">转载</a><a href="/tags/非技术/" style="font-size: 10.00px;">非技术</a>
     </div>
   </div>
 

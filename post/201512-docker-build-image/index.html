@@ -89,7 +89,7 @@ FROM
     </p>
   <p class="article-time">
     <time datetime="2015-12-27T01:43:00.000Z" itemprop="datePublished">2015-12-27</time>
-    更新日期:<time datetime="2015-12-27T09:56:54.000Z" itemprop="dateModified">2015-12-27</time>
+    更新日期:<time datetime="2016-05-25T15:04:53.349Z" itemprop="dateModified">2016-05-25</time>
     
   </p>
 </header>
@@ -114,36 +114,25 @@ FROM
 <p>前者将在 shell 终端中运行命令，即 <code>/bin/sh -c</code>；后者则使用 <code>exec</code> 执行。指定使用其它终端可以通过第二种方式实现，例如 <code>RUN [&quot;/bin/bash&quot;, &quot;-c&quot;, &quot;echo hello&quot;]</code>。</p>
 <p>每条 <code>RUN</code> 指令将在当前镜像基础上执行指定命令，并提交为新的镜像。当命令较长时可以使用 <code>\</code> 来换行。</p>
 <h3>CMD</h3>
-支持三种格式
-<ul>
-<li><code>CMD [&quot;executable&quot;,&quot;param1&quot;,&quot;param2&quot;]</code> 使用 <code>exec</code> 执行，推荐方式；</li>
-<li><code>CMD command param1 param2</code> 在 <code>/bin/sh</code> 中执行，提供给需要交互的应用；</li>
-<li><code>CMD [&quot;param1&quot;,&quot;param2&quot;]</code> 提供给 <code>ENTRYPOINT</code> 的默认参数；</li>
-</ul>
+<p>支持三种格式 * <code>CMD [&quot;executable&quot;,&quot;param1&quot;,&quot;param2&quot;]</code> 使用 <code>exec</code> 执行，推荐方式； * <code>CMD command param1 param2</code> 在 <code>/bin/sh</code> 中执行，提供给需要交互的应用； * <code>CMD [&quot;param1&quot;,&quot;param2&quot;]</code> 提供给 <code>ENTRYPOINT</code> 的默认参数；</p>
 <p>指定启动容器时执行的命令，每个 Dockerfile 只能有一条 <code>CMD</code> 命令。如果指定了多条命令，只有最后一条会被执行。</p>
 <p>如果用户启动容器时候指定了运行的命令，则会覆盖掉 <code>CMD</code> 指定的命令。</p>
 <h3>EXPOSE</h3>
 <p>格式为 <code>EXPOSE &lt;port&gt; [&lt;port&gt;...]</code>。</p>
 <p>告诉 Docker 服务端容器暴露的端口号，供互联系统使用。在启动容器时需要通过 -P，Docker 主机会自动分配一个端口转发到指定的端口。</p>
 <h3>ENV</h3>
-格式为 <code>ENV &lt;key&gt; &lt;value&gt;</code>。
-<p>指定一个环境变量，会被后续 <code>RUN</code> 指令使用，并在容器运行时保持。</p>
+<p>格式为 <code>ENV &lt;key&gt; &lt;value&gt;</code>。 指定一个环境变量，会被后续 <code>RUN</code> 指令使用，并在容器运行时保持。</p>
 <p>例如</p>
 <p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="constant">ENV</span> <span class="constant">PG_MAJOR</span> <span class="number">9.3</span></div><div class="line"><span class="constant">ENV</span> <span class="constant">PG_VERSION</span> <span class="number">9.3</span>.<span class="number">4</span></div><div class="line"><span class="constant">RUN</span> curl -<span class="constant">SL</span> <span class="symbol">http:</span>/<span class="regexp">/example.com/postgres</span>-<span class="variable">$PG_VERSION</span>.tar.xz | tar -xJC /usr/src/postgress && …</div><div class="line"><span class="constant">ENV</span> <span class="constant">PATH</span> /usr/local/postgres-<span class="variable">$PG_MAJOR</span>/<span class="symbol">bin:</span><span class="variable">$PATH</span></div></pre></td></tr></table></figure></p>
 <h3>ADD</h3>
 <p>格式为 <code>ADD &lt;src&gt; &lt;dest&gt;</code>。</p>
-该命令将复制指定的 <code>&lt;src&gt;</code> 到容器中的 <code>&lt;dest&gt;</code>。
-<p>其中 <code>&lt;src&gt;</code> 可以是Dockerfile所在目录的一个相对路径；也可以是一个 URL；还可以是一个 tar 文件（自动解压为目录）。</p>
+<p>该命令将复制指定的 <code>&lt;src&gt;</code> 到容器中的 <code>&lt;dest&gt;</code>。 其中 <code>&lt;src&gt;</code> 可以是Dockerfile所在目录的一个相对路径；也可以是一个 URL；还可以是一个 tar 文件（自动解压为目录）。</p>
 <h3>COPY</h3>
 <p>格式为 <code>COPY &lt;src&gt; &lt;dest&gt;</code>。</p>
 <p>复制本地主机的 <code>&lt;src&gt;</code>（为 Dockerfile 所在目录的相对路径）到容器中的 <code>&lt;dest&gt;</code>。</p>
 <p>当使用本地目录为源目录时，推荐使用 <code>COPY</code>。</p>
 <h3>ENTRYPOINT</h3>
-两种格式：
-<ul>
-<li><code>ENTRYPOINT [&quot;executable&quot;, &quot;param1&quot;, &quot;param2&quot;]</code></li>
-<li><code>ENTRYPOINT command param1 param2</code>（shell中执行）。</li>
-</ul>
+<p>两种格式： * <code>ENTRYPOINT [&quot;executable&quot;, &quot;param1&quot;, &quot;param2&quot;]</code> * <code>ENTRYPOINT command param1 param2</code>（shell中执行）。</p>
 <p>配置容器启动后执行的命令，并且不可被 <code>docker run</code> 提供的参数覆盖。</p>
 <p>每个 Dockerfile 中只能有一个 <code>ENTRYPOINT</code>，当指定多个时，只有最后一个起效。</p>
 <h3>VOLUME</h3>
@@ -220,11 +209,11 @@ FROM
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p><a href="http://dockerpool.com/static/books/docker_practice/dockerfile/instructions.html" target="_blank" rel="external">http://dockerpool.com/static/books/docker_practice/dockerfile/instructions.html</a><a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p><a href="http://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/" target="_blank" rel="external">http://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/</a><a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p><a href="https://github.com/mysql/mysql-docker/tree/mysql-server/5.6" target="_blank" rel="external">https://github.com/mysql/mysql-docker/tree/mysql-server/5.6</a><a href="#fnref3">↩</a></p></li>
-<li id="fn4"><p><a href="http://blog.sina.com.cn/s/blog_638b7ebb0102vv80.html" target="_blank" rel="external">http://blog.sina.com.cn/s/blog_638b7ebb0102vv80.html</a><a href="#fnref4">↩</a></p></li>
-<li id="fn5"><p><a href="http://blog.csdn.net/dreamcode/article/details/44307377" target="_blank" rel="external">http://blog.csdn.net/dreamcode/article/details/44307377</a><a href="#fnref5">↩</a></p></li>
+<li id="fn1"><p><a href="http://dockerpool.com/static/books/docker_practice/dockerfile/instructions.html" class="uri" target="_blank" rel="external">http://dockerpool.com/static/books/docker_practice/dockerfile/instructions.html</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/" class="uri" target="_blank" rel="external">http://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="https://github.com/mysql/mysql-docker/tree/mysql-server/5.6" class="uri" target="_blank" rel="external">https://github.com/mysql/mysql-docker/tree/mysql-server/5.6</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="http://blog.sina.com.cn/s/blog_638b7ebb0102vv80.html" class="uri" target="_blank" rel="external">http://blog.sina.com.cn/s/blog_638b7ebb0102vv80.html</a><a href="#fnref4">↩</a></p></li>
+<li id="fn5"><p><a href="http://blog.csdn.net/dreamcode/article/details/44307377" class="uri" target="_blank" rel="external">http://blog.csdn.net/dreamcode/article/details/44307377</a><a href="#fnref5">↩</a></p></li>
 </ol>
 </div>
   
@@ -314,7 +303,7 @@ FROM
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
   </div>
 
 
@@ -363,7 +352,11 @@ FROM
 		
 			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>1</sup></a></li>
 		
-			<li><a href="/categories/other/" title="other">other<sup>1</sup></a></li>
+			<li><a href="/categories/other/" title="other">other<sup>2</sup></a></li>
+		
+			<li><a href="/categories/转载/" title="转载">转载<sup>1</sup></a></li>
+		
+			<li><a href="/categories/非技术/" title="非技术">非技术<sup>1</sup></a></li>
 		
 		</ul>
 </div>
@@ -385,6 +378,8 @@ FROM
 			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>60</sup></a></li>
 		
 			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/English-Learning/" title="English Learning">English Learning<sup>1</sup></a></li>
 		
 			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
 		
@@ -412,8 +407,6 @@ FROM
 		
 			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
 		
-			<li><a href="/tags/RocketMQ/" title="RocketMQ">RocketMQ<sup>1</sup></a></li>
-		
 		</ul>
 </div>
 
@@ -422,7 +415,7 @@ FROM
   <div class="tagcloudlist">
     <p class="asidetitle">标签云</p>
     <div class="tagcloudlist clearfix">
-       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/转载/" style="font-size: 11.43px;">转载</a>
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/English-Learning/" style="font-size: 10.00px;">English Learning</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/区块链/" style="font-size: 10.00px;">区块链</a><a href="/tags/转载/" style="font-size: 12.86px;">转载</a><a href="/tags/非技术/" style="font-size: 10.00px;">非技术</a>
     </div>
   </div>
 
