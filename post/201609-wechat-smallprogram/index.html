@@ -1,0 +1,549 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>微信的小程序会解决我们什么问题 | 褚哥说|</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Valleylord">
+    
+    <meta name="description" content="本文写于2016年09月25日，当时对文章内容很不自信，所以延迟到很晚才发。 —— valleylord
+
+写在前面
+2016年1月11日，广州，“微信之父”张小龙首次公开演讲，宣布微信公众号将推出“应用号”。
+2016年9月21日晚间微信官方向部分公众号发出了应用号的内测邀请，2016年9月22日">
+    
+    
+    
+    
+    <link rel="alternative" href="/atom.xml" title="褚哥说|" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/author.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/author.jpg">
+    
+
+	
+	<link href="http://cdn.bootcss.com/highlight.js/8.2/styles/monokai.min.css" rel="stylesheet">
+	<script src="http://cdn.bootcss.com/highlight.js/8.2/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+	
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="褚哥说|">褚哥说|</a></h1>
+				<h2 class="blog-motto">我想写一些东西</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul><li> <a href="/atom.xml">RSS</a> </li>
+                    <ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/tags">标签</a></li>
+					
+						<li><a href="/links">链接</a></li>
+					
+						<li><a href="http://www.cnblogs.com/valleylord/">旧文</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					</li>
+                <li><div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div></li>
+
+				</ul>
+			</nav>
+</div>
+
+    </header>
+    <div id="container" class="clearfix">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/post/201609-wechat-smallprogram/" title="微信的小程序会解决我们什么问题" itemprop="url">微信的小程序会解决我们什么问题</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://valleylord.github.io" title="Valleylord">Valleylord</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-09-24T23:07:25.000Z" itemprop="datePublished">2016-09-25</time>
+    更新日期:<time datetime="2017-06-10T03:35:51.772Z" itemprop="dateModified">2017-06-10</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">写在前面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">“小程序”会改变现在 APP 的格局么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">什么样的场景需要“小程序”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">后记</span></a></li></ol>
+		</div>
+		
+		<blockquote>
+<p>本文写于2016年09月25日，当时对文章内容很不自信，所以延迟到很晚才发。 —— valleylord</p>
+</blockquote>
+<h2>写在前面</h2>
+<p>2016年1月11日，广州，“微信之父”张小龙首次公开演讲，宣布微信公众号将推出“应用号”。</p>
+<p>2016年9月21日晚间微信官方向部分公众号发出了应用号的内测邀请，2016年9月22日凌晨微信正式对外声明已经开始内测。</p>
+<p>为什么在订阅号、服务号、企业号之后，仍然要开发“小程序”？</p>
+<blockquote>
+<p>from 张小龙： 我们希望存在一种新的公众号形态，这种形态下面用户关注了一个公众号，就像安装了一个APP一样。</p>
+</blockquote>
+<p>什么是小程序？</p>
+<blockquote>
+<p>from 张小龙 的微信朋友圈： 小程序是一种不需要下载安装即可使用的应用，它实现了应用“触手可及”的梦想，用户扫一扫或者搜一下即可打开应用。也体现了“用完即走”的理念，用户不用关心是否安装太多应用的问题。应用将无处不在，随时可用，但又无需安装卸载。</p>
+</blockquote>
+<p>笔者动笔写下这篇文章的时间是2016年9月25日，宣布“小程序”内侧后1周之内，以上这些内容，搜索引擎都搜的到。</p>
+<h2>“小程序”会改变现在 APP 的格局么</h2>
+<p>现在的 APP 都是通过应用市场进行分发，技术上使用原生应用模式开发。对比“小程序”的话，“小程序”相对封闭，通过微信分发，技术上使用 HTML5 模式开发（即不需要安装）。原生 APP 从 Android 系统桌面进入，“小程序”从微信的“发现-&gt;小程序”中进入，便捷程度上差很多。不可否认，原生 APP 的用户体验相比 HTML5 应用来说，还是好很多。原生 APP 需要从应用市场作为入口，先安装再使用，“小程序”可以做到即扫即用，不需要安装。</p>
+<p>几个回合的比较下来，除了不需要安装这一点略胜一筹，“小程序”几乎完败。一群鼓吹“小程序”可以颠覆现有 APP 格局的所谓互联网分析师们可以醒醒了。</p>
+<p>好吧，为了击碎“小程序改变 APP 格局”的幻想，我们来举个栗子。以京东商城 APP 来看，京东和腾讯达成合作，最终在2014年5月上线了微信购物，从“发现-&gt;购物”进入，可以进入京东购物，实际上就是相当于京东商城的 HTML5 版本。从技术实现和用户体验上来说，“京东购物”和“小程序”如出一辙，如果大家对“小程序”的用户体验什么的还有期待的话，可以多看看这个应用，最多也就是做到和“京东购物”差不多的水准。而且，京东购物的进入路径比小程序更加便捷。而结果呢？？“我们还有非常大的空间，有90%流量资源可以开发。——刘强东”，换句话说，京东利用腾讯的流量最多只有10%<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>，这是京东购物上线1年半左右的一个报道。</p>
+<p>目前，京东没有公开来自微信入口的下单量数据，我们也无从猜测。从公开的数据来看，2015年第四季度，移动端下单来量占比61.4%，2016年第一、二季度，移动端的下单量分别占比72.4%、79.3%，同时，腾讯入口带给京东的流量支持也在减缓<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>。同时，官方数据称，当入口的级别提升一层的时候，“交易量提升8倍”<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>。因此，如果京东购物的级别降低到“小程序”那个级别的时候，假定以上现象可以重复，交易量很可能会降低到1/8，这是一个粗略的估计。我们假定交易量的增长比例与用户增长比例相同，移动端用户量比例和移动端下单量比例等比增长，进行后续分析。</p>
+<p>以京东财报来看，2015年第四季度，活跃用户有1.55亿，根据移动下单量61.4%（粗略等于移动端用户量比例），京东有“1.55亿x61.4%=9500万”移动用户量，而“手机QQ+微信”分别各拥有6亿活跃用户，按刘强东的说法，最多只有10%的用户流量，也就是1.2亿用户使用了京东购物，这个数字远大于9500万，看来刘强东还是吹了一些牛的。</p>
+<p>不过，我们可以从一些文章中粗略估计出微信购物下单量的上线，以2014年“618”的战绩来看，移动端中，“手机QQ+微信”的贡献量最多在7%，移动端全部占比25%<a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a>，实际上，考虑到京东 APP 的增长，实际的“手机QQ+微信”的贡献量可能在5%（全平台），甚至不足，移动端下单量的比例大约是4:1（京东 APP : “手机QQ+微信”）。再看到2015年第四季度，京东新增用户中有1/3来自微信购物和手机QQ购物<a href="#fn5" class="footnoteRef" id="fnref5"><sup>5</sup></a>，这里的用语有非常细微的差异，“新增用户”占比52%，并非“新增下单量”占比52%。可见“手机QQ+微信”作为入口，带来的很多的新用户，也许这才是京东和腾讯合作的目的。</p>
+<p>下面的数字纯属笔者的猜测，京东 APP 的用户基数比较大，但是增长缓慢；“手机QQ+微信”京东入口的用户比较少，但是增长迅速，至今有多少用户，多少交易是使用“手机QQ+微信”作为入口的，也没有准确数字，假定“手机QQ+微信”已经超过京东 APP，比例是1:2（京东 APP ：“手机QQ+微信”），这是一个最大化“手机QQ+微信”用户数的假设。在根据之前的9500万用户数，可以大致计算出，“手机QQ+微信”用户数大约有6000万，占所有用户的2/5。再假设，微信是“手机QQ+微信”流量的主导流量，其中7成流量来自微信，也就是4200万，这是上限假设，也是微信对京东目前能有的最大影响。</p>
+<p>假设4200万的假设合理，京东有接近1/3的用户，或者说成交量来自微信，粗看这是一个非常客观的数字，但是别忘了，还有8倍的路径便捷效应。假设微信把京东放回到原先的位置，路径复杂度与“小程序”相当，4200万的用户会降低到1/8，也就是540万，总用户降低到1.18亿，微信用户占比为5%，而且这还是最好估计。可以说，京东购物是“小程序”的前期试水，也让微信在做“小程序”的时候找准方向。</p>
+<p>因此，“小程序”对大互联网应用的影响是微乎其微的，比如滴滴、百度地图、墨迹天气、腾讯音乐等等，费劲心思去抢占所谓的微信入口，也就是能拿到5%不到的用户，不划算。所以，我认为，“小程序”对 APP 的格局影响是微乎其微的，有了“小程序”之后，你手机中的常用 APP 数量不会减少。</p>
+<h2>什么样的场景需要“小程序”</h2>
+<p>一句话，低频且重要，尤其一些定制化很强的场景需要“小程序”。“定制化很强”从字面上比较好理解，“低频且重要”作何解释呢？</p>
+<p>一般的场景，重要会与高频联系在一起，之前举例的滴滴、百度地图、墨迹天气都是这类的例子；也有一些场景，高频且不重要，多数是一些体育娱乐产业 APP 相关的场景；低频且重要的场景也很多，比如猎聘、携程、京东众筹、代驾类；低频且不重要的场景主要是一些小众、专业的应用<a href="#fn6" class="footnoteRef" id="fnref6"><sup>6</sup></a>。</p>
+<p>上面的举例中，低频且重要的场景，都是通用场景，虽然使用频率很低，但是具有通用性，流程固定，不需要定制化。那么，“低频+重要+强定制化”是什么场景呢？比如，某XX广场的商圈，提供定制化服务“小程序”，客户可以根据店名找到这个店在商圈中的具体位置，比如在几楼，加入导航，怎么走过去；如果该店是一个餐馆，还可以进入该店的定制化“小程序”查看当前排队情况，顺便拿号排队，甚至可以提前查看该餐馆的定制化菜单，先点好菜。再比如，政府的在线服务窗口，出入境管理处办护照的流程，和民政局领结婚证的流程，肯定是不一样的，这都是定制化“小程序”的应用场景。</p>
+<p>那么来说说，为什么这样的场景是低频的。首先，一般不会有人为了去买个东西、吃个饭特地去安装一个 APP，在用户看来，我去这个商场买东西、吃饭的概率是很低的，怕麻烦，不想装。而实际上，一般如果你觉得一个商圈运营的很好，你会多次的去那里消费，一年去个10次实际上就不能算是低频了（对一个消费场所而言），但在 APP 的使用来看，一年用10次的 APP 可能就是个超低频。</p>
+<p>再来说说，为什么这样的场景是重要的。还是以商圈举例，假设有这样一个商圈，你1年会去5次，每次在那边花费100元，总共就是500元/年，这个数字对于一个稍有人气的商圈而言是明显偏低的。因此，如果有这样的“小程序”，绝对击败95%的应用，不信看看你手机里的应用，年交易流水超过500元的有多少？就算是餐馆的“小程序”，你一年去吃一次，一次200元，按交易额也依然能轻松打败你手机里面绝大部分应用。</p>
+<p>最后来说一下定制化，不同商圈希望给客户带来不同的用户体验，不同的商圈地图、不同的商户介绍和图片等等；不同的餐馆会希望有不同的菜单呈现方式，是否允许在线排队、在线点菜，是否可以选特定位置的座位等等。这些都是定制化需求，能否统一这些需求？我觉得很难，几乎不可能。</p>
+<h2>后记</h2>
+<p>这篇文章发布与2017年6月10日，这段话是发布这一天加的。从现在小程序的发展来看，“低频且重要”这个特性还是主流，增加了按地理位置搜索小程序功能，说明商圈式应用是有可能的，虽然还没有出现文中说的商圈定制化小程序（可能已经有了，我不知道而已）。再等等，看看吧。</p>
+<div class="footnotes">
+<hr>
+<ol>
+<li id="fn1"><p><a href="http://tech.qq.com/a/20151019/016537.htm" class="uri" target="_blank" rel="external">http://tech.qq.com/a/20151019/016537.htm</a><a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="http://mt.sohu.com/20160510/n448655529.shtml" class="uri" target="_blank" rel="external">http://mt.sohu.com/20160510/n448655529.shtml</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p><a href="http://mi.techweb.com.cn/news/2014-06-05/2043855.shtml" class="uri" target="_blank" rel="external">http://mi.techweb.com.cn/news/2014-06-05/2043855.shtml</a><a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p><a href="http://www.ebrun.com/20160529/177824.shtml" class="uri" target="_blank" rel="external">http://www.ebrun.com/20160529/177824.shtml</a><a href="#fnref4">↩</a></p></li>
+<li id="fn5"><p><a href="http://tech.ifeng.com/a/20160527/41614852_0.shtml" class="uri" target="_blank" rel="external">http://tech.ifeng.com/a/20160527/41614852_0.shtml</a><a href="#fnref5">↩</a></p></li>
+<li id="fn6"><p><a href="http://news.zol.com.cn/606/6061434.html" class="uri" target="_blank" rel="external">http://news.zol.com.cn/606/6061434.html</a><a href="#fnref6">↩</a></p></li>
+</ol>
+</div>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/wechat/">wechat</a><a href="/tags/产品/">产品</a><a href="/tags/互联网/">互联网</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/other/">other</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://valleylord.github.io/post/201609-wechat-smallprogram/" data-title="微信的小程序会解决我们什么问题 | 褚哥说|" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/post/201610-my-daughter-1/" title="孩子有些不专注怎么办">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  孩子有些不专注怎么办</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/post/201608-english-watermelon/"  title="我们该如何教孩子学英语">
+ <strong>NEXT:</strong><br/> 
+ <span>我们该如何教孩子学英语
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+</div>  
+      
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">1.</span> <span class="toc-text">写在前面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">2.</span> <span class="toc-text">“小程序”会改变现在 APP 的格局么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">3.</span> <span class="toc-text">什么样的场景需要“小程序”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#undefined"><span class="toc-number">4.</span> <span class="toc-text">后记</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	
+	<section class="author-info">
+		
+			<p> 欢迎来到Valleylord的博客！</p>
+		
+		
+			<p>	本博的文章尽量原创。</p>
+		
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/http://weibo.com/valleylord" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/https://github.com/valleylord" target="_blank" title="github"></a>
+		
+		
+	</div>
+</div>
+<aside class="clearfix">
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/12/">December 2014</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">November 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">October 2014</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/09/">September 2014</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">August 2014</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/05/">May 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">February 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2000/01/">January 2000</a><span class="archive-list-count">1</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Bug/" title="Bug">Bug<sup>1</sup></a></li>
+		
+			<li><a href="/categories/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Dataguru/" title="Dataguru">Dataguru<sup>3</sup></a></li>
+		
+			<li><a href="/categories/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/categories/FP/" title="FP">FP<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/categories/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kafka/" title="Kafka">Kafka<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Memory-Model/" title="Memory Model">Memory Model<sup>1</sup></a></li>
+		
+			<li><a href="/categories/MyCAT/" title="MyCAT">MyCAT<sup>14</sup></a></li>
+		
+			<li><a href="/categories/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/categories/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/RocketMQ/" title="RocketMQ">RocketMQ<sup>1</sup></a></li>
+		
+			<li><a href="/categories/SSL/" title="SSL">SSL<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Spring-Boot/" title="Spring Boot">Spring Boot<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Tomcat/" title="Tomcat">Tomcat<sup>0</sup></a></li>
+		
+			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/other/" title="other">other<sup>4</sup></a></li>
+		
+			<li><a href="/categories/转载/" title="转载">转载<sup>1</sup></a></li>
+		
+			<li><a href="/categories/非技术/" title="非技术">非技术<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Blog/" title="Blog">Blog<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Bug/" title="Bug">Bug<sup>1</sup></a></li>
+		
+			<li><a href="/tags/C/" title="C++">C++<sup>3</sup></a></li>
+		
+			<li><a href="/tags/C-11/" title="C++11">C++11<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Dataguru/" title="Dataguru">Dataguru<sup>60</sup></a></li>
+		
+			<li><a href="/tags/Docker/" title="Docker">Docker<sup>7</sup></a></li>
+		
+			<li><a href="/tags/English-Learning/" title="English Learning">English Learning<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JVM/" title="JVM">JVM<sup>10</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>14</sup></a></li>
+		
+			<li><a href="/tags/Kafka/" title="Kafka">Kafka<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Kubernetes/" title="Kubernetes">Kubernetes<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MQ/" title="MQ">MQ<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Memory-Model/" title="Memory Model">Memory Model<sup>1</sup></a></li>
+		
+			<li><a href="/tags/MyCAT/" title="MyCAT">MyCAT<sup>14</sup></a></li>
+		
+			<li><a href="/tags/Postgres/" title="Postgres">Postgres<sup>18</sup></a></li>
+		
+			<li><a href="/tags/Quantmod/" title="Quantmod">Quantmod<sup>3</sup></a></li>
+		
+			<li><a href="/tags/R/" title="R">R<sup>3</sup></a></li>
+		
+			<li><a href="/tags/REPL/" title="REPL">REPL<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Blog/" style="font-size: 10.00px;">Blog</a><a href="/tags/Bug/" style="font-size: 10.00px;">Bug</a><a href="/tags/C/" style="font-size: 12.86px;">C++</a><a href="/tags/C-11/" style="font-size: 10.00px;">C++11</a><a href="/tags/Dataguru/" style="font-size: 20.00px;">Dataguru</a><a href="/tags/Docker/" style="font-size: 14.29px;">Docker</a><a href="/tags/English-Learning/" style="font-size: 10.00px;">English Learning</a><a href="/tags/Hexo/" style="font-size: 10.00px;">Hexo</a><a href="/tags/JVM/" style="font-size: 15.71px;">JVM</a><a href="/tags/Java/" style="font-size: 17.14px;">Java</a><a href="/tags/Kafka/" style="font-size: 10.00px;">Kafka</a><a href="/tags/Kubernetes/" style="font-size: 14.29px;">Kubernetes</a><a href="/tags/Linux/" style="font-size: 10.00px;">Linux</a><a href="/tags/MQ/" style="font-size: 11.43px;">MQ</a><a href="/tags/Memory-Model/" style="font-size: 10.00px;">Memory Model</a><a href="/tags/MyCAT/" style="font-size: 17.14px;">MyCAT</a><a href="/tags/Postgres/" style="font-size: 18.57px;">Postgres</a><a href="/tags/Quantmod/" style="font-size: 12.86px;">Quantmod</a><a href="/tags/R/" style="font-size: 12.86px;">R</a><a href="/tags/REPL/" style="font-size: 10.00px;">REPL</a><a href="/tags/RocketMQ/" style="font-size: 10.00px;">RocketMQ</a><a href="/tags/SICP/" style="font-size: 11.43px;">SICP</a><a href="/tags/SSL/" style="font-size: 10.00px;">SSL</a><a href="/tags/Scala/" style="font-size: 10.00px;">Scala</a><a href="/tags/Spring-Boot/" style="font-size: 10.00px;">Spring Boot</a><a href="/tags/Tomcat/" style="font-size: 11.43px;">Tomcat</a><a href="/tags/Translation/" style="font-size: 11.43px;">Translation</a><a href="/tags/boost/" style="font-size: 10.00px;">boost</a><a href="/tags/child/" style="font-size: 10.00px;">child</a><a href="/tags/daughter/" style="font-size: 10.00px;">daughter</a><a href="/tags/dubbo/" style="font-size: 10.00px;">dubbo</a><a href="/tags/maven/" style="font-size: 10.00px;">maven</a><a href="/tags/quantlib/" style="font-size: 10.00px;">quantlib</a><a href="/tags/scheme/" style="font-size: 11.43px;">scheme</a><a href="/tags/shipyard/" style="font-size: 10.00px;">shipyard</a><a href="/tags/wechat/" style="font-size: 10.00px;">wechat</a><a href="/tags/互联网/" style="font-size: 10.00px;">互联网</a><a href="/tags/产品/" style="font-size: 10.00px;">产品</a><a href="/tags/区块链/" style="font-size: 10.00px;">区块链</a><a href="/tags/转载/" style="font-size: 12.86px;">转载</a>
+    </div>
+  </div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <!--
+      <li><a href="http://yangjian.me" target="_blank" title="YangJian">Alimon's Blog</a></li>
+      <li><a href="http://zespia.tw/hexo" target="_blank" title="Hexo">Hexo</a></li>
+      -->
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  //back to top
+  function backToTop(){
+    var buttonHTML = $("<a href=\"#top\" id=\"back-top\">" + "<span>Back to Top</span></a>");
+    buttonHTML.appendTo($("body"));
+    var buttonToTop = $("#back-top");
+    // hide #back-top first
+    buttonToTop.hide();
+
+    // fade in #back-top
+    $(function() {
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                buttonToTop.fadeIn();
+            } else {
+                buttonToTop.fadeOut();
+            }
+        });
+        // scroll body to 0px on click
+        buttonToTop.click(function() {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+            return false;
+        });
+    });
+  }
+  backToTop();
+
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      ta = $('#toc.toc-aside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+
+  var show = true;
+  c.click(function(){
+    if(show == true){
+        a.addClass('fadeOut').css('display', 'none');
+        ta.css('display', 'block').addClass('fadeIn');
+        m.addClass('moveMain');  
+    }else{
+        a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');     
+        ta.css('display', 'none'); 
+        m.removeClass('moveMain');
+        $('#toc.toc-aside').css('display', 'none');
+    }
+    show = !show;
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,240-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>
